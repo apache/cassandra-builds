@@ -178,7 +178,7 @@ cassandraBranches.each {
      * Main branch artifacts and eclipse-warnings job
      */
     job("${jobNamePrefix}-artifacts") {
-        disabled(false)
+        //disabled(false)
         using('Cassandra-template-artifacts')
         configure { node ->
             node / scm / branches / 'hudson.plugins.git.BranchSpec' / name(branchName)
@@ -195,7 +195,7 @@ cassandraBranches.each {
         def targetName = it
 
         job("${jobNamePrefix}-${targetName}") {
-            disabled(false)
+            //disabled(false)
             using('Cassandra-template-test')
             configure { node ->
                 node / scm / branches / 'hudson.plugins.git.BranchSpec' / name(branchName)
