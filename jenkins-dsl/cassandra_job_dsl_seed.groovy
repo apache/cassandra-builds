@@ -37,7 +37,6 @@ job('Cassandra-template-artifacts') {
         artifactNumToKeep(1)
     }
     wrappers {
-        timestamps()
         timeout {
             noActivity(300)
         }
@@ -81,7 +80,6 @@ job('Cassandra-template-test') {
         numToKeep(10)
     }
     wrappers {
-        timestamps()
         timeout {
             noActivity(1200)
         }
@@ -127,7 +125,6 @@ job('Cassandra-template-dtest') {
         numToKeep(10)
     }
     wrappers {
-        timestamps()
         timeout {
             noActivity(1200)
         }
