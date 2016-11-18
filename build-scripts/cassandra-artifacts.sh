@@ -23,6 +23,9 @@ for x in $(seq 1 3); do
     ant clean artifacts
     RETURN="$?"
     if [ "${RETURN}" -eq "0" ]; then
+        # Run eclipse-warnings if build was successful
+        ant eclipse-warnings
+        RETURN="$?"
         break
     fi
 done
