@@ -41,6 +41,9 @@ job('Cassandra-template-artifacts') {
             noActivity(300)
         }
     }
+    throttleConcurrentBuilds {
+        categories(['Cassandra'])
+    }
     scm {
         git {
             remote {
@@ -84,6 +87,9 @@ job('Cassandra-template-test') {
             noActivity(1200)
         }
     }
+    throttleConcurrentBuilds {
+        categories(['Cassandra'])
+    }
     scm {
         git {
             remote {
@@ -109,7 +115,6 @@ job('Cassandra-template-test') {
                 stabilityTestDataPublisher()
             }
         }
-        archiveArtifacts('')
     }
 }
 
@@ -128,6 +133,9 @@ job('Cassandra-template-dtest') {
         timeout {
             noActivity(1200)
         }
+    }
+    throttleConcurrentBuilds {
+        categories(['Cassandra'])
     }
     scm {
         git {
@@ -154,7 +162,6 @@ job('Cassandra-template-dtest') {
                 stabilityTestDataPublisher()
             }
         }
-        archiveArtifacts('')
     }
 }
 
