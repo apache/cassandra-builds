@@ -11,7 +11,7 @@ def mainRepo = 'https://git-wip-us.apache.org/repos/asf/cassandra.git'
 def buildsRepo = 'https://git.apache.org/cassandra-builds.git'
 def buildDescStr = 'REF = ${GIT_BRANCH} <br /> COMMIT = ${GIT_COMMIT}'
 // Cassandra active branches
-def cassandraBranches = ['cassandra-2.2', 'cassandra-3.0', 'cassandra-3.X', 'trunk']
+def cassandraBranches = ['cassandra-2.2', 'cassandra-3.0', 'cassandra-3.11', 'cassandra-3.X', 'trunk']
 // Ant test targets
 def testTargets = ['test', 'test-all', 'test-burn', 'test-cdc', 'test-compression']
 
