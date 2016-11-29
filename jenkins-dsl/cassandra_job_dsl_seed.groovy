@@ -198,14 +198,19 @@ cassandraBranches.each {
     testTargets.each {
         def targetName = it
 
-        job("${jobNamePrefix}-${targetName}") {
-            disabled(false)
-            using('Cassandra-template-test')
-            configure { node ->
-                node / scm / branches / 'hudson.plugins.git.BranchSpec' / name(branchName)
-            }
-            steps {
-                shell("./cassandra-builds/build-scripts/cassandra-unittest.sh ${targetName}")
+        // Skip test-cdc on cassandra-2.2 and cassandra-3.0 branches
+        if ((targetName == 'test-cdc') && ((branchName == 'cassandra-2.2') || (branchName == 'cassandra-3.0'))) {
+            println("Skipping ${targetName} on branch ${branchName}");
+        } else {
+             job("${jobNamePrefix}-${targetName}") {
+                disabled(false)
+                using('Cassandra-template-test')
+                configure { node ->
+                    node / scm / branches / 'hudson.plugins.git.BranchSpec' / name(branchName)
+                }
+                steps {
+                    shell("./cassandra-builds/build-scripts/cassandra-unittest.sh ${targetName}")
+                }
             }
         }
     }
