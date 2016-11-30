@@ -157,7 +157,7 @@ job('Cassandra-template-dtest') {
         shell("git clean -xdff ; git clone ${buildsRepo} ; git clone ${dtestRepo}")
     }
     publishers {
-        archiveArtifacts('cassandra-dtest/test_stdout.txt')
+        archiveArtifacts('test_stdout.txt')
         junit {
             testResults('cassandra-dtest/nosetests.xml')
             testDataPublishers {
