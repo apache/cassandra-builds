@@ -9,6 +9,7 @@ def jdkLabel = 'jdk1.8.0_66-unlimited-security'
 def slaveLabel = 'cassandra'
 def mainRepo = 'https://git-wip-us.apache.org/repos/asf/cassandra.git'
 def buildsRepo = 'https://git.apache.org/cassandra-builds.git'
+def dtestRepo = 'https://github.com/riptano/cassandra-dtest.git'
 def buildDescStr = 'REF = ${GIT_BRANCH} <br /> COMMIT = ${GIT_COMMIT}'
 // Cassandra active branches
 def cassandraBranches = ['cassandra-2.2', 'cassandra-3.0', 'cassandra-3.11', 'cassandra-3.X', 'trunk']
@@ -153,11 +154,12 @@ job('Cassandra-template-dtest') {
     }
     steps {
         buildDescription('', buildDescStr)
-        shell("git clean -xdff ; git clone ${buildsRepo}")
+        shell("git clean -xdff ; git clone ${buildsRepo} ; git clone ${dtestRepo}")
     }
     publishers {
+        archiveArtifacts('cassandra-dtest/test_stdout.txt')
         junit {
-            testResults('nosetests.xml')
+            testResults('cassandra-dtest/nosetests.xml')
             testDataPublishers {
                 stabilityTestDataPublisher()
             }
@@ -215,25 +217,20 @@ cassandraBranches.each {
         }
     }
 
-//    /**
-//     * Main branch dtest variation jobs
-//     */
-//    dtestTargets.each {
-//        def targetName = it
-//
-//        job("${jobNamePrefix}-${targetName}") {
-//            //disabled(false)
-//            using('Cassandra-template-dtest')
-//            configure { node ->
-//                node / scm / branches / 'hudson.plugins.git.BranchSpec' / name(branchName)
-//            }
-//            steps {
-//                shell("./cassandra-builds/build-scripts/cassandra-dtest.sh ${targetName}")
-//            }
-//        }
-//    }
+    /**
+     * Main branch dtest variation jobs
+     */
+    // TODO: set up variations similar to unittest above, ie. novnodes - currently, this is a default dtest run for each branch
+    job("${jobNamePrefix}-dtest") {
+        disabled(false)
+        using('Cassandra-template-dtest')
+        configure { node ->
+            node / scm / branches / 'hudson.plugins.git.BranchSpec' / name(branchName)
+        }
+        steps {
+            shell("./cassandra-builds/build-scripts/cassandra-dtest.sh")
+        }
+    }
 
-
-
-
+// The End.
 }
