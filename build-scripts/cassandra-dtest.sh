@@ -26,7 +26,7 @@ done
 
 # Set up venv with dtest dependencies
 set -e # enable immediate exit if venv setup fails
-virtualenv venv
+virtualenv --python=python2 --no-site-packages venv
 source venv/bin/activate
 pip install -r cassandra-dtest/requirements.txt
 pip freeze
