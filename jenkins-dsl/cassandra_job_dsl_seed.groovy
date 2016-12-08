@@ -116,6 +116,9 @@ job('Cassandra-template-test') {
                 stabilityTestDataPublisher()
             }
         }
+        postBuildTask {
+            task('.', 'echo "Finding job process orphans.."; if pgrep -af ${JOB_BASE_NAME}; then pkill -9 -f ${JOB_BASE_NAME}; fi')
+        }
     }
 }
 
@@ -163,6 +166,9 @@ job('Cassandra-template-dtest') {
             testDataPublishers {
                 stabilityTestDataPublisher()
             }
+        }
+        postBuildTask {
+            task('.', 'echo "Finding job process orphans.."; if pgrep -af ${JOB_BASE_NAME}; then pkill -9 -f ${JOB_BASE_NAME}; fi')
         }
     }
 }
