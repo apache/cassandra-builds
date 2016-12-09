@@ -42,9 +42,6 @@ job('Cassandra-template-artifacts') {
             noActivity(300)
         }
     }
-    throttleConcurrentBuilds {
-        categories(['Cassandra'])
-    }
     scm {
         git {
             remote {
