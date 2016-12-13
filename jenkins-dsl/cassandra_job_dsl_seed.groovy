@@ -15,6 +15,7 @@ def buildDescStr = 'REF = ${GIT_BRANCH} <br /> COMMIT = ${GIT_COMMIT}'
 def cassandraBranches = ['cassandra-2.2', 'cassandra-3.0', 'cassandra-3.11', 'cassandra-3.X', 'trunk']
 // Ant test targets
 def testTargets = ['test', 'test-all', 'test-burn', 'test-cdc', 'test-compression']
+def dtestTargets = ['dtest', 'dtest-novnode', 'dtest-offheap']  // dtest-large target exists, but no large servers to run on..
 
 ////////////////////////////////////////////////////////////
 //
@@ -205,7 +206,7 @@ cassandraBranches.each {
 
         // Skip test-cdc on cassandra-2.2 and cassandra-3.0 branches
         if ((targetName == 'test-cdc') && ((branchName == 'cassandra-2.2') || (branchName == 'cassandra-3.0'))) {
-            println("Skipping ${targetName} on branch ${branchName}");
+            println("Skipping ${targetName} on branch ${branchName}")
         } else {
              job("${jobNamePrefix}-${targetName}") {
                 disabled(false)
@@ -223,15 +224,23 @@ cassandraBranches.each {
     /**
      * Main branch dtest variation jobs
      */
-    // TODO: set up variations similar to unittest above, ie. novnodes - currently, this is a default dtest run for each branch
-    job("${jobNamePrefix}-dtest") {
-        disabled(false)
-        using('Cassandra-template-dtest')
-        configure { node ->
-            node / scm / branches / 'hudson.plugins.git.BranchSpec' / name(branchName)
-        }
-        steps {
-            shell("./cassandra-builds/build-scripts/cassandra-dtest.sh")
+    dtestTargets.each {
+        def targetName = it
+
+        // Skip dtest-offheap on cassandra-3.0 branch
+        if ((targetName == 'dtest-offheap') && (branchName == 'cassandra-3.0')) {
+            println("Skipping ${targetName} on branch ${branchName}")
+        } else {
+            job("${jobNamePrefix}-${targetName}") {
+                disabled(false)
+                using('Cassandra-template-dtest')
+                configure { node ->
+                    node / scm / branches / 'hudson.plugins.git.BranchSpec' / name(branchName)
+                }
+                steps {
+                    shell("./cassandra-builds/build-scripts/cassandra-dtest.sh ${targetName}")
+                }
+            }
         }
     }
 
