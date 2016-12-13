@@ -6,6 +6,9 @@
 #
 ################################
 
+# Pass in target to run, default to base dtest
+DTEST_TARGET="${1:-dtest}"
+
 export PYTHONIOENCODING="utf-8"
 export PYTHONUNBUFFERED=true
 export CASS_DRIVER_NO_EXTENSIONS=true
@@ -23,6 +26,11 @@ for x in $(seq 1 3); do
         break
     fi
 done
+# Exit, if we didn't build successfully
+if [ "${RETURN}" -ne "0" ]; then
+    echo "Build failed with exit code: ${RETURN}"
+    exit ${RETURN}
+fi
 
 # Set up venv with dtest dependencies
 set -e # enable immediate exit if venv setup fails
@@ -38,9 +46,22 @@ pip freeze
 ################################
 
 cd cassandra-dtest/
-rm -r upgrade_tests/ # TEMP: remove upgrade_tests
+rm -r upgrade_tests/ # TEMP: remove upgrade_tests - we have no dual JDK installation
 set +e # disable immediate exit from this point
-./run_dtests.py --vnodes true --nose-options="--verbosity=3 --with-xunit --nocapture --attr=!resource-intensive" | tee -a ${WORKSPACE}/test_stdout.txt
+if [ "${DTEST_TARGET}" = "dtest" ]; then
+    ./run_dtests.py --vnodes true --nose-options="--verbosity=3 --with-xunit --nocapture --attr=!resource-intensive" | tee -a ${WORKSPACE}/test_stdout.txt
+elif [ "${DTEST_TARGET}" = "dtest-novnode" ]; then
+    export DISABLE_VNODES="true"
+    ./run_dtests.py --vnodes true --nose-options="--verbosity=3 --with-xunit --nocapture --attr=!resource-intensive" | tee -a ${WORKSPACE}/test_stdout.txt
+elif [ "${DTEST_TARGET}" = "dtest-offheap" ]; then
+    export OFFHEAP_MEMTABLES="true"
+    ./run_dtests.py --vnodes true --nose-options="--verbosity=3 --with-xunit --nocapture --attr=!resource-intensive" | tee -a ${WORKSPACE}/test_stdout.txt
+elif [ "${DTEST_TARGET}" = "dtest-large" ]; then
+    ./run_dtests.py --vnodes true --nose-options="--verbosity=3 --with-xunit --nocapture --attr=resource-intensive" | tee -a ${WORKSPACE}/test_stdout.txt
+else
+    echo "Unknown dtest target: ${DTEST_TARGET}"
+    exit 1
+fi
 
 ################################
 #
