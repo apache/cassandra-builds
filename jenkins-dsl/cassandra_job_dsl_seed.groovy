@@ -226,9 +226,9 @@ cassandraBranches.each {
 
         // Run default dtest daily and variations weekly
         if (targetName == 'dtest') {
-            def triggerInterval = '@daily'
+            triggerInterval = '@daily'
         } else {
-            def triggerInterval = '@weekly'
+            triggerInterval = '@weekly'
         }
 
         // Skip dtest-offheap on cassandra-3.0 branch
@@ -242,7 +242,7 @@ cassandraBranches.each {
                     node / scm / branches / 'hudson.plugins.git.BranchSpec' / name(branchName)
                 }
                 triggers {
-                    scm("${triggerInterval}")
+                    scm(triggerInterval)
                 }
                 steps {
                     shell("./cassandra-builds/build-scripts/cassandra-dtest.sh ${targetName}")
