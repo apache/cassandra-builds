@@ -242,7 +242,7 @@ cassandraBranches.each {
                     node / scm / branches / 'hudson.plugins.git.BranchSpec' / name(branchName)
                 }
                 triggers {
-                    scm(triggerInterval)
+                    scm("${triggerInterval}")
                 }
                 steps {
                     shell("./cassandra-builds/build-scripts/cassandra-dtest.sh ${targetName}")
