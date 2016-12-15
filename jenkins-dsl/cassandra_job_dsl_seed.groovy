@@ -150,9 +150,6 @@ job('Cassandra-template-dtest') {
             }
         }
     }
-    triggers {
-        scm('@daily')
-    }
     steps {
         buildDescription('', buildDescStr)
         shell("git clean -xdff ; git clone ${buildsRepo} ; git clone ${dtestRepo}")
@@ -227,6 +224,13 @@ cassandraBranches.each {
     dtestTargets.each {
         def targetName = it
 
+        // Run default dtest daily and variations weekly
+        if (targetName == 'dtest') {
+            def triggerInterval = '@daily'
+        } else {
+            def triggerInterval = '@weekly'
+        }
+
         // Skip dtest-offheap on cassandra-3.0 branch
         if ((targetName == 'dtest-offheap') && (branchName == 'cassandra-3.0')) {
             println("Skipping ${targetName} on branch ${branchName}")
@@ -236,6 +240,9 @@ cassandraBranches.each {
                 using('Cassandra-template-dtest')
                 configure { node ->
                     node / scm / branches / 'hudson.plugins.git.BranchSpec' / name(branchName)
+                }
+                triggers {
+                    scm(triggerInterval)
                 }
                 steps {
                     shell("./cassandra-builds/build-scripts/cassandra-dtest.sh ${targetName}")
