@@ -1,0 +1,43 @@
+FROM debian:jessie-backports
+
+ENV DEB_DIST_DIR=/dist
+ENV BUILD_HOME=/home/build
+ENV CASSANDRA_DIR=$BUILD_HOME/cassandra
+
+LABEL org.cassandra.buildenv=jessie
+
+VOLUME ${DEB_DIST_DIR}
+
+# install deps
+RUN apt-get update && apt-get -y install \
+   ant \
+   build-essential \
+   curl \
+   devscripts \
+   git \
+   sudo
+
+RUN apt-get -y -t jessie-backports --no-install-recommends install \
+   openjdk-7-jdk \
+   openjdk-8-jdk
+
+RUN apt-get -y -t jessie-backports install \
+   python-sphinx \
+   python-sphinx-rtd-theme
+
+RUN update-java-alternatives --set java-1.8.0-openjdk-amd64
+
+# create and change to build user
+RUN adduser --disabled-login --gecos build build && gpasswd -a build sudo
+RUN echo "build ALL=(root) NOPASSWD:ALL" > /etc/sudoers.d/build && \
+   chmod 0440 /etc/sudoers.d/build
+
+USER build
+
+# clone Cassandra and cache maven artifacts
+RUN git clone https://git.apache.org/cassandra.git ${CASSANDRA_DIR}
+WORKDIR ${CASSANDRA_DIR}
+RUN ant maven-ant-tasks-retrieve-build
+
+COPY build-debs.sh $BUILD_HOME
+

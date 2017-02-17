@@ -1,0 +1,47 @@
+FROM centos:7.0.1406
+
+ENV BUILD_HOME=/home/build
+ENV RPM_BUILD_DIR=$BUILD_HOME/rpmbuild
+ENV RPM_DIST_DIR=/dist
+ENV CASSANDRA_DIR=$BUILD_HOME/cassandra
+
+LABEL org.cassandra.buildenv=centos
+
+VOLUME ${RPM_DIST_DIR}
+
+# install deps
+RUN yum -y install \
+   ant \
+   ant-junit \
+   epel-release \
+   git \
+   java-1.7.0-openjdk-devel \
+   java-1.8.0-openjdk-devel \
+   make \
+   rpm-build \
+   sudo
+
+# via epel-releases
+RUN yum -y install python2-pip
+
+# install Sphinx to generate docs
+RUN pip install \
+   Sphinx \
+   sphinx_rtd_theme \
+   urllib3
+
+# create and change to build user
+RUN adduser build
+RUN echo "build ALL=(root) NOPASSWD:ALL" > /etc/sudoers.d/build && \
+chmod 0440 /etc/sudoers.d/build
+
+USER build
+
+RUN mkdir -p $RPM_BUILD_DIR/{BUILD,BUILDROOT,RPMS,SOURCES,SPECS,SRPMS}
+
+# Clone Cassandra and cache maven artifacts
+RUN git clone https://git.apache.org/cassandra.git ${CASSANDRA_DIR}
+WORKDIR $CASSANDRA_DIR
+RUN ant maven-ant-tasks-retrieve-build
+
+COPY build-rpms.sh $BUILD_HOME
