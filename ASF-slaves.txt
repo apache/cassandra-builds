@@ -1,0 +1,51 @@
+This document is the list of servers and installed software for ASF INFRA
+  https://reference.apache.org/committer/node-hosting
+
+Additional compute resource donations for the Apache Cassandra project are
+appreciated. If you have questions about compute resource donations, ask
+Michael Shuler <mshuler@apache.org>.
+
+The installed OS software is the stock online.net Ubuntu 16.04 LTS amd64 image
+with only their default installation of bind9 removed:
+  $ sudo apt-get autoremove --purge bind9
+  $ sudo rm -r /var/cache/bind
+
+Add jenkins user:
+  $ sudo useradd -m -s /bin/bash jenkins
+
+Add ssh pub key from puppet deployment repo:
+  https://github.com/apache/infrastructure-puppet/blob/deployment/data/ubuntu/1404.yaml#L295
+  $ sudo mkdir /home/jenkins/.ssh
+  $ sudo sh -c "echo 'AAAAB3NzaC1yc2EAAAABIwAAAIEAtxkcKDiPh1OaVzaVdc80daKq2sRy8aAgt8u2uEcLClzMrnv/g19db7XVggfT4+HPCqcbFbO3mtVnUnWWtuSEpDjqriWnEcSj2G1P53zsdKEu9qCGLmEFMgwcq8b5plv78PRdAQn09WCBI1QrNMypjxgCKhNNn45WqV4AD8Jp7/8=' > /home/jenkins/.ssh/authorized_keys"
+  $ sudo chown -R jenkins:jenkins /home/jenkins/.ssh
+  $ sudo chmod 700 /home/jenkins/.ssh
+  $ sudo chmod 600 /home/jenkins/.ssh/authorized_keys
+
+----
+
+ONLINE Slaves:
+
+cassandra slaves (16G RAM)
+
+cassandra1 - 163.172.83.157 - Ubuntu 16.04 LTS amd64, donated by Datastax
+cassandra2 - 163.172.83.159 - Ubuntu 16.04 LTS amd64, donated by Datastax
+cassandra3 - 163.172.83.161 - Ubuntu 16.04 LTS amd64, donated by Datastax
+cassandra4 - 163.172.83.163 - Ubuntu 16.04 LTS amd64, donated by Datastax
+cassandra5 - 163.172.83.175 - Ubuntu 16.04 LTS amd64, donated by Datastax
+
+----
+
+Slaves in progress of being added to pool:
+
+cassandra-large slaves (32G RAM)
+
+cassandra6 - 163.172.71.128 - Ubuntu 16.04 LTS amd64, donated by Datastax
+cassandra7 - 163.172.71.129 - Ubuntu 16.04 LTS amd64, donated by Datastax
+
+----
+
+Contacts for system donators, when console hands may be needed by INFRA:
+
+  Datastax: Michael Shuler <mshuler@datastax.com>
+            alternative group list: cassandra-te@datastax.com
+
