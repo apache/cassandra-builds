@@ -44,4 +44,4 @@ RUN git clone https://git.apache.org/cassandra.git ${CASSANDRA_DIR}
 WORKDIR $CASSANDRA_DIR
 RUN ant maven-ant-tasks-retrieve-build
 
-COPY build-rpms.sh $BUILD_HOME
+COPY build-rpms.sh $BUILD_HOME/
