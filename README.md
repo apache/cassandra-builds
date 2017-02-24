@@ -1,10 +1,16 @@
-# Cassandra Build Tools
+# Apache Cassandra Build Tools
 
-Collection of scripts that can be used to create Cassandra Linux packages and to push them to repositories.
+* Jenkins Job DSL scripts to create CI jobs:
+    * `jenkins-dsl/`
+* Jenkins Job build/test runtime scripts:
+    * `build-scripts/`
+* Apache Cassandra packaging utilities:
+    * `cassandra-release/`
+    * `docker/`
 
 ## Building packages
 
-1. Create build images containing the build tool-chain, Java and a Cassandra git working directory
+1. Create build images containing the build tool-chain, Java and an Apache Cassandra git working directory
    * Debian:
    ```docker build -f docker/jessie-image.docker docker/```
    * RPM:
