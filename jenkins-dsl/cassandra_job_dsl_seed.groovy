@@ -15,6 +15,7 @@ def buildDescStr = 'REF = ${GIT_BRANCH} <br /> COMMIT = ${GIT_COMMIT}'
 def cassandraBranches = ['cassandra-2.2', 'cassandra-3.0', 'cassandra-3.11', 'trunk']
 // Ant test targets
 def testTargets = ['test', 'test-all', 'test-burn', 'test-cdc', 'test-compression']
+// Dtest test targets
 def dtestTargets = ['dtest', 'dtest-novnode', 'dtest-offheap']  // dtest-large target exists, but no large servers to run on..
 
 ////////////////////////////////////////////////////////////
@@ -250,6 +251,113 @@ cassandraBranches.each {
             }
         }
     }
+}
 
-// The End.
+////////////////////////////////////////////////////////////
+//
+// Parameterized Dev Branch Job Definitions
+//
+////////////////////////////////////////////////////////////
+
+/**
+ * Parameterized Dev Branch `ant testall`
+ */
+job('Cassandra-devbranch-testall') {
+    description(jobDescription)
+    jdk(jdkLabel)
+    label(slaveLabel)
+    logRotator {
+        numToKeep(10)
+    }
+    wrappers {
+        timeout {
+            noActivity(1200)
+        }
+    }
+    throttleConcurrentBuilds {
+        categories(['Cassandra'])
+    }
+    parameters {
+        stringParam('REPO', 'apache', 'The github user/org to clone cassandra repo from')
+        stringParam('BRANCH', 'trunk', 'The branch of cassandra to checkout')
+    }
+    scm {
+        git {
+            remote {
+                url('https://github.com/${REPO}/cassandra.git')
+            }
+            branch('${BRANCH}')
+            extensions {
+                cleanAfterCheckout()
+            }
+        }
+    }
+    steps {
+        buildDescription('', buildDescStr)
+        shell("git clean -xdff ; git clone ${buildsRepo}")
+        shell('./cassandra-builds/build-scripts/cassandra-unittest.sh testall')
+    }
+    publishers {
+        junit {
+            testResults('**/TEST-*.xml')
+            testDataPublishers {
+                stabilityTestDataPublisher()
+            }
+        }
+        postBuildTask {
+            task('.', 'echo "Finding job process orphans.."; if pgrep -af ${JOB_BASE_NAME}; then pkill -9 -f ${JOB_BASE_NAME}; fi')
+        }
+    }
+}
+
+/**
+ * Parameterized Dev Branch dtest
+ */
+job('Cassandra-devbranch-dtest') {
+    description(jobDescription)
+    jdk(jdkLabel)
+    label(slaveLabel)
+    logRotator {
+        numToKeep(10)
+    }
+    wrappers {
+        timeout {
+            noActivity(1200)
+        }
+    }
+    throttleConcurrentBuilds {
+        categories(['Cassandra'])
+    }
+    parameters {
+        stringParam('REPO', 'apache', 'The github user/org to clone cassandra repo from')
+        stringParam('BRANCH', 'trunk', 'The branch of cassandra to checkout')
+    }
+    scm {
+        git {
+            remote {
+                url('https://github.com/${REPO}/cassandra.git')
+            }
+            branch('${BRANCH}')
+            extensions {
+                cleanAfterCheckout()
+            }
+        }
+    }
+    steps {
+        buildDescription('', buildDescStr)
+        shell("git clean -xdff ; git clone ${buildsRepo} ; git clone ${dtestRepo}")
+        shell('./cassandra-builds/build-scripts/cassandra-dtest.sh')
+    }
+    publishers {
+        archiveArtifacts('test_stdout.txt')
+        junit {
+            testResults('cassandra-dtest/nosetests.xml')
+            testDataPublishers {
+                stabilityTestDataPublisher()
+            }
+        }
+        postBuildTask {
+            task('.', 'echo "Finding job process orphans.."; if pgrep -af ${JOB_BASE_NAME}; then pkill -9 -f ${JOB_BASE_NAME}; fi')
+        }
+    }
 }
