@@ -260,7 +260,7 @@ cassandraBranches.each {
 ////////////////////////////////////////////////////////////
 
 /**
- * Parameterized Dev Branch `ant testall`
+ * Parameterized Dev Branch `ant test-all`
  */
 job('Cassandra-devbranch-testall') {
     description(jobDescription)
@@ -295,7 +295,7 @@ job('Cassandra-devbranch-testall') {
     steps {
         buildDescription('', buildDescStr)
         shell("git clean -xdff ; git clone ${buildsRepo}")
-        shell('./cassandra-builds/build-scripts/cassandra-unittest.sh testall')
+        shell('./cassandra-builds/build-scripts/cassandra-unittest.sh test-all')
     }
     publishers {
         junit {
