@@ -8,6 +8,8 @@
 
 export PYTHONIOENCODING="utf-8"
 export PYTHONUNBUFFERED=true
+export CASS_DRIVER_NO_EXTENSIONS=true
+export CASS_DRIVER_NO_CYTHON=true
 export CCM_MAX_HEAP_SIZE="2048M"
 export CCM_HEAP_NEWSIZE="200M"
 export NUM_TOKENS="32"
@@ -27,20 +29,24 @@ if [ "${RETURN}" -ne "0" ]; then
     exit ${RETURN}
 fi
 
+# Set up venv with dtest dependencies
+set -e # enable immediate exit if venv setup fails
+virtualenv --python=python2 --no-site-packages venv
+source venv/bin/activate
+pip install -r cassandra-dtest/requirements.txt
+pip freeze
+
+if [ "$cython" = "yes" ]; then
+    pip install "Cython>=0.20,<0.25"
+    cd pylib/; python setup.py build_ext --inplace
+    cd ${WORKSPACE}
+fi
+
 ################################
 #
 # Main
 #
 ################################
-
-if [ "$cython" = "yes" ]; then
-    virtualenv --python=python2 --no-site-packages venv
-    source venv/bin/activate
-    pip install "Cython>=0.20,<0.25"
-    pip freeze
-    cd pylib/; python setup.py build_ext --inplace
-    cd ${WORKSPACE}
-fi
 
 ccm create test -n 1
 ccm updateconf "enable_user_defined_functions: true"
@@ -72,28 +78,26 @@ detailed-errors=1
 with-xunit=1
 EOF
 
+set +e # disable immediate exit from this point
 nosetests
 
 ccm remove
 mv nosetests.xml ${WORKSPACE}/cqlshlib.xml
-if [ "$cython" = "yes" ]; then
-    deactivate  # venv
-fi
-cd ${WORKSPACE}
-
 
 # run dtest cqlsh suite
-cd cassandra-dtest/
-if [ "$cython" = "no" ]; then
-    export CASS_DRIVER_NO_EXTENSIONS=true
-    export CASS_DRIVER_NO_CYTHON=true
-fi
-virtualenv --python=python2 --no-site-packages venv
-source venv/bin/activate
-pip install -r requirements.txt
-pip freeze
-
+cd ${WORKSPACE}/cassandra-dtest/
 nosetests --verbosity=3 --with-xunit --nocapture cqlsh_tests/
 
 mv nosetests.xml ${WORKSPACE}/
-deactivate  # venv
+
+################################
+#
+# Clean
+#
+################################
+
+# /virtualenv
+deactivate
+
+# Exit cleanly for usable "Unstable" status
+exit 0
