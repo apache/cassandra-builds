@@ -134,6 +134,8 @@ then
 else
     release_short=${release:0:$((idx-1))}
 fi
+release_major=$(echo ${release_short} | cut -d '.' -f 1)
+release_minor=$(echo ${release_short} | cut -d '.' -f 2)
 
 echo "Deploying artifacts ..." 1>&3 2>&4
 start_dir=$PWD
@@ -164,7 +166,7 @@ echo "Deploying debian packages ..." 1>&3 2>&4
 
 current_dir=`pwd`
 
-debian_series="${release_short:0:1}${release_short:2:2}x"
+debian_series="${release_major}${release_minor}x"
 
 execute "cd $reprepro_dir"
 execute "reprepro --ignore=wrongdistribution include $debian_series $debian_package_dir/cassandra_${release}_debian/cassandra_${deb_release}_*.changes"
@@ -192,7 +194,7 @@ echo "Downloads of source and binary distributions are listed in our download se
 echo "" >> $mail_file
 echo " http://cassandra.apache.org/download/" >> $mail_file
 echo "" >> $mail_file
-series="${release_short:0:1}.${release_short:2:1}"
+series="${release_major}.${release_minor}"
 echo "This version is a bug fix release[1] on the $series series. As always, please pay attention to the release notes[2] and Let us know[3] if you were to encounter any problem." >> $mail_file
 echo "" >> $mail_file
 echo "Enjoy!" >> $mail_file
