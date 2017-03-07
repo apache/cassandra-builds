@@ -175,7 +175,6 @@ job('Cassandra-template-dtest') {
 matrixJob('Cassandra-template-cqlsh-tests') {
     disabled(true)
     description(jobDescription)
-    jdk(jdkLabel)
     label(slaveLabel)
     logRotator {
         numToKeep(10)
@@ -190,6 +189,7 @@ matrixJob('Cassandra-template-cqlsh-tests') {
     }
     axes {
         text('cython', 'yes', 'no')
+        jdk(jdkLabel)
     }
     scm {
         git {
@@ -434,7 +434,6 @@ job('Cassandra-devbranch-dtest') {
  */
 matrixJob('Cassandra-devbranch-cqlsh-tests') {
     description(jobDescription)
-    jdk(jdkLabel)
     label(slaveLabel)
     logRotator {
         numToKeep(10)
@@ -450,6 +449,10 @@ matrixJob('Cassandra-devbranch-cqlsh-tests') {
     parameters {
         stringParam('REPO', 'apache', 'The github user/org to clone cassandra repo from')
         stringParam('BRANCH', 'trunk', 'The branch of cassandra to checkout')
+    }
+    axes {
+        text('cython', 'yes', 'no')
+        jdk(jdkLabel)
     }
     scm {
         git {
