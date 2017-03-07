@@ -175,7 +175,6 @@ job('Cassandra-template-dtest') {
 matrixJob('Cassandra-template-cqlsh-tests') {
     disabled(true)
     description(jobDescription)
-    label(slaveLabel)
     logRotator {
         numToKeep(10)
     }
@@ -435,7 +434,6 @@ job('Cassandra-devbranch-dtest') {
  */
 matrixJob('Cassandra-devbranch-cqlsh-tests') {
     description(jobDescription)
-    label(slaveLabel)
     logRotator {
         numToKeep(10)
     }
