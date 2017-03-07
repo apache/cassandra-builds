@@ -428,3 +428,54 @@ job('Cassandra-devbranch-dtest') {
         }
     }
 }
+
+/**
+ * Parameterized Dev Branch cqlsh-tests
+ */
+matrixJob('Cassandra-devbranch-cqlsh-tests') {
+    description(jobDescription)
+    jdk(jdkLabel)
+    label(slaveLabel)
+    logRotator {
+        numToKeep(10)
+    }
+    wrappers {
+        timeout {
+            noActivity(1200)
+        }
+    }
+    throttleConcurrentBuilds {
+        categories(['Cassandra'])
+    }
+    parameters {
+        stringParam('REPO', 'apache', 'The github user/org to clone cassandra repo from')
+        stringParam('BRANCH', 'trunk', 'The branch of cassandra to checkout')
+    }
+    scm {
+        git {
+            remote {
+                url('https://github.com/${REPO}/cassandra.git')
+            }
+            branch('${BRANCH}')
+            extensions {
+                cleanAfterCheckout()
+            }
+        }
+    }
+    steps {
+        buildDescription('', buildDescStr)
+        shell("git clean -xdff ; git clone ${buildsRepo} ; git clone ${dtestRepo}")
+        shell('./cassandra-builds/build-scripts/cassandra-cqlsh-tests.sh')
+    }
+    publishers {
+        junit {
+            testResults('cqlshlib.xml, nosetests.xml')
+            testDataPublishers {
+                stabilityTestDataPublisher()
+            }
+        }
+        postBuildTask {
+            task('.', 'echo "Finding job process orphans.."; if pgrep -af ${JOB_BASE_NAME}; then pkill -9 -f ${JOB_BASE_NAME}; fi')
+        }
+    }
+}
