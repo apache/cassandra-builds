@@ -169,6 +169,59 @@ job('Cassandra-template-dtest') {
     }
 }
 
+/**
+ * cqlsh template
+ */
+matrixJob('Cassandra-template-cqlsh-tests') {
+    disabled(true)
+    description(jobDescription)
+    jdk(jdkLabel)
+    label(slaveLabel)
+    logRotator {
+        numToKeep(10)
+    }
+    wrappers {
+        timeout {
+            noActivity(1200)
+        }
+    }
+    throttleConcurrentBuilds {
+        categories(['Cassandra'])
+    }
+    axes {
+        text('cython', 'yes', 'no')
+    }
+    scm {
+        git {
+            remote {
+                url(mainRepo)
+            }
+            branch('*/null')
+            extensions {
+                cleanAfterCheckout()
+            }
+        }
+    }
+    triggers {
+        scm('@weekly')
+    }
+    steps {
+        buildDescription('', buildDescStr)
+        shell("git clean -xdff ; git clone ${buildsRepo} ; git clone ${dtestRepo}")
+    }
+    publishers {
+        junit {
+            testResults('cqlshlib.xml, nosetests.xml')
+            testDataPublishers {
+                stabilityTestDataPublisher()
+            }
+        }
+        postBuildTask {
+            task('.', 'echo "Finding job process orphans.."; if pgrep -af ${JOB_BASE_NAME}; then pkill -9 -f ${JOB_BASE_NAME}; fi')
+        }
+    }
+}
+
 ////////////////////////////////////////////////////////////
 //
 // Branch Job Definitions
@@ -249,6 +302,20 @@ cassandraBranches.each {
                     shell("./cassandra-builds/build-scripts/cassandra-dtest.sh ${targetName}")
                 }
             }
+        }
+    }
+
+    /**
+     * Main branch cqlsh jobs
+     */
+    matrixJob("${jobNamePrefix}-cqlsh-tests") {
+        disabled(false)
+        using('Cassandra-template-cqlsh-tests')
+        configure { node ->
+            node / scm / branches / 'hudson.plugins.git.BranchSpec' / name(branchName)
+        }
+        steps {
+            shell('./cassandra-builds/build-scripts/cassandra-cqlsh-tests.sh')
         }
     }
 }
