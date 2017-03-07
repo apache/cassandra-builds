@@ -190,6 +190,7 @@ matrixJob('Cassandra-template-cqlsh-tests') {
     axes {
         text('cython', 'yes', 'no')
         jdk(jdkLabel)
+        label('label', slaveLabel)
     }
     scm {
         git {
@@ -453,6 +454,7 @@ matrixJob('Cassandra-devbranch-cqlsh-tests') {
     axes {
         text('cython', 'yes', 'no')
         jdk(jdkLabel)
+        label('label', slaveLabel)
     }
     scm {
         git {
