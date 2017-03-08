@@ -191,6 +191,8 @@ matrixJob('Cassandra-template-cqlsh-tests') {
         jdk(jdkLabel)
         label('label', slaveLabel)
     }
+    // this should prevent long path expansion from the axis definitions
+    childCustomWorkspace('.')
     scm {
         git {
             remote {
@@ -455,6 +457,8 @@ matrixJob('Cassandra-devbranch-cqlsh-tests') {
         jdk(jdkLabel)
         label('label', slaveLabel)
     }
+    // this should prevent long path expansion from the axis definitions
+    childCustomWorkspace('.')
     scm {
         git {
             remote {
