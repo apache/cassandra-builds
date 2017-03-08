@@ -311,7 +311,7 @@ cassandraBranches.each {
      * Main branch cqlsh jobs
      */
     matrixJob("${jobNamePrefix}-cqlsh-tests") {
-        disabled(true)
+        disabled(false)
         using('Cassandra-template-cqlsh-tests')
         configure { node ->
             node / scm / branches / 'hudson.plugins.git.BranchSpec' / name(branchName)
@@ -435,7 +435,6 @@ job('Cassandra-devbranch-dtest') {
  * Parameterized Dev Branch cqlsh-tests
  */
 matrixJob('Cassandra-devbranch-cqlsh-tests') {
-    disabled(true)
     description(jobDescription)
     logRotator {
         numToKeep(10)
