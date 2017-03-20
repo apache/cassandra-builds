@@ -5,7 +5,7 @@
 ////////////////////////////////////////////////////////////
 
 def jobDescription = 'Apache Cassandra DSL-generated job - DSL git repo: <a href="https://git-wip-us.apache.org/repos/asf?p=cassandra-builds.git">cassandra-builds</a>'
-def jdkLabel = 'jdk1.8.0_66-unlimited-security'
+def jdkLabel = 'JDK 1.8 (latest)'
 def slaveLabel = 'cassandra'
 def mainRepo = 'https://git-wip-us.apache.org/repos/asf/cassandra.git'
 def buildsRepo = 'https://git.apache.org/cassandra-builds.git'
