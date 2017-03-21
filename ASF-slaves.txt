@@ -10,6 +10,10 @@ with only their default installation of bind9 removed:
   $ sudo apt-get autoremove --purge bind9
   $ sudo rm -r /var/cache/bind
 
+Edit sudoers to allow INFRA to sudo without password, or provide them with the password.
+For example, set:  %sudo   ALL=(ALL:ALL) NOPASSWD:ALL
+  $ sudo visudo
+
 Add jenkins user:
   $ sudo useradd -m -s /bin/bash jenkins
 
