@@ -29,22 +29,15 @@ Add ssh pub key from puppet deployment repo:
 
 ONLINE Slaves:
 
-cassandra slaves (16G RAM)
+'cassandra' label slaves (16G RAM)
 
-cassandra1 - 163.172.83.157 - Ubuntu 16.04 LTS amd64, donated by Datastax
-cassandra2 - 163.172.83.159 - Ubuntu 16.04 LTS amd64, donated by Datastax
-cassandra3 - 163.172.83.161 - Ubuntu 16.04 LTS amd64, donated by Datastax
-cassandra4 - 163.172.83.163 - Ubuntu 16.04 LTS amd64, donated by Datastax
-cassandra5 - 163.172.83.175 - Ubuntu 16.04 LTS amd64, donated by Datastax
-
-----
-
-Slaves in progress of being added to pool:
-
-cassandra-large slaves (32G RAM)
-
-cassandra6 - 163.172.71.128 - Ubuntu 16.04 LTS amd64, donated by Datastax
-cassandra7 - 163.172.71.129 - Ubuntu 16.04 LTS amd64, donated by Datastax
+cassandra1 - 163.172.83.157 - Ubuntu 16.04 LTS amd64, 16G RAM, donated by Datastax
+cassandra2 - 163.172.83.159 - Ubuntu 16.04 LTS amd64, 16G RAM, donated by Datastax
+cassandra3 - 163.172.83.161 - Ubuntu 16.04 LTS amd64, 16G RAM, donated by Datastax
+cassandra4 - 163.172.83.163 - Ubuntu 16.04 LTS amd64, 16G RAM, donated by Datastax
+cassandra5 - 163.172.83.175 - Ubuntu 16.04 LTS amd64, 16G RAM, donated by Datastax
+cassandra6 - 163.172.71.128 - Ubuntu 16.04 LTS amd64, 32G RAM, donated by Datastax
+cassandra7 - 163.172.71.129 - Ubuntu 16.04 LTS amd64, 32G RAM, donated by Datastax
 
 ----
 
