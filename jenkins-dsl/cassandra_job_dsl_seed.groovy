@@ -7,6 +7,8 @@
 def jobDescription = 'Apache Cassandra DSL-generated job - DSL git repo: <a href="https://git-wip-us.apache.org/repos/asf?p=cassandra-builds.git">cassandra-builds</a>'
 def jdkLabel = 'JDK 1.8 (latest)'
 def slaveLabel = 'cassandra'
+// The dtest-large target needs to run on >=32G slaves, so we provide an "OR" list of those servers
+def largeSlaveLabel = 'cassandra6||cassandra7'
 def mainRepo = 'https://git-wip-us.apache.org/repos/asf/cassandra.git'
 def buildsRepo = 'https://git.apache.org/cassandra-builds.git'
 def dtestRepo = 'https://github.com/riptano/cassandra-dtest.git'
@@ -16,7 +18,7 @@ def cassandraBranches = ['cassandra-2.2', 'cassandra-3.0', 'cassandra-3.11', 'tr
 // Ant test targets
 def testTargets = ['test', 'test-all', 'test-burn', 'test-cdc', 'test-compression']
 // Dtest test targets
-def dtestTargets = ['dtest', 'dtest-novnode', 'dtest-offheap']  // dtest-large target exists, but no large servers to run on..
+def dtestTargets = ['dtest', 'dtest-novnode', 'dtest-offheap', 'dtest-large']
 
 ////////////////////////////////////////////////////////////
 //
@@ -294,6 +296,9 @@ cassandraBranches.each {
             job("${jobNamePrefix}-${targetName}") {
                 disabled(false)
                 using('Cassandra-template-dtest')
+                if (targetName == 'dtest-large') {
+                    label(largeSlaveLabel)
+                }
                 configure { node ->
                     node / scm / branches / 'hudson.plugins.git.BranchSpec' / name(branchName)
                 }
