@@ -6,7 +6,7 @@
 
 def jobDescription = 'Apache Cassandra DSL-generated job - DSL git repo: <a href="https://git-wip-us.apache.org/repos/asf?p=cassandra-builds.git">cassandra-builds</a>'
 def jdkLabel = 'JDK 1.8 (latest)'
-def slaveLabel = 'cassandra'
+def slaveLabel = 'cassandra&&!(cassandra6||cassandra7)' // TEMP - skip cassandra6,7 slaves until name resolution is fixed: INFRA-13567
 // The dtest-large target needs to run on >=32G slaves, so we provide an "OR" list of those servers
 def largeSlaveLabel = 'cassandra6||cassandra7'
 def mainRepo = 'https://git-wip-us.apache.org/repos/asf/cassandra.git'
