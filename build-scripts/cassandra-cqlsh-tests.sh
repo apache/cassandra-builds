@@ -48,6 +48,7 @@ fi
 #
 ################################
 
+ccm remove test || true # in case an old ccm cluster is left behind
 ccm create test -n 1
 ccm updateconf "enable_user_defined_functions: true"
 
