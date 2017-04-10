@@ -259,6 +259,13 @@ cassandraBranches.each {
     testTargets.each {
         def targetName = it
 
+        // Run default dtest daily and variations weekly
+        if (targetName == 'test') {
+            triggerInterval = '@daily'
+        } else {
+            triggerInterval = '@weekly'
+        }
+
         // Skip test-cdc on cassandra-2.2 and cassandra-3.0 branches
         if ((targetName == 'test-cdc') && ((branchName == 'cassandra-2.2') || (branchName == 'cassandra-3.0'))) {
             println("Skipping ${targetName} on branch ${branchName}")
@@ -268,6 +275,9 @@ cassandraBranches.each {
                 using('Cassandra-template-test')
                 configure { node ->
                     node / scm / branches / 'hudson.plugins.git.BranchSpec' / name(branchName)
+                }
+                triggers {
+                    scm(triggerInterval)
                 }
                 steps {
                     shell("./cassandra-builds/build-scripts/cassandra-unittest.sh ${targetName}")
