@@ -259,7 +259,7 @@ cassandraBranches.each {
     testTargets.each {
         def targetName = it
 
-        // Run default dtest daily and variations weekly
+        // Run default ant test daily and variations weekly
         if (targetName == 'test') {
             triggerInterval = '@daily'
         } else {
