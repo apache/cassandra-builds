@@ -11,7 +11,7 @@ CASSANDRA_VERSION=$2
 
 cd $CASSANDRA_DIR
 git fetch
-git checkout origin/$CASSANDRA_BRANCH
+git checkout $CASSANDRA_BRANCH
 # javadoc target is broken in docker without this mkdir
 mkdir -p ./build/javadoc
 ant artifacts -Drelease=true
