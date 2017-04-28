@@ -6,19 +6,50 @@
 
 def jobDescription = 'Apache Cassandra DSL-generated job - DSL git repo: <a href="https://git-wip-us.apache.org/repos/asf?p=cassandra-builds.git">cassandra-builds</a>'
 def jdkLabel = 'JDK 1.8 (latest)'
+if(binding.hasVariable("CASSANDRA_JDK_LABEL")) {
+    jdkLabel = "${CASSANDRA_JDK_LABEL}"
+}
 def slaveLabel = 'cassandra'
+if(binding.hasVariable("CASSANDRA_SLAVE_LABEL")) {
+    slaveLabel = "${CASSANDRA_SLAVE_LABEL}"
+}
 // The dtest-large target needs to run on >=32G slaves, so we provide an "OR" list of those servers
 def largeSlaveLabel = 'cassandra6||cassandra7'
-def mainRepo = 'https://git-wip-us.apache.org/repos/asf/cassandra.git'
-def buildsRepo = 'https://git.apache.org/cassandra-builds.git'
-def dtestRepo = 'https://github.com/riptano/cassandra-dtest.git'
+if(binding.hasVariable("CASSANDRA_LARGE_SLAVE_LABEL")) {
+    largeSlaveLabel = "${CASSANDRA_LARGE_SLAVE_LABEL}"
+}
+def mainRepo = "https://git-wip-us.apache.org/repos/asf/cassandra.git"
+if(binding.hasVariable("CASSANDRA_GIT_URL")) {
+    mainRepo = "${CASSANDRA_GIT_URL}"
+}
+def buildsRepo = "https://git.apache.org/cassandra-builds.git"
+if(binding.hasVariable("CASSANDRA_BUILDS_GIT_URL")) {
+    buildsRepo = "${CASSANDRA_BUILDS_GIT_URL}"
+}
+def buildsBranch = "master"
+if(binding.hasVariable("CASSANDRA_BUILDS_BRANCH")) {
+    buildsBranch = "${CASSANDRA_BUILDS_BRANCH}"
+}
+def dtestRepo = "https://github.com/riptano/cassandra-dtest.git"
+if(binding.hasVariable("CASSANDRA_DTEST_GIT_URL")) {
+    dtestRepo = "${CASSANDRA_DTEST_GIT_URL}"
+}
 def buildDescStr = 'REF = ${GIT_BRANCH} <br /> COMMIT = ${GIT_COMMIT}'
 // Cassandra active branches
 def cassandraBranches = ['cassandra-2.2', 'cassandra-3.0', 'cassandra-3.11', 'trunk']
+if(binding.hasVariable("CASSANDRA_BRANCHES")) {
+    cassandraBranches = "${CASSANDRA_BRANCHES}".split(",")
+}
 // Ant test targets
 def testTargets = ['test', 'test-all', 'test-burn', 'test-cdc', 'test-compression']
+if(binding.hasVariable("CASSANDRA_ANT_TEST_TARGETS")) {
+    testTargets = "${CASSANDRA_ANT_TEST_TARGETS}".split(",")
+}
 // Dtest test targets
 def dtestTargets = ['dtest', 'dtest-novnode', 'dtest-offheap', 'dtest-large']
+if(binding.hasVariable("CASSANDRA_DTEST_TEST_TARGETS")) {
+    dtestTargets = "${CASSANDRA_DTEST_TEST_TARGETS}".split(",")
+}
 
 ////////////////////////////////////////////////////////////
 //
@@ -62,7 +93,7 @@ job('Cassandra-template-artifacts') {
     }
     steps {
         buildDescription('', buildDescStr)
-        shell("git clean -xdff ; git clone ${buildsRepo}")
+        shell("git clean -xdff ; git clone -b ${buildsBranch} ${buildsRepo}")
     }
     publishers {
         archiveArtifacts('build/*.tar.gz, build/**/eclipse_compiler_checks.txt')
@@ -108,7 +139,7 @@ job('Cassandra-template-test') {
     }
     steps {
         buildDescription('', buildDescStr)
-        shell("git clean -xdff ; git clone ${buildsRepo}")
+        shell("git clean -xdff ; git clone -b ${buildsBranch} ${buildsRepo}")
     }
     publishers {
         junit {
@@ -155,7 +186,7 @@ job('Cassandra-template-dtest') {
     }
     steps {
         buildDescription('', buildDescStr)
-        shell("git clean -xdff ; git clone ${buildsRepo} ; git clone ${dtestRepo}")
+        shell("git clean -xdff ; git clone -b ${buildsBranch} ${buildsRepo} ; git clone ${dtestRepo}")
     }
     publishers {
         archiveArtifacts('test_stdout.txt')
@@ -211,7 +242,7 @@ matrixJob('Cassandra-template-cqlsh-tests') {
     }
     steps {
         buildDescription('', buildDescStr)
-        shell("git clean -xdff ; git clone ${buildsRepo} ; git clone ${dtestRepo}")
+        shell("git clean -xdff ; git clone -b ${buildsBranch} ${buildsRepo} ; git clone ${dtestRepo}")
     }
     publishers {
         junit {
@@ -378,7 +409,7 @@ job('Cassandra-devbranch-testall') {
     }
     steps {
         buildDescription('', buildDescStr)
-        shell("git clean -xdff ; git clone ${buildsRepo}")
+        shell("git clean -xdff ; git clone -b ${buildsBranch} ${buildsRepo}")
         shell('./cassandra-builds/build-scripts/cassandra-unittest.sh test-all')
     }
     publishers {
@@ -429,7 +460,7 @@ job('Cassandra-devbranch-dtest') {
     }
     steps {
         buildDescription('', buildDescStr)
-        shell("git clean -xdff ; git clone ${buildsRepo} ; git clone ${dtestRepo}")
+        shell("git clean -xdff ; git clone -b ${buildsBranch} ${buildsRepo} ; git clone ${dtestRepo}")
         shell('./cassandra-builds/build-scripts/cassandra-dtest.sh')
     }
     publishers {
@@ -486,7 +517,7 @@ matrixJob('Cassandra-devbranch-cqlsh-tests') {
     }
     steps {
         buildDescription('', buildDescStr)
-        shell("git clean -xdff ; git clone ${buildsRepo} ; git clone ${dtestRepo}")
+        shell("git clean -xdff ; git clone -b ${buildsBranch} ${buildsRepo} ; git clone ${dtestRepo}")
         shell('./cassandra-builds/build-scripts/cassandra-cqlsh-tests.sh')
     }
     publishers {
