@@ -10,7 +10,7 @@ CASSANDRA_BRANCH=$1
 
 cd $CASSANDRA_DIR
 git fetch
-git checkout $CASSANDRA_BRANCH
+git checkout $CASSANDRA_BRANCH || exit 1
 
 # Used version for build will always depend on the git referenced used for checkout above
 # Branches will always be created as snapshots, while tags are releases
