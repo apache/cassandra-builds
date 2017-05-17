@@ -379,6 +379,7 @@ cassandraBranches.each {
  */
 job('Cassandra-devbranch-testall') {
     description(jobDescription)
+    concurrentBuild()
     jdk(jdkLabel)
     label(slaveLabel)
     logRotator {
@@ -430,6 +431,7 @@ job('Cassandra-devbranch-testall') {
  */
 job('Cassandra-devbranch-dtest') {
     description(jobDescription)
+    concurrentBuild()
     jdk(jdkLabel)
     label(slaveLabel)
     logRotator {
@@ -482,6 +484,7 @@ job('Cassandra-devbranch-dtest') {
  */
 matrixJob('Cassandra-devbranch-cqlsh-tests') {
     description(jobDescription)
+    concurrentBuild()
     logRotator {
         numToKeep(10)
     }
