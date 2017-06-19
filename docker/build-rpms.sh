@@ -46,7 +46,7 @@ if [ "$tag" ]; then
       exit 4
    fi
    CASSANDRA_VERSION=$git_version
-   CASSANDRA_REVISION='1%{?dist}'
+   CASSANDRA_REVISION='1'
 elif [ "$branch" ]; then
    # Dev branch
    is_branch=true
@@ -55,7 +55,7 @@ elif [ "$branch" ]; then
    CASSANDRA_VERSION="${buildxml_version}"
    dt=`date +"%Y%m%d"`
    ref=`git rev-parse --short HEAD`
-   CASSANDRA_REVISION="${dt}git${ref}%{?dist}"
+   CASSANDRA_REVISION="${dt}git${ref}"
 else
    echo "Error: invalid git reference; must either be branch or tag">&2
    exit 1
