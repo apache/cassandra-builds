@@ -30,7 +30,7 @@ def buildsBranch = "master"
 if(binding.hasVariable("CASSANDRA_BUILDS_BRANCH")) {
     buildsBranch = "${CASSANDRA_BUILDS_BRANCH}"
 }
-def dtestRepo = "https://github.com/riptano/cassandra-dtest.git"
+def dtestRepo = "https://git.apache.org/cassandra-dtest.git"
 if(binding.hasVariable("CASSANDRA_DTEST_GIT_URL")) {
     dtestRepo = "${CASSANDRA_DTEST_GIT_URL}"
 }
