@@ -69,7 +69,7 @@ job('Cassandra-template-artifacts') {
     jdk(jdkLabel)
     label(slaveLabel)
     logRotator {
-        numToKeep(10)
+        numToKeep(50)
         artifactNumToKeep(1)
     }
     wrappers {
@@ -113,7 +113,7 @@ job('Cassandra-template-test') {
     jdk(jdkLabel)
     label(slaveLabel)
     logRotator {
-        numToKeep(10)
+        numToKeep(50)
     }
     wrappers {
         timeout {
@@ -163,7 +163,7 @@ job('Cassandra-template-dtest') {
     jdk(jdkLabel)
     label(slaveLabel)
     logRotator {
-        numToKeep(10)
+        numToKeep(50)
     }
     wrappers {
         timeout {
@@ -209,7 +209,7 @@ matrixJob('Cassandra-template-cqlsh-tests') {
     disabled(true)
     description(jobDescription)
     logRotator {
-        numToKeep(10)
+        numToKeep(50)
     }
     wrappers {
         timeout {
@@ -383,7 +383,7 @@ job('Cassandra-devbranch-testall') {
     jdk(jdkLabel)
     label(slaveLabel)
     logRotator {
-        numToKeep(10)
+        numToKeep(50)
     }
     wrappers {
         timeout {
@@ -435,7 +435,7 @@ job('Cassandra-devbranch-dtest') {
     jdk(jdkLabel)
     label(slaveLabel)
     logRotator {
-        numToKeep(10)
+        numToKeep(50)
     }
     wrappers {
         timeout {
@@ -486,7 +486,7 @@ matrixJob('Cassandra-devbranch-cqlsh-tests') {
     description(jobDescription)
     concurrentBuild()
     logRotator {
-        numToKeep(10)
+        numToKeep(50)
     }
     wrappers {
         timeout {
