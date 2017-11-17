@@ -448,6 +448,8 @@ job('Cassandra-devbranch-dtest') {
     parameters {
         stringParam('REPO', 'apache', 'The github user/org to clone cassandra repo from')
         stringParam('BRANCH', 'trunk', 'The branch of cassandra to checkout')
+        stringParam('DTEST_REPO', "${dtestRepo}", 'The cassandra-dtest repo URL')
+        stringParam('DTEST_BRANCH', 'master', 'The branch of cassandra-dtest to checkout')
     }
     scm {
         git {
@@ -462,7 +464,8 @@ job('Cassandra-devbranch-dtest') {
     }
     steps {
         buildDescription('', buildDescStr)
-        shell("git clean -xdff ; git clone -b ${buildsBranch} ${buildsRepo} ; git clone ${dtestRepo}")
+        shell("git clean -xdff ; git clone -b ${buildsBranch} ${buildsRepo}")
+        shell('git clone -b ${DTEST_BRANCH} ${DTEST_REPO}')
         shell('./cassandra-builds/build-scripts/cassandra-dtest.sh')
     }
     publishers {
@@ -499,6 +502,8 @@ matrixJob('Cassandra-devbranch-cqlsh-tests') {
     parameters {
         stringParam('REPO', 'apache', 'The github user/org to clone cassandra repo from')
         stringParam('BRANCH', 'trunk', 'The branch of cassandra to checkout')
+        stringParam('DTEST_REPO', "${dtestRepo}", 'The cassandra-dtest repo URL')
+        stringParam('DTEST_BRANCH', 'master', 'The branch of cassandra-dtest to checkout')
     }
     axes {
         text('cython', 'yes', 'no')
@@ -520,7 +525,8 @@ matrixJob('Cassandra-devbranch-cqlsh-tests') {
     }
     steps {
         buildDescription('', buildDescStr)
-        shell("git clean -xdff ; git clone -b ${buildsBranch} ${buildsRepo} ; git clone ${dtestRepo}")
+        shell("git clean -xdff ; git clone -b ${buildsBranch} ${buildsRepo}")
+        shell('git clone -b ${DTEST_BRANCH} ${DTEST_REPO}')
         shell('./cassandra-builds/build-scripts/cassandra-cqlsh-tests.sh')
     }
     publishers {
