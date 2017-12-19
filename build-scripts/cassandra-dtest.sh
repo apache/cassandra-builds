@@ -53,7 +53,7 @@ if [ "${DTEST_TARGET}" = "dtest" ]; then
     ./run_dtests.py --vnodes true --nose-options="--verbosity=3 --with-xunit --nocapture --attr=!resource-intensive" | tee -a ${WORKSPACE}/test_stdout.txt
 elif [ "${DTEST_TARGET}" = "dtest-novnode" ]; then
     export DISABLE_VNODES="true"
-    ./run_dtests.py --vnodes true --nose-options="--verbosity=3 --with-xunit --nocapture --attr=!resource-intensive" | tee -a ${WORKSPACE}/test_stdout.txt
+    ./run_dtests.py --vnodes false --nose-options="--verbosity=3 --with-xunit --nocapture --attr=!resource-intensive" | tee -a ${WORKSPACE}/test_stdout.txt
 elif [ "${DTEST_TARGET}" = "dtest-offheap" ]; then
     export OFFHEAP_MEMTABLES="true"
     ./run_dtests.py --vnodes true --nose-options="--verbosity=3 --with-xunit --nocapture --attr=!resource-intensive" | tee -a ${WORKSPACE}/test_stdout.txt
