@@ -142,10 +142,9 @@ job('Cassandra-template-test') {
         shell("git clean -xdff ; git clone -b ${buildsBranch} ${buildsRepo}")
     }
     publishers {
-        junit {
-            testResults('**/TEST-*.xml')
+        archiveJunit('**/TEST-*.xml') {
             testDataPublishers {
-                stabilityTestDataPublisher()
+                publishTestStabilityData()
             }
         }
         postBuildTask {
@@ -190,10 +189,9 @@ job('Cassandra-template-dtest') {
     }
     publishers {
         archiveArtifacts('test_stdout.txt')
-        junit {
-            testResults('cassandra-dtest/nosetests.xml')
+        archiveJunit('cassandra-dtest/nosetests.xml') {
             testDataPublishers {
-                stabilityTestDataPublisher()
+                publishTestStabilityData()
             }
         }
         postBuildTask {
@@ -245,10 +243,9 @@ matrixJob('Cassandra-template-cqlsh-tests') {
         shell("git clean -xdff ; git clone -b ${buildsBranch} ${buildsRepo} ; git clone ${dtestRepo}")
     }
     publishers {
-        junit {
-            testResults('cqlshlib.xml, nosetests.xml')
+        archiveJunit('cqlshlib.xml, nosetests.xml') {
             testDataPublishers {
-                stabilityTestDataPublisher()
+                publishTestStabilityData()
             }
         }
         postBuildTask {
@@ -414,10 +411,9 @@ job('Cassandra-devbranch-testall') {
         shell('./cassandra-builds/build-scripts/cassandra-unittest.sh test-all')
     }
     publishers {
-        junit {
-            testResults('**/TEST-*.xml')
+        archiveJunit('**/TEST-*.xml') {
             testDataPublishers {
-                stabilityTestDataPublisher()
+                publishTestStabilityData()
             }
         }
         postBuildTask {
@@ -470,10 +466,9 @@ job('Cassandra-devbranch-dtest') {
     }
     publishers {
         archiveArtifacts('test_stdout.txt')
-        junit {
-            testResults('cassandra-dtest/nosetests.xml')
+        archiveJunit('cassandra-dtest/nosetests.xml') {
             testDataPublishers {
-                stabilityTestDataPublisher()
+                publishTestStabilityData()
             }
         }
         postBuildTask {
@@ -530,10 +525,10 @@ matrixJob('Cassandra-devbranch-cqlsh-tests') {
         shell('./cassandra-builds/build-scripts/cassandra-cqlsh-tests.sh')
     }
     publishers {
-        junit {
+        archiveJunit('cqlshlib.xml, nosetests.xml') {
             testResults('cqlshlib.xml, nosetests.xml')
             testDataPublishers {
-                stabilityTestDataPublisher()
+                publishTestStabilityData()
             }
         }
         postBuildTask {
