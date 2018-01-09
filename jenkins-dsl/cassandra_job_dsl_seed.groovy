@@ -526,7 +526,6 @@ matrixJob('Cassandra-devbranch-cqlsh-tests') {
     }
     publishers {
         archiveJunit('cqlshlib.xml, nosetests.xml') {
-            testResults('cqlshlib.xml, nosetests.xml')
             testDataPublishers {
                 publishTestStabilityData()
             }
