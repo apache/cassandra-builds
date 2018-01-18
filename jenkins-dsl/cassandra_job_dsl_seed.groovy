@@ -446,6 +446,7 @@ job('Cassandra-devbranch-dtest') {
         stringParam('BRANCH', 'trunk', 'The branch of cassandra to checkout')
         stringParam('DTEST_REPO', "${dtestRepo}", 'The cassandra-dtest repo URL')
         stringParam('DTEST_BRANCH', 'master', 'The branch of cassandra-dtest to checkout')
+        stringParam('DTEST_SCRIPT', './cassandra-builds/build-scripts/cassandra-dtest.sh', 'A temporary means of specifying an alternate script to run the dtests.')
     }
     scm {
         git {
@@ -462,7 +463,7 @@ job('Cassandra-devbranch-dtest') {
         buildDescription('', buildDescStr)
         shell("git clean -xdff ; git clone -b ${buildsBranch} ${buildsRepo}")
         shell('git clone -b ${DTEST_BRANCH} ${DTEST_REPO}')
-        shell('./cassandra-builds/build-scripts/cassandra-dtest.sh')
+        shell('${DTEST_SCRIPT}')
     }
     publishers {
         archiveArtifacts('test_stdout.txt')
