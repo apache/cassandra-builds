@@ -435,7 +435,7 @@ job('Cassandra-devbranch-dtest') {
     }
     wrappers {
         timeout {
-            noActivity(1200)
+            noActivity(2400)
         }
     }
     throttleConcurrentBuilds {
