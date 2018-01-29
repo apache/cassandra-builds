@@ -344,7 +344,7 @@ cassandraBranches.each {
                     scm(triggerInterval)
                 }
                 steps {
-                    shell("./cassandra-builds/build-scripts/cassandra-dtest.sh ${targetName}")
+                    shell("./cassandra-builds/build-scripts/cassandra-dtest-pytest.sh ${targetName}")
                 }
             }
         }
@@ -446,7 +446,7 @@ job('Cassandra-devbranch-dtest') {
         stringParam('BRANCH', 'trunk', 'The branch of cassandra to checkout')
         stringParam('DTEST_REPO', "${dtestRepo}", 'The cassandra-dtest repo URL')
         stringParam('DTEST_BRANCH', 'master', 'The branch of cassandra-dtest to checkout')
-        stringParam('DTEST_SCRIPT', './cassandra-builds/build-scripts/cassandra-dtest.sh', 'A temporary means of specifying an alternate script to run the dtests.')
+        stringParam('DTEST_SCRIPT', './cassandra-builds/build-scripts/cassandra-dtest-pytest.sh', 'A temporary means of specifying an alternate script to run the dtests.')
     }
     scm {
         git {
