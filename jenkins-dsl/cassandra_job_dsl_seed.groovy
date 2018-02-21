@@ -479,6 +479,61 @@ job('Cassandra-devbranch-dtest') {
 }
 
 /**
+ * Parameterized Dev Branch dtest in docker
+ */
+job('Cassandra-devbranch-dtest-docker') {
+    description(jobDescription)
+    concurrentBuild()
+    jdk(jdkLabel)
+    label(slaveLabel)
+    logRotator {
+        numToKeep(50)
+    }
+    wrappers {
+        timeout {
+            noActivity(2400)
+        }
+    }
+    throttleConcurrentBuilds {
+        categories(['Cassandra'])
+    }
+    parameters {
+        stringParam('REPO', 'apache', 'The github user/org to clone cassandra repo from')
+        stringParam('BRANCH', 'trunk', 'The branch of cassandra to checkout')
+        stringParam('DTEST_REPO', "${dtestRepo}", 'The cassandra-dtest repo URL')
+        stringParam('DTEST_BRANCH', 'master', 'The branch of cassandra-dtest to checkout')
+    }
+    scm {
+        git {
+            remote {
+                url('https://github.com/${REPO}/cassandra.git')
+            }
+            branch('${BRANCH}')
+            extensions {
+                cleanAfterCheckout()
+            }
+        }
+    }
+    steps {
+        buildDescription('', buildDescStr)
+        shell("git clean -xdff ; git clone -b dock https://github.com/krummas/cassandra-builds.git")
+        shell('sh ./cassandra-builds/docker/jenkins/jenkinscommand.sh')
+    }
+    publishers {
+        archiveArtifacts('test_stdout.txt')
+        archiveJunit('nosetests.xml') {
+            testDataPublishers {
+                publishTestStabilityData()
+            }
+        }
+        postBuildTask {
+            task('.', 'echo "Finding job process orphans.."; if pgrep -af ${JOB_BASE_NAME}; then pkill -9 -f ${JOB_BASE_NAME}; fi')
+        }
+    }
+}
+
+
+/**
  * Parameterized Dev Branch cqlsh-tests
  */
 matrixJob('Cassandra-devbranch-cqlsh-tests') {
