@@ -1,13 +1,18 @@
 #!/bin/sh
+DOCKER_IMAGE="kjellman/cassandra-test:0.4.4"
+BUILDSREPO=$5
+BUILDSBRANCH=$6
 cat > env.list <<EOF
-REPO=$REPO
-BRANCH=$BRANCH
-DTEST_REPO=$DTEST_REPO
-DTEST_BRANCH=$DTEST_BRANCH
+REPO=$1
+BRANCH=$2
+DTEST_REPO=$3
+DTEST_BRANCH=$4
 EOF
-ID=$(docker run --env-file env.list -dt kjellman/cassandra-test:0.4.3 bash -ilc "git clone --depth=1 --branch dock https://github.com/krummas/cassandra-builds.git; sh ./cassandra-builds/docker/jenkins/dtest.sh")
+echo "jenkinscommand.sh: running: git clone --depth=1 --branch $BUILDSBRANCH $BUILDSREPO; sh ./cassandra-builds/docker/jenkins/dtest.sh $7"
+ID=$(docker run --env-file env.list -dt $DOCKER_IMAGE dumb-init bash -ilc "git clone --depth=1 --branch $BUILDSBRANCH $BUILDSREPO; sh ./cassandra-builds/docker/jenkins/dtest.sh $7")
 # use docker attach instead of docker wait to get output
 docker attach --no-stdin $ID
 echo "$ID done, copying files"
 docker cp $ID:/home/cassandra/cassandra/cassandra-dtest/nosetests.xml .
 docker cp $ID:/home/cassandra/cassandra/test_stdout.txt .
+docker rm $ID
