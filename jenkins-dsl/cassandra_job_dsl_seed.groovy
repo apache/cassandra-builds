@@ -189,7 +189,7 @@ job('Cassandra-template-dtest') {
     }
     publishers {
         archiveArtifacts('test_stdout.txt')
-        archiveJunit('cassandra-dtest/nosetests.xml') {
+        archiveJunit('nosetests.xml') {
             testDataPublishers {
                 publishTestStabilityData()
             }
