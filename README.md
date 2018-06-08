@@ -59,7 +59,32 @@ Once the RPM is signed, both the import key and verification steps should take p
 
 See use of `debsign` in `cassandra-release/prepare_release.sh`.
 
+## Updating package repositories
 
-## Publishing packages
+### Prerequisites
 
-TODO
+Artifacts for RPM and Debian package repositories, as well as tar archives, are keept in a single SVN repository. You need to have your own local copy for adding new packages:
+
+```
+svn co --config-option 'config:miscellany:use-commit-times=yes' https://dist.apache.org/repos/dist/release/cassandra
+```
+
+(you may also want to set `use-commit-times = yes` in your local svn config)
+
+We'll further refer to the local directory created by the svn command as `$artifacts_svn_dir`.
+
+Required build tools:
+* [createrepo](https://packages.ubuntu.com/bionic/createrepo) (RPMs)
+* [reprepro](https://packages.ubuntu.com/bionic/reprepro) (Debian)
+
+### RPM
+
+Adding new packages to the official repository starts by copying the RPMs to `$artifacts_svn_dir/redhat/<version>`. Afterwards, recreate the metadata by executing `createrepo -v .` in that directory. Finally, sign the generated meta data files in the `repodata` sub-directory:
+
+```
+for i in `ls *.bz2 *.gz *.xml`; do gpg -sba --local-user MyAlias $i; done;
+```
+
+### Debian
+
+See `finish_release.sh`
