@@ -2,7 +2,7 @@
 set -e
 
 if [ "$#" -ne 1 ]; then
-   echo "build-debs.sh <branch>"
+   echo "$0 <branch>"
    exit 1
 fi
 
@@ -14,8 +14,8 @@ git checkout $CASSANDRA_BRANCH || exit 1
 
 # Used version for build will always depend on the git referenced used for checkout above
 # Branches will always be created as snapshots, while tags are releases
-tag=`git describe --tags --exact-match` 2> /dev/null
-branch=`git symbolic-ref -q --short HEAD` 2> /dev/null
+tag=`git describe --tags --exact-match` 2> /dev/null || true
+branch=`git symbolic-ref -q --short HEAD` 2> /dev/null || true
 
 is_tag=false
 is_branch=false
