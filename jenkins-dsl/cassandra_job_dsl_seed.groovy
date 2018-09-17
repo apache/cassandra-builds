@@ -50,6 +50,10 @@ def dtestTargets = ['dtest', 'dtest-novnode', 'dtest-offheap', 'dtest-large']
 if(binding.hasVariable("CASSANDRA_DTEST_TEST_TARGETS")) {
     dtestTargets = "${CASSANDRA_DTEST_TEST_TARGETS}".split(",")
 }
+def dtestDockerImage = 'kjellman/cassandra-test:0.4.4'
+if(binding.hasVariable("CASSANDRA_DOCKER_IMAGE")) {
+    dtestDockerImage = "${CASSANDRA_DOCKER_IMAGE}"
+}
 
 ////////////////////////////////////////////////////////////
 //
@@ -344,7 +348,7 @@ cassandraBranches.each {
                     scm(triggerInterval)
                 }
                 steps {
-                    shell("sh ./cassandra-builds/docker/jenkins/jenkinscommand.sh apache ${branchName} https://github.com/apache/cassandra-dtest.git master ${buildsRepo} ${buildsBranch} ${targetName}")
+                    shell("sh ./cassandra-builds/docker/jenkins/jenkinscommand.sh apache ${branchName} https://github.com/apache/cassandra-dtest.git master ${buildsRepo} ${buildsBranch} ${dtestDockerImage} ${targetName}")
                 }
             }
         }
@@ -446,6 +450,7 @@ job('Cassandra-devbranch-dtest') {
         stringParam('BRANCH', 'trunk', 'The branch of cassandra to checkout')
         stringParam('DTEST_REPO', "${dtestRepo}", 'The cassandra-dtest repo URL')
         stringParam('DTEST_BRANCH', 'master', 'The branch of cassandra-dtest to checkout')
+        stringParam('DOCKER_IMAGE', "${dtestDockerImage}", 'Docker image for running dtests')
     }
     scm {
         git {
@@ -461,7 +466,7 @@ job('Cassandra-devbranch-dtest') {
     steps {
         buildDescription('', buildDescStr)
         shell("git clean -xdff ; git clone -b ${buildsBranch} ${buildsRepo}")
-        shell("sh ./cassandra-builds/docker/jenkins/jenkinscommand.sh \$REPO \$BRANCH \$DTEST_REPO \$DTEST_BRANCH ${buildsRepo} ${buildsBranch}")
+        shell("sh ./cassandra-builds/docker/jenkins/jenkinscommand.sh \$REPO \$BRANCH \$DTEST_REPO \$DTEST_BRANCH ${buildsRepo} ${buildsBranch} \$DOCKER_IMAGE")
     }
     publishers {
         archiveArtifacts('test_stdout.txt')

@@ -21,6 +21,13 @@ export CASSANDRA_DIR=${WORKSPACE}
 #Have Cassandra skip all fsyncs to improve test performance and reliability
 export CASSANDRA_SKIP_SYNC=true
 
+# set JAVA_HOME environment to enable multi-version jar files for >4.0
+# both JAVA8/11_HOME env variables must exist
+grep -q _build_multi_java $CASSANDRA_DIR/build.xml
+if [ $? -eq 0 -a -n "$JAVA8_HOME" -a -n "$JAVA11_HOME" ]; then
+   export JAVA_HOME="$JAVA11_HOME"
+fi
+
 # Loop to prevent failure due to maven-ant-tasks not downloading a jar..
 for x in $(seq 1 3); do
     ant clean jar
@@ -33,6 +40,11 @@ done
 if [ "${RETURN}" -ne "0" ]; then
     echo "Build failed with exit code: ${RETURN}"
     exit ${RETURN}
+fi
+
+# restore JAVA_HOME to Java 8 version we intent to run tests with
+if [ -n "$JAVA8_HOME" ]; then
+   export JAVA_HOME="$JAVA8_HOME"
 fi
 
 # Set up venv with dtest dependencies
