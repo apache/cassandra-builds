@@ -38,6 +38,15 @@ cassandra4 - 163.172.83.163 - Ubuntu 16.04 LTS amd64, 16G RAM, donated by Datast
 cassandra5 - 163.172.83.175 - Ubuntu 16.04 LTS amd64, 16G RAM, donated by Datastax
 cassandra6 - 163.172.71.128 - Ubuntu 16.04 LTS amd64, 32G RAM, donated by Datastax
 cassandra7 - 163.172.71.129 - Ubuntu 16.04 LTS amd64, 32G RAM, donated by Datastax
+cassandra8 - 35.160.175.252 - Ubuntu 16.04 LTS amd64, 16G RAM, 4 cores, donated by instaclustr
+cassandra9 - 34.210.158.175 - Ubuntu 16.04 LTS amd64, 16G RAM, 4 cores, donated by instaclustr
+cassandra10 - 35.165.114.131 - Ubuntu 16.04 LTS amd64, 16G RAM, 4 cores, donated by instaclustr
+cassandra11 - 35.164.80.43   - Ubuntu 16.04 LTS amd64, 16G RAM, 4 cores, donated by instaclustr
+cassandra12 - 52.10.125.176  - Ubuntu 16.04 LTS amd64, 16G RAM, 4 cores, donated by instaclustr
+cassandra13 - 52.32.194.237  - Ubuntu 16.04 LTS amd64, 16G RAM, 4 cores, donated by instaclustr
+cassandra14 - 52.38.171.39   - Ubuntu 16.04 LTS amd64, 16G RAM, 4 cores, donated by instaclustr
+cassandra15 - 52.89.160.64   - Ubuntu 16.04 LTS amd64, 16G RAM, 4 cores, donated by instaclustr
+cassandra16 - 54.148.184.162 - Ubuntu 16.04 LTS amd64, 16G RAM, 4 cores, donated by instaclustr
 
 ----
 
@@ -45,4 +54,7 @@ Contacts for system donators, when console hands may be needed by INFRA:
 
   Datastax: Michael Shuler <mshuler@datastax.com>
             alternative group list: cassandra-te@datastax.com
+
+  Instaclustr: Kurt Greaves <kurt@instaclustr.com>
+               alternative group list: admin@instaclustr.com
 
