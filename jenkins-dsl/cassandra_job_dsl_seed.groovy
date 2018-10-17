@@ -50,7 +50,7 @@ def dtestTargets = ['dtest', 'dtest-novnode', 'dtest-offheap', 'dtest-large']
 if(binding.hasVariable("CASSANDRA_DTEST_TEST_TARGETS")) {
     dtestTargets = "${CASSANDRA_DTEST_TEST_TARGETS}".split(",")
 }
-def dtestDockerImage = 'kjellman/cassandra-test:0.4.4'
+def dtestDockerImage = 'spod/cassandra-testing-ubuntu18-java11'
 if(binding.hasVariable("CASSANDRA_DOCKER_IMAGE")) {
     dtestDockerImage = "${CASSANDRA_DOCKER_IMAGE}"
 }
