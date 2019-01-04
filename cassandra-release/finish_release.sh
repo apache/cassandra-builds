@@ -17,7 +17,7 @@ artifacts_svn_dir="$HOME/svn/cassandra-dist"
 
 ###################
 
-asf_git_repo="http://git-wip-us.apache.org/repos/asf"
+asf_git_repo="https://gitbox.apache.org/repos/asf"
 apache_host="people.apache.org"
 
 # Reset getopts in case it has been used previously in the shell.
