@@ -16,7 +16,7 @@ debian_package_dir="$HOME/tmp/debian"
 
 ###################
 
-asf_git_repo="http://git-wip-us.apache.org/repos/asf"
+asf_git_repo="https://gitbox.apache.org/repos/asf"
 staging_repo="https://repository.apache.org/content/repositories"
 apache_host="people.apache.org"
 

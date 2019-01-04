@@ -4,7 +4,7 @@
 //
 ////////////////////////////////////////////////////////////
 
-def jobDescription = 'Apache Cassandra DSL-generated job - DSL git repo: <a href="https://git-wip-us.apache.org/repos/asf?p=cassandra-builds.git">cassandra-builds</a>'
+def jobDescription = 'Apache Cassandra DSL-generated job - DSL git repo: <a href="https://gitbox.apache.org/repos/asf?p=cassandra-builds.git">cassandra-builds</a>'
 def jdkLabel = 'JDK 1.8 (latest)'
 if(binding.hasVariable("CASSANDRA_JDK_LABEL")) {
     jdkLabel = "${CASSANDRA_JDK_LABEL}"
@@ -18,7 +18,7 @@ def largeSlaveLabel = 'cassandra6||cassandra7'
 if(binding.hasVariable("CASSANDRA_LARGE_SLAVE_LABEL")) {
     largeSlaveLabel = "${CASSANDRA_LARGE_SLAVE_LABEL}"
 }
-def mainRepo = "https://git-wip-us.apache.org/repos/asf/cassandra.git"
+def mainRepo = "https://gitbox.apache.org/repos/asf/cassandra.git"
 if(binding.hasVariable("CASSANDRA_GIT_URL")) {
     mainRepo = "${CASSANDRA_GIT_URL}"
 }
