@@ -22,7 +22,7 @@ def mainRepo = "https://gitbox.apache.org/repos/asf/cassandra.git"
 if(binding.hasVariable("CASSANDRA_GIT_URL")) {
     mainRepo = "${CASSANDRA_GIT_URL}"
 }
-def buildsRepo = "https://git.apache.org/cassandra-builds.git"
+def buildsRepo = "https://gitbox.apache.org/repos/asf/cassandra-builds.git"
 if(binding.hasVariable("CASSANDRA_BUILDS_GIT_URL")) {
     buildsRepo = "${CASSANDRA_BUILDS_GIT_URL}"
 }
@@ -30,7 +30,7 @@ def buildsBranch = "master"
 if(binding.hasVariable("CASSANDRA_BUILDS_BRANCH")) {
     buildsBranch = "${CASSANDRA_BUILDS_BRANCH}"
 }
-def dtestRepo = "https://git.apache.org/cassandra-dtest.git"
+def dtestRepo = "https://gitbox.apache.org/repos/asf/cassandra-dtest.git"
 if(binding.hasVariable("CASSANDRA_DTEST_GIT_URL")) {
     dtestRepo = "${CASSANDRA_DTEST_GIT_URL}"
 }
