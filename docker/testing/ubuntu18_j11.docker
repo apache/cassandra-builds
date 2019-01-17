@@ -19,7 +19,7 @@ MAINTAINER Stefan Podkowinski <s.podkowinski@gmail.com>
 
 RUN export DEBIAN_FRONTEND=noninteractive && \
     apt-get update && \
-    apt-get install -y --no-install-recommends software-properties-common apt-utils
+    apt-get install -y --no-install-recommends software-properties-common apt-utils vim
 
 RUN export DEBIAN_FRONTEND=noninteractive && \
     apt-get update && \
