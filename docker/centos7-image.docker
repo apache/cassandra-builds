@@ -11,15 +11,16 @@ VOLUME ${RPM_DIST_DIR}
 
 # install deps
 RUN yum -y install \
+   epel-release \
    ant \
    ant-junit \
-   epel-release \
    git \
-   java-1.7.0-openjdk-devel \
    java-1.8.0-openjdk-devel \
+   java-11-openjdk-devel \
    make \
    rpm-build \
-   sudo
+   sudo \
+   vim
 
 # via epel-releases
 RUN yum -y install python2-pip

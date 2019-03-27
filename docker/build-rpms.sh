@@ -8,6 +8,16 @@ fi
 
 CASSANDRA_BRANCH=$1
 
+CASSANDRA_MAJOR_VERSION=$(cat $CASSANDRA_DIR/build.xml | grep "<property name=\"base.version"\" | sed -n 's/.*value="\([^"]*\).*/\1/p' | cut -d "." -f 1)
+
+if (( $CASSANDRA_MAJOR_VERSION >= 4 )); then
+   export JAVA_HOME=/usr/lib/jvm/java-11
+   export JAVA8_HOME=/usr/lib/jvm/java-1.8.0
+else
+   export JAVA_HOME=/usr/lib/jvm/java-1.8.0
+   export JAVA8_HOME=/usr/lib/jvm/java-1.8.0
+fi
+
 cd $CASSANDRA_DIR
 git fetch
 git checkout $CASSANDRA_BRANCH || exit 1
