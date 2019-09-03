@@ -155,7 +155,7 @@ then
     execute "cd cassandra"
     execute "git checkout $release-tentative"
     execute "ant realclean"
-    execute "ant publish -Drelease=true"
+    execute "ant publish -Drelease=true -Dbase.version=$release"
 
     echo "Artifacts uploaded, please close release on repository.apache.org and indicate the staging number:" 1>&3 2>&4
 else
