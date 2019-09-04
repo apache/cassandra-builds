@@ -105,6 +105,27 @@ job('Cassandra-template-artifacts') {
             javadocDir 'build/javadoc'
             keepAll false
         }
+        extendedEmail {
+            recipientList('builds@cassandra.apache.org')
+            triggers {
+                failure {
+                    sendTo {
+                        recipientList()
+                        developers()
+                        requester()
+                        culprits()
+                    }
+                }
+                fixed {
+                    sendTo {
+                        recipientList()
+                        developers()
+                        requester()
+                        culprits()
+                    }
+                }
+            }
+        }
     }
 }
 
