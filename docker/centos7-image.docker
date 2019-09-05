@@ -22,6 +22,11 @@ RUN yum -y install \
    rpm-build \
    sudo
 
+# fix yum error after installing epel-release:
+#  Cannot retrieve metalink for repository: epel/x86_64. Please verify its path and try again
+# https://stackoverflow.com/questions/48320850/installing-epel-repository-on-centos-7-breaks-yum-functionality
+RUN yum -y update curl --disablerepo=epel
+
 # via epel-releases
 RUN yum -y install python2-pip
 
