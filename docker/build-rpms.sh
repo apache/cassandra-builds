@@ -10,6 +10,9 @@ CASSANDRA_BRANCH=$1
 
 cd $CASSANDRA_DIR
 git fetch
+# clear and refetch tags to account for re-tagging a new sha
+git tag -d $(git tag) > /dev/null
+git fetch --tags > /dev/null 2>&1
 git checkout $CASSANDRA_BRANCH || exit 1
 
 # Used version for build will always depend on the git referenced used for checkout above
