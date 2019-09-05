@@ -69,5 +69,9 @@ mkdir -p ./build/javadoc
 # Artifact will only be used internally for build process and won't be found with snapshot suffix
 ant artifacts -Drelease=true
 cp ./build/apache-cassandra-*-src.tar.gz ${RPM_BUILD_DIR}/SOURCES/
+
+# if CASSANDRA_VERSION is -alphaN, -betaN, -rcN, then rpmbuild fails on the '-' char; replace with '~'
+CASSANDRA_VERSION=${CASSANDRA_VERSION/-/\~}
+
 rpmbuild --define="version ${CASSANDRA_VERSION}" --define="revision ${CASSANDRA_REVISION}" -ba ./redhat/cassandra.spec
 cp $RPM_BUILD_DIR/SRPMS/*.rpm $RPM_BUILD_DIR/RPMS/noarch/*.rpm $RPM_DIST_DIR
