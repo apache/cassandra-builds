@@ -10,6 +10,7 @@ CASSANDRA_BRANCH=$1
 
 cd $CASSANDRA_DIR
 git fetch
+git pull
 # clear and refetch tags to account for re-tagging a new sha
 git tag -d $(git tag) > /dev/null
 git fetch --tags > /dev/null 2>&1
