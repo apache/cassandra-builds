@@ -35,9 +35,9 @@ fi
 if [ "$tag" ]; then
    is_tag=true
    # Official release
-   regx_tag="cassandra-([0-9.]+)$"
+   regx_tag="cassandra-([0-9.].*)$"
    # Tentative release
-   regx_tag_tentative="([0-9.]+)-tentative$"
+   regx_tag_tentative="([0-9.].*)-tentative$"
    if [[ $tag =~ $regx_tag ]] || [[ $tag =~ $regx_tag_tentative ]]; then
       git_version=${BASH_REMATCH[1]}
    else
