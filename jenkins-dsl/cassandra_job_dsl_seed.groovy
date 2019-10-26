@@ -402,7 +402,7 @@ cassandraBranches.each {
 testTargets.each {
     def targetName = it
 
-    job('Cassandra-devbranch-${targetName}') {
+    job("Cassandra-devbranch-${targetName}") {
         description(jobDescription)
         concurrentBuild()
         jdk(jdkLabel)
@@ -436,7 +436,7 @@ testTargets.each {
         steps {
             buildDescription('', buildDescStr)
             shell("git clean -xdff ; git clone -b ${buildsBranch} ${buildsRepo}")
-            shell('./cassandra-builds/build-scripts/cassandra-unittest.sh ${targetName}')
+            shell("./cassandra-builds/build-scripts/cassandra-unittest.sh ${targetName}")
         }
         publishers {
             archiveJunit('**/TEST-*.xml') {
