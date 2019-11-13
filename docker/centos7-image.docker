@@ -11,6 +11,7 @@ VOLUME ${RPM_DIST_DIR}
 
 # install deps
 RUN yum -y install \
+   yum-plugin-ovl \
    ant \
    ant-junit \
    epel-release \
@@ -20,7 +21,8 @@ RUN yum -y install \
    java-11-openjdk-devel \
    make \
    rpm-build \
-   sudo
+   sudo \
+   ; yum clean all
 
 # fix yum error after installing epel-release:
 #  Cannot retrieve metalink for repository: epel/x86_64. Please verify its path and try again

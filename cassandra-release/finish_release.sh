@@ -4,21 +4,24 @@
 
 asf_username="$USER"
 
+# your username to log into bintray (your account needs access to the "apache" organisation)
+BINTRAY_USER="$USER"
+# get your bintray API Key from https://bintray.com/profile/edit/apikey
+BINTRAY_KEY="XXXXXXXX"
+
 # The name of remote for the asf remote in your git repo
 git_asf_remote="origin"
 
-# Same as for .prepare_release.sh
 mail_dir="$HOME/Mail"
-debian_package_dir="$HOME/tmp/debian"
 
-# The directory for reprepro
-reprepro_dir="$debian_package_dir/packages"
-artifacts_svn_dir="$HOME/svn/cassandra-dist"
+###################
+# prerequisites
+command -v svn >/dev/null 2>&1 || { echo >&2 "subversion needs to be installed"; exit 1; }
+command -v git >/dev/null 2>&1 || { echo >&2 "git needs to be installed"; exit 1; }
 
 ###################
 
 asf_git_repo="https://gitbox.apache.org/repos/asf"
-apache_host="people.apache.org"
 
 # Reset getopts in case it has been used previously in the shell.
 OPTIND=1
@@ -30,14 +33,14 @@ fake_mode=0
 show_help()
 {
     local name=`basename $0`
-    echo "$name [options] <release_version> <staging_number>"
+    echo "$name [options] <release_version>"
     echo ""
     echo "where [options] are:"
     echo "  -h: print this help"
     echo "  -v: verbose mode (show everything that is going on)"
     echo "  -f: fake mode, print any output but don't do anything (for debugging)"
     echo ""
-    echo "Example: $name 2.0.3 1024"
+    echo "Example: $name 2.0.3"
 }
 
 while getopts ":hvf" opt; do
@@ -61,7 +64,6 @@ done
 shift $(($OPTIND-1))
 
 release=$1
-staging_number=$2
 deb_release=${release/-/\~}
 
 if [ -z "$release" ]
@@ -70,14 +72,8 @@ then
     show_help
     exit 1
 fi
-if [ -z "$staging_number" ]
-then
-    echo "Missing argument <staging_number>"
-    show_help
-    exit 1
-fi
 
-if [ "$#" -gt 2 ]
+if [ "$#" -gt 1 ]
 then
     shift
     echo "Too many arguments. Don't know what to do with '$@'"
@@ -96,9 +92,9 @@ fi
 
 if [ "$release" == "$deb_release" ]
 then
-    echo "Publishing release $release using staging number $staging_number"
+    echo "Publishing release $release"
 else
-    echo "Publishing release $release (debian uses $deb_release) using staging number $staging_number"
+    echo "Publishing release $release (debian uses $deb_release)"
 fi
 
 # "Saves" stdout to other descriptor since we might redirect them below
@@ -127,29 +123,14 @@ execute()
     fi
 }
 
-idx=`expr index "$release" -`
-if [ $idx -eq 0 ]
-then
-    release_short=${release}
-else
-    release_short=${release:0:$((idx-1))}
-fi
-release_major=$(echo ${release_short} | cut -d '.' -f 1)
-release_minor=$(echo ${release_short} | cut -d '.' -f 2)
-
 echo "Deploying artifacts ..." 1>&3 2>&4
-start_dir=$PWD
-cd $artifacts_svn_dir
-mkdir $release_short
-cd $release_short
-for type in bin src; do
-    for part in gz gz.md5 gz.sha1 gz.asc gz.asc.md5 gz.asc.sha1; do
-        echo "Downloading apache-cassandra-${release}-$type.tar.$part..." 1>&3 2>&4
-        curl -O https://repository.apache.org/content/repositories/orgapachecassandra-${staging_number}/org/apache/cassandra/apache-cassandra/${release}/apache-cassandra-${release}-$type.tar.$part
-    done
-done
+cassandra_dir=$PWD
 
-cd $start_dir
+#
+# Rename the git tag, removing the -tenative suffix
+#
+
+execute "cd $cassandra_dir"
 
 echo "Tagging release ..." 1>&3 2>&4
 execute "git checkout $release-tentative"
@@ -162,19 +143,82 @@ execute "git push $git_asf_remote refs/tags/cassandra-$release"
 execute "git tag -d $release-tentative"
 execute "git push $git_asf_remote :refs/tags/$release-tentative"
 
+#
+# Move staging artifacts to release distribution location
+#
+
+tmp_dir=`mktemp -d`
+cd $tmp_dir
+echo "Apache Cassandra $release release" > "_tmp_msg_"
+execute "svn mv -F _tmp_msg_ https://dist.apache.org/repos/dist/dev/cassandra/$release https://dist.apache.org/repos/dist/release/cassandra/"
+rm _tmp_msg_
+
+#
+# Public deploy the Debian packages
+#
+
 echo "Deploying debian packages ..." 1>&3 2>&4
 
-current_dir=`pwd`
+# Upload to bintray
+debian_dist_dir=$tmp_dir/cassandra-dist-$release
+[ -e "$debian_dist_dir" ] || mkdir $debian_dist_dir # create it for fake mode, to satisfy `find …` command below
+execute "cd $debian_dist_dir"
 
-debian_series="${release_major}${release_minor}x"
+ROOTLEN=$(( ${#debian_dist_dir} + 1))
 
-execute "cd $reprepro_dir"
-execute "reprepro --ignore=wrongdistribution include $debian_series $debian_package_dir/cassandra_${release}_debian/cassandra_${deb_release}_*.changes"
-execute "cp -p pool/main/c/cassandra/cassandra*_${deb_release}* ${artifacts_svn_dir}/debian/pool/main/c/cassandra"
-execute "cp -p ${artifacts_svn_dir}/$release_short/apache-cassandra-${release}-src.tar.gz.asc ${artifacts_svn_dir}/debian/pool/main/c/cassandra/cassandra_${deb_release}.orig.tar.gz.asc"
-execute "cp -a dists/$debian_series ${artifacts_svn_dir}/debian/dists"
+for i in $(find ${debian_dist_dir}/ -mindepth 2 -type f -mtime -10 -not -path "*/.svn/*" -printf "%T@ %p\n" | sort -n -r | cut -d' ' -f 2); do
+    IFILE=`echo $(basename -- "$i") | cut -c 1`
+    if [[ $IFILE != "." ]];
+    then
+    	FDIR=`echo $i | cut -c ${ROOTLEN}-${#i}`
+    	echo "Uploading $FDIR"
+    	execute "curl -X PUT -T $i -u${BINTRAY_USER}:${BINTRAY_KEY} https://api.bintray.com/content/apache/cassandra/debian/prod${FDIR}?override=1"
+    	sleep 1
+    fi
+done
+cd $tmp_dir
 
-execute "cd $current_dir"
+# Move to dist release top-level debian directory
+idx=`expr index "$release" -`
+if [ $idx -eq 0 ]
+then
+    release_short=${release}
+else
+    release_short=${release:0:$((idx-1))}
+fi
+release_major=$(echo ${release_short} | cut -d '.' -f 1)
+release_minor=$(echo ${release_short} | cut -d '.' -f 2)
+repo_series="${release_major}${release_minor}x"
+
+echo "performing a server-side: svn mv ^/dist/release/cassandra/$release/debian/pool/main/c/cassandra/* ^/dist/release/cassandra/debian/pool/main/c/cassandra/"
+
+for f in $( svn list "https://dist.apache.org/repos/dist/release/cassandra/$release/debian/pool/main/c/cassandra/" )
+do
+	echo "Apache Cassandra $release debian artifact $f" > "_tmp_msg_"
+	echo "svn mv -F _tmp_msg_ https://dist.apache.org/repos/dist/release/cassandra/$release/debian/pool/main/c/cassandra/$f https://dist.apache.org/repos/dist/release/cassandra/debian/pool/main/c/cassandra/"
+	execute "svn mv -F _tmp_msg_ https://dist.apache.org/repos/dist/release/cassandra/$release/debian/pool/main/c/cassandra/$f https://dist.apache.org/repos/dist/release/cassandra/debian/pool/main/c/cassandra/"
+done
+
+echo "Apache Cassandra $release debian artifacts" > "_tmp_msg_"
+execute "svn rm -F _tmp_msg_ https://dist.apache.org/repos/dist/release/cassandra/debian/dists/$repo_series"
+execute "svn mv -F _tmp_msg_ https://dist.apache.org/repos/dist/release/cassandra/$release/debian/dists/$repo_series https://dist.apache.org/repos/dist/release/cassandra/debian/dists/"
+execute "svn rm -F _tmp_msg_ https://dist.apache.org/repos/dist/release/cassandra/$release/debian/dists"
+execute "svn rm -F _tmp_msg_ https://dist.apache.org/repos/dist/release/cassandra/$release/debian/pool"
+
+#
+# Public deploy the RedHat packages
+#
+
+echo "Deploying redhat packages ..." 1>&3 2>&4
+
+# Move to dist release top-level redhat directory
+echo "Apache Cassandra $release redhat artifacts" > "_tmp_msg_"
+execute "svn rm -F _tmp_msg_ https://dist.apache.org/repos/dist/release/cassandra/redhat/$repo_series"
+execute "svn mv -F _tmp_msg_ https://dist.apache.org/repos/dist/release/cassandra/$release/redhat https://dist.apache.org/repos/dist/release/cassandra/redhat/$repo_series"
+
+# Cleaning up
+execute "cd $cassandra_dir"
+rm -rf $tmp_dir
 
 # Restore stdout/stderr (and close temporary descriptors) if not verbose
 [ $verbose -eq 1 ] || exec 1>&3 3>&- 2>&4 4>&-
@@ -204,18 +248,17 @@ echo "[2]: NEWS.txt $asf_git_repo?p=cassandra.git;a=blob_plain;f=NEWS.txt;hb=ref
 echo "[3]: https://issues.apache.org/jira/browse/CASSANDRA" >> $mail_file
 
 
-echo "Done deploying artifacts. Please make sure to:"
-echo " 0) commit changes to ${artifacts_svn_dir}"
-echo " 1) release artifacts from repository.apache.org"
-echo " 2) wait for the artifacts to sync at http://www.apache.org/dist/cassandra/"
-echo " 3) upload debian repo to bintray: ./upload_bintray.sh ${artifacts_svn_dir}/debian"
-echo " 4) update the website (~/Git/hyde/hyde.py -g -s src/ -d publish/)"  # TODO - this is old info and needs updating..
-echo " 5) update CQL doc if appropriate"
-echo " 6) update wikipedia page if appropriate"
-echo " 7) send announcement email: draft in $mail_dir/mail_release_$release"
-echo " 8) update #cassandra topic on slack"
-echo " 9) tweet from @cassandra"
-echo " 10) release version in JIRA"
-echo " 11) remove old version from people.apache.org (in /www/www.apache.org/dist/cassandra and debian)"
-echo " 12) increment build.xml base.version for the next release"
+echo 'Done deploying artifacts. Please make sure to:'
+echo ' 1) release artifacts from repository.apache.org'
+echo ' 2) wait for the artifacts to sync at https://downloads.apache.org/cassandra/'
+echo ' 3) login to bintray and \"publish\" the uploaded artifacts'
+echo ' 4) update the website (TODO provide link)'  # TODO - this is old info and needs updating..
+echo ' 5) update CQL doc if appropriate'
+echo ' 6) update wikipedia page if appropriate'
+echo ' 7) send announcement email: draft in $mail_file'
+echo ' 8) update #cassandra topic on slack'
+echo ' 9) tweet from @cassandra'
+echo ' 10) release version in JIRA'
+echo ' 11) remove old version (eg: `svn co https://dist.apache.org/repos/dist/release/cassandra/ cassandra-dist; svn rm <previous_version> debian/pool/main/c/cassandra/<previous_version>*`)'
+echo ' 12) increment build.xml base.version for the next release'
 

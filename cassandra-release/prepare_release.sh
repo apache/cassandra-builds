@@ -11,14 +11,23 @@ git_asf_remote="origin"
 # Where you want to put the mail draft that this script generate
 mail_dir="$HOME/Mail"
 
-# Where you want to put the debian files
-debian_package_dir="$HOME/tmp/debian"
+###################
+# prerequisites
+command -v svn >/dev/null 2>&1 || { echo >&2 "subversion needs to be installed"; exit 1; }
+command -v git >/dev/null 2>&1 || { echo >&2 "git needs to be installed"; exit 1; }
+command -v ant >/dev/null 2>&1 || { echo >&2 "ant needs to be installed"; exit 1; }
+command -v dpkg-buildpackage >/dev/null 2>&1 || { echo >&2 "dpkg needs to be installed"; exit 1; }
+command -v dpatch >/dev/null 2>&1 || { echo >&2 "dpatch needs to be installed"; exit 1; } # can be removed after 2.2 EOL
+command -v debsign >/dev/null 2>&1 || { echo >&2 "devscripts needs to be installed"; exit 1; }
+command -v reprepro >/dev/null 2>&1 || { echo >&2 "reprepro needs to be installed"; exit 1; }
+command -v rpmsign >/dev/null 2>&1 || { echo >&2 "rpmsign needs to be installed"; exit 1; }
+command -v docker >/dev/null 2>&1 || { echo >&2 "docker needs to be installed"; exit 1; }
+command -v createrepo >/dev/null 2>&1 || { echo >&2 "createrepo needs to be installed"; exit 1; }
+(docker info >/dev/null 2>&1) || { echo >&2 "docker needs to running"; exit 1; }
 
 ###################
-
 asf_git_repo="https://gitbox.apache.org/repos/asf"
 staging_repo="https://repository.apache.org/content/repositories"
-apache_host="people.apache.org"
 
 # Reset getopts in case it has been used previously in the shell.
 OPTIND=1
@@ -27,6 +36,7 @@ OPTIND=1
 verbose=0
 fake_mode=0
 only_deb=0
+only_rpm=0
 
 show_help()
 {
@@ -38,11 +48,12 @@ show_help()
     echo "  -v: verbose mode (show everything that is going on)"
     echo "  -f: fake mode, print any output but don't do anything (for debugging)"
     echo "  -d: only build the debian package"
+    echo "  -r: only build the rpm package"
     echo ""
     echo "Example: $name 2.0.3"
 }
 
-while getopts ":hvfd" opt; do
+while getopts ":hvfdr" opt; do
     case "$opt" in
     h)
         show_help
@@ -54,6 +65,8 @@ while getopts ":hvfd" opt; do
         ;;
     d)  only_deb=1
         ;;
+    r)  only_rpm=1
+        ;;
     \?)
         echo "Invalid option: -$OPTARG" >&2
         show_help
@@ -61,6 +74,12 @@ while getopts ":hvfd" opt; do
         ;;
     esac
 done
+
+if [ $only_deb -eq 1 ] && [ $only_rpm -eq 1 ]
+then
+    echo "Options '-d' and '-r' are mutually exclusive"
+    exit 1
+fi
 
 shift $(($OPTIND-1))
 
@@ -91,31 +110,41 @@ then
     exit 1
 fi
 
-head_commit=`git log --pretty=oneline -1 | cut - -d " " -f 1`
-
-if [ "$release" == "$deb_release" ]
+if ! git diff-index --quiet HEAD --
 then
-    echo "Preparing release for $release from commit:"
-else
-    echo "Preparing release for $release (debian will use $deb_release) from commit:"
+    echo "This git Cassandra directory has uncommitted changes."
+    echo "You must run this from a clean Cassandra git source repository."
+    exit 1
 fi
-echo ""
-git show $head_commit
 
-echo "Is this what you want?"
-select yn in "Yes" "No"; do
-    case $yn in
-        Yes) break;;
-        No) echo "Alright, come back when you've made up your mind"; exit 0;;
-    esac
-done
+if [ $only_deb -eq 0 ] && [ $only_rpm -eq 0 ]
+then
+    head_commit=`git log --pretty=oneline -1 | cut -d " " -f 1`
+
+    if [ "$release" == "$deb_release" ]
+    then
+        echo "Preparing release for $release from commit:"
+    else
+        echo "Preparing release for $release (debian will use $deb_release) from commit:"
+    fi
+    echo ""
+    git show $head_commit
+
+    echo "Is this what you want?"
+    select yn in "Yes" "No"; do
+        case $yn in
+            Yes) break;;
+            No) echo "Alright, come back when you've made up your mind"; exit 0;;
+        esac
+    done
+fi
 
 # "Saves" stdout to other descriptor since we might redirect them below
 exec 3>&1 4>&2
 
 if [ $verbose -eq 0 ]
 then
-    # Not verbose, redirect all ouptut to a logfile 
+    # Not verbose, redirect all output to a logfile
     logfile="vote-${release}.log"
     [ ! -e "$logfile" ] || rm $logfile
     touch $logfile
@@ -137,11 +166,34 @@ execute()
 }
 
 current_dir=`pwd`
-# This appear to be the simpler way to make this work for both linux and OSX (http://goo.gl/9RKld3)
-tmp_dir=`mktemp -d 2>/dev/null || mktemp -d -t 'release'`
+cassandra_builds_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )/.."
+tmp_dir=`mktemp -d`
+build_dir=${tmp_dir}/cassandra/build
+debian_package_dir="${tmp_dir}/debian"
+rpm_package_dir="${tmp_dir}/rpm"
 
-if [ $only_deb -eq 0 ]
+idx=`expr index "$release" -`
+if [ $idx -eq 0 ]
 then
+    release_short=${release}
+else
+    release_short=${release:0:$((idx-1))}
+fi
+release_major=$(echo ${release_short} | cut -d '.' -f 1)
+release_minor=$(echo ${release_short} | cut -d '.' -f 2)
+
+
+if [ $only_deb -eq 0 ] && [ $only_rpm -eq 0 ]
+then
+    echo "Update debian changelog, please correct changelog, name, and email."
+    read -n 1 -s -r -p "press any key to continue…" 1>&3 2>&4
+    execute "dch -r -D unstable"
+    echo "Prepare debian changelog for $release" > "_tmp_msg_"
+    execute "git commit -F _tmp_msg_ debian/changelog"
+    execute "rm _tmp_msg_"
+    head_commit=`git log --pretty=oneline -1 | cut -d " " -f 1`
+    # this commit needs to be forward merged and atomic pushed (see reminders at bottom)
+
     echo "Tagging release ..." 1>&3 2>&4
     execute "git tag $release-tentative"
     execute "git push $git_asf_remote refs/tags/$release-tentative"
@@ -158,70 +210,173 @@ then
     execute "ant publish -Drelease=true -Dbase.version=$release"
 
     echo "Artifacts uploaded, please close release on repository.apache.org and indicate the staging number:" 1>&3 2>&4
-else
-    echo "Please indicate staging number:" 1>&3 2>&4
-fi
+    read -p "staging number? " staging_number 1>&3 2>&4
 
-read -p "staging number? " staging_number 1>&3 2>&4
+    execute "cd $tmp_dir"
+    execute "svn co https://dist.apache.org/repos/dist/dev/cassandra cassandra-dist-dev"
+    execute "mkdir cassandra-dist-dev/${release}"
+    execute "cp ${build_dir}/apache-cassandra-${release}-src.tar.gz* cassandra-dist-dev/${release}/"
+    execute "cp ${build_dir}/apache-cassandra-${release}-bin.tar.gz* cassandra-dist-dev/${release}/"
+    execute "svn add cassandra-dist-dev/${release}"
+    echo "staging cassandra $release" > "_tmp_msg_"
+    execute "svn ci -F _tmp_msg_ cassandra-dist-dev/${release}"
+    execute "rm _tmp_msg_"
+    execute "cd $current_dir"
+fi
 
 ## Debian Stuffs ##
 
-execute "cd $debian_package_dir"
+if [ $only_rpm -eq 0 ]
+then
+    execute "cd $tmp_dir"
+    execute "svn co https://dist.apache.org/repos/dist/dev/cassandra cassandra-dist-dev"
 
-deb_dir=cassandra_${release}_debian
-[ ! -e "$deb_dir" ] || rm -rf $deb_dir
-execute "mkdir $deb_dir"
-execute "cd $deb_dir"
+    execute "mkdir -p $debian_package_dir"
+    execute "cd $debian_package_dir"
 
-echo "Building debian package ..." 1>&3 2>&4
+    deb_dir=cassandra_${release}_debian
+    [ ! -e "$deb_dir" ] || rm -rf $deb_dir
+    execute "mkdir $deb_dir"
+    execute "cd $deb_dir"
 
-execute "wget $staging_repo/orgapachecassandra-$staging_number/org/apache/cassandra/apache-cassandra/$release/apache-cassandra-$release-src.tar.gz"
-execute "mv apache-cassandra-$release-src.tar.gz cassandra_${deb_release}.orig.tar.gz"
-execute "tar xvzf cassandra_${deb_release}.orig.tar.gz"
-execute "cd apache-cassandra-${release}-src"
-execute "dpkg-buildpackage -rfakeroot -us -uc"
-execute "cd .."
-# Debsign might ask the passphrase on stdin so don't hide what he says even if no verbose
-# (I haven't tested carefully but I've also seen it fail unexpectedly with it's output redirected.
-execute "debsign -k$gpg_key cassandra_${deb_release}_amd64.changes" 1>&3 2>&4
+    echo "Building debian package ..." 1>&3 2>&4
 
-echo "Uploading debian package ..." 1>&3 2>&4
+    execute "mkdir -p $build_dir"
+    execute "cp $tmp_dir/cassandra-dist-dev/${release}/apache-cassandra-$release-src.tar.gz ${build_dir}/"
+    execute "tar xvzf ${build_dir}/apache-cassandra-${release}-src.tar.gz"
+    execute "cd apache-cassandra-${release}-src"
+    execute "dpkg-buildpackage -rfakeroot -us -uc"
+    execute "cd .."
+    # Debsign might ask the passphrase on stdin so don't hide what he says even if no verbose
+    # (I haven't tested carefully but I've also seen it fail unexpectedly with it's output redirected.
+    execute "debsign -k$gpg_key cassandra_${deb_release}_amd64.changes" 1>&3 2>&4
 
-cat > /tmp/sftpbatch.txt <<EOF
-cd public_html
-put cassandra* 
-EOF
+    execute "mkdir $tmp_dir/cassandra-dist-dev/${release}/debian"
+    execute "cp cassandra* $tmp_dir/cassandra-dist-dev/${release}/debian/"
+
+    echo "Building debian repository ..." 1>&3 2>&4
+    debian_series="${release_major}${release_minor}x"
+
+    echo "Origin: Apache Cassandra Packages" > $tmp_dir/distributions
+    echo "Label: Apache Cassandra Packages" >> $tmp_dir/distributions
+    echo "Codename: $debian_series" >> $tmp_dir/distributions
+    echo "Architectures: i386 amd64 source" >> $tmp_dir/distributions
+    echo "Components: main" >> $tmp_dir/distributions
+    echo "Description: Apache Cassandra APT Repository" >> $tmp_dir/distributions
+    echo "SignWith: $gpg_key" >> $tmp_dir/distributions
+
+    execute "cd $tmp_dir/cassandra-dist-dev/${release}/debian/"
+    execute "mkdir conf"
+    execute "mv $tmp_dir/distributions conf/"
+    execute "reprepro --ignore=wrongdistribution include $debian_series cassandra_${deb_release}_*.changes"
+    execute "rm -R db conf"
+
+    execute "cd $tmp_dir"
+    execute "svn add --force cassandra-dist-dev/${release}/debian"
+    echo "staging cassandra debian packages for $release" > "_tmp_msg_"
+    execute "svn ci -F _tmp_msg_ cassandra-dist-dev/${release}/debian"
+    execute "cd $current_dir"
+fi
+
+## RPM Stuff ##
+
+if [ $only_deb -eq 0 ]
+then
+
+    execute "cd $tmp_dir"
+    execute "svn co https://dist.apache.org/repos/dist/dev/cassandra cassandra-dist-dev"
+
+    execute "mkdir -p $rpm_package_dir"
+    execute "cd $rpm_package_dir"
+
+    rpm_dir=$rpm_package_dir/cassandra_${release}_rpm
+    [ ! -e "$rpm_dir" ] || rm -rf $rpm_dir
+    execute "mkdir $rpm_dir"
+
+    execute "cd $cassandra_builds_dir"
+    if [[ $(docker images -f label=org.cassandra.buildenv=centos -q) ]]
+    then
+        execute "docker image rm -f  `docker images -f label=org.cassandra.buildenv=centos -q`"
+    fi
+    execute "docker build -f docker/centos7-image.docker docker/"
+    execute "docker run --rm -v ${rpm_dir}:/dist `docker images -f label=org.cassandra.buildenv=centos -q` /home/build/build-rpms.sh ${release}-tentative"
+    execute "rpmsign --addsign ${rpm_dir}/*.rpm"
+
+    execute "mkdir $tmp_dir/cassandra-dist-dev/${release}/redhat"
+    execute "cp ${rpm_dir}/*.rpm  $tmp_dir/cassandra-dist-dev/${release}/redhat/"
+
+    echo "Building redhat repository ..." 1>&3 2>&4
+
+    execute "cd $tmp_dir/cassandra-dist-dev/${release}/redhat/"
+    execute "createrepo ."
+
+    # FIXME - put into execute "…"
+    [ $fake_mode -eq 1 ] || for f in repodata/repomd.xml repodata/*.bz2 repodata/*.gz ; do gpg --detach-sign --armor $f ; done
+
+    execute "cd $tmp_dir"
+    execute "svn add --force cassandra-dist-dev/${release}/redhat"
+    echo "staging cassandra rpm packages for $release" > "_tmp_msg_"
+    execute "svn ci -F _tmp_msg_ cassandra-dist-dev/${release}/redhat"
+    execute "cd $current_dir"
+fi
+
+if [ $only_deb -eq 0 ] && [ $only_rpm -eq 0 ]
+then
+
+    # Restore stdout/stderr (and close temporary descriptors) if not verbose
+    [ $verbose -eq 1 ] || exec 1>&3 3>&- 2>&4 4>&-
+
+    # Cleaning up
+    rm -rf $tmp_dir
 
 
-execute "sftp -b /tmp/sftpbatch.txt ${asf_username}@${apache_host}"
+    ## Email templates ##
 
-execute "cd $current_dir"
+    [ ! -e "$mail_dir" ] || rm -rf $mail_dir
+    mkdir $mail_dir
+    mail_test_announce_file="$mail_dir/mail_stage_announce_$release"
+    mail_vote_file="$mail_dir/mail_vote_$release"
 
-# Restore stdout/stderr (and close temporary descriptors) if not verbose
-[ $verbose -eq 1 ] || exec 1>&3 3>&- 2>&4 4>&-
+    echo "[ANNOUNCE] Apache Cassandra $release test artifact available" > $mail_test_announce_file
+    echo "" >> $mail_test_announce_file
+    echo "The test build of Cassandra ${release} is available." >> $mail_test_announce_file
+    echo "" >> $mail_test_announce_file
+    echo "sha1: $head_commit" >> $mail_test_announce_file
+    echo "Git: $asf_git_repo?p=cassandra.git;a=shortlog;h=refs/tags/$release-tentative" >> $mail_test_announce_file
+    echo "Maven Artifacts: $staging_repo/orgapachecassandra-$staging_number/org/apache/cassandra/cassandra-all/$release/" >> $mail_test_announce_file
+    echo "" >> $mail_test_announce_file
+    echo "The Source and Build Artifacts, and the Debian and RPM packages and repositories, are available here: https://dist.apache.org/repos/dist/dev/cassandra/$release/" >> $mail_test_announce_file
+    echo "" >> $mail_test_announce_file
+    echo "A vote of this test build will be initiated within the next couple of days." >> $mail_test_announce_file
+    echo "" >> $mail_test_announce_file
+    echo "[1]: CHANGES.txt: $asf_git_repo?p=cassandra.git;a=blob_plain;f=CHANGES.txt;hb=refs/tags/$release-tentative" >> $mail_test_announce_file
+    echo "[2]: NEWS.txt: $asf_git_repo?p=cassandra.git;a=blob_plain;f=NEWS.txt;hb=refs/tags/$release-tentative" >> $mail_test_announce_file
 
-# Cleaning up
-rm -rf $tmp_dir
+    echo "Test announcement mail written to $mail_test_announce_file"
 
-## Email for vote ##
 
-mail_file="$mail_dir/mail_vote_$release"
-[ ! -e "$mail_file" ] || rm $mail_file
+    echo "[VOTE] Release Apache Cassandra $release" > $mail_vote_file
+    echo "" >> $mail_vote_file
+    echo "Proposing the test build of Cassandra ${release} for release." >> $mail_vote_file
+    echo "" >> $mail_vote_file
+    echo "sha1: $head_commit" >> $mail_vote_file
+    echo "Git: $asf_git_repo?p=cassandra.git;a=shortlog;h=refs/tags/$release-tentative" >> $mail_vote_file
+    echo "Maven Artifacts: $staging_repo/orgapachecassandra-$staging_number/org/apache/cassandra/cassandra-all/$release/" >> $mail_vote_file
+    echo "" >> $mail_vote_file
+    echo "The Source and Build Artifacts, and the Debian and RPM packages and repositories, are available here: https://dist.apache.org/repos/dist/dev/cassandra/$release/" >> $mail_vote_file
+    echo "" >> $mail_vote_file
+    echo "The vote will be open for 72 hours (longer if needed). Everyone who has tested the build is invited to vote. Votes by PMC members are considered binding. A vote passes if there are at least three binding +1s." >> $mail_vote_file
+    echo "" >> $mail_vote_file
+    echo "[1]: CHANGES.txt: $asf_git_repo?p=cassandra.git;a=blob_plain;f=CHANGES.txt;hb=refs/tags/$release-tentative" >> $mail_vote_file
+    echo "[2]: NEWS.txt: $asf_git_repo?p=cassandra.git;a=blob_plain;f=NEWS.txt;hb=refs/tags/$release-tentative" >> $mail_vote_file
 
-echo "[VOTE] Release Apache Cassandra $release" > $mail_file
-echo "" >> $mail_file
-echo "I propose the following artifacts for release as $release." >> $mail_file
-echo "" >> $mail_file
-echo "sha1: $head_commit" >> $mail_file
-echo "Git: $asf_git_repo?p=cassandra.git;a=shortlog;h=refs/tags/$release-tentative" >> $mail_file
-echo "Artifacts: $staging_repo/orgapachecassandra-$staging_number/org/apache/cassandra/apache-cassandra/$release/" >> $mail_file
-echo "Staging repository: $staging_repo/orgapachecassandra-$staging_number/" >> $mail_file
-echo "" >> $mail_file
-echo "The Debian and RPM packages are available here: http://$apache_host/~$asf_username" >> $mail_file
-echo "" >> $mail_file
-echo "The vote will be open for 72 hours (longer if needed)." >> $mail_file
-echo "" >> $mail_file
-echo "[1]: CHANGES.txt: $asf_git_repo?p=cassandra.git;a=blob_plain;f=CHANGES.txt;hb=refs/tags/$release-tentative" >> $mail_file
-echo "[2]: NEWS.txt: $asf_git_repo?p=cassandra.git;a=blob_plain;f=NEWS.txt;hb=refs/tags/$release-tentative" >> $mail_file
+    echo "Vote mail written to $mail_vote_file"
+fi
 
-echo "Mail written to $mail_file"
+
+echo "Done cutting and staging release artifacts. Please make sure to:"
+echo " 1) verify all staged artifacts"
+echo " 2) close the nexus staging repository $staging_number"
+echo " 3) forward merge and atomic push the debian/changelog commit"
+echo " 4) email the announcement email"
+echo " 5) after a couple of days, email the vote email"
