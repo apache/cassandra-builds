@@ -265,7 +265,7 @@ matrixJob('Cassandra-template-cqlsh-tests') {
     }
     steps {
         buildDescription('', buildDescStr)
-        shell("git clean -xdff ; git clone -b ${buildsBranch} ${buildsRepo} ; git clone ${dtestRepo}")
+        shell("git clean -xdff ; git clone ${dtestRepo}")
     }
     publishers {
         archiveJunit('cqlshlib.xml, nosetests.xml') {
@@ -274,7 +274,7 @@ matrixJob('Cassandra-template-cqlsh-tests') {
             }
         }
         postBuildTask {
-            task('.', 'echo "Finding job process orphans.."; if pgrep -af ${JOB_BASE_NAME}; then pkill -9 -f ${JOB_BASE_NAME}; fi')
+            task('.', 'echo "Finding job process orphans.."; if pgrep -af "${JOB_BASE_NAME}"; then pkill -9 -f "${JOB_BASE_NAME}"; fi')
         }
     }
 }
@@ -378,14 +378,18 @@ cassandraBranches.each {
     /**
      * Main branch cqlsh jobs
      */
-    matrixJob("${jobNamePrefix}-cqlsh-tests") {
-        disabled(false)
-        using('Cassandra-template-cqlsh-tests')
-        configure { node ->
-            node / scm / branches / 'hudson.plugins.git.BranchSpec' / name(branchName)
-        }
-        steps {
-            shell('./cassandra-builds/build-scripts/cassandra-cqlsh-tests.sh')
+    if (branchName == 'cassandra-2.2') {
+        println("Skipping ${jobNamePrefix}-cqlsh-tests, not supported on branch ${branchName}")
+    } else {
+        matrixJob("${jobNamePrefix}-cqlsh-tests") {
+            disabled(false)
+            using('Cassandra-template-cqlsh-tests')
+            configure { node ->
+                node / scm / branches / 'hudson.plugins.git.BranchSpec' / name(branchName)
+            }
+            steps {
+                shell('./pylib/cassandra-cqlsh-tests.sh $WORKSPACE')
+            }
         }
     }
 }
@@ -550,9 +554,9 @@ matrixJob('Cassandra-devbranch-cqlsh-tests') {
     }
     steps {
         buildDescription('', buildDescStr)
-        shell("git clean -xdff ; git clone -b ${buildsBranch} ${buildsRepo}")
+        shell("git clean -xdff")
         shell('git clone -b ${DTEST_BRANCH} ${DTEST_REPO}')
-        shell('./cassandra-builds/build-scripts/cassandra-cqlsh-tests.sh')
+        shell('./pylib/cassandra-cqlsh-tests.sh $WORKSPACE')
     }
     publishers {
         archiveJunit('cqlshlib.xml, nosetests.xml') {
@@ -561,7 +565,7 @@ matrixJob('Cassandra-devbranch-cqlsh-tests') {
             }
         }
         postBuildTask {
-            task('.', 'echo "Finding job process orphans.."; if pgrep -af ${JOB_BASE_NAME}; then pkill -9 -f ${JOB_BASE_NAME}; fi')
+            task('.', 'echo "Finding job process orphans.."; if pgrep -af "${JOB_BASE_NAME}"; then pkill -9 -f "${JOB_BASE_NAME}"; fi')
         }
     }
 }
