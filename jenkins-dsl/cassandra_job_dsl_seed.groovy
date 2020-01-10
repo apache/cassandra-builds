@@ -41,7 +41,7 @@ if(binding.hasVariable("CASSANDRA_BRANCHES")) {
     cassandraBranches = "${CASSANDRA_BRANCHES}".split(",")
 }
 // Ant test targets
-def testTargets = ['test', 'test-all', 'test-burn', 'test-cdc', 'test-compression', 'test-jvm-dtest-forking']
+def testTargets = ['test', 'test-burn', 'test-cdc', 'test-compression', 'test-jvm-dtest-forking', 'stress-test', 'fqltool-test', 'long-test']
 if(binding.hasVariable("CASSANDRA_ANT_TEST_TARGETS")) {
     testTargets = "${CASSANDRA_ANT_TEST_TARGETS}".split(",")
 }
