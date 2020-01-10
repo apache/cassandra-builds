@@ -319,9 +319,14 @@ cassandraBranches.each {
             triggerInterval = '@weekly'
         }
 
-        // Skip test-cdc on cassandra-2.2 and cassandra-3.0 branches
-        if ((targetName == 'test-cdc') && ((branchName == 'cassandra-2.2') || (branchName == 'cassandra-3.0'))) {
+        // Skip tests that don't exist before cassandra-3.11
+        if ((targetName == 'test-cdc' || targetName == 'stress-test') && ((branchName == 'cassandra-2.2') || (branchName == 'cassandra-3.0'))) {
             println("Skipping ${targetName} on branch ${branchName}")
+
+        // Skip tests that don't exist before cassandra-4.0
+        } else if ((targetName == 'fqltool-test') && ((branchName == 'cassandra-2.2') || (branchName == 'cassandra-3.0') || (branchName == 'cassandra-3.11'))) {
+            println("Skipping ${targetName} on branch ${branchName}")
+
         } else {
              job("${jobNamePrefix}-${targetName}") {
                 disabled(false)
