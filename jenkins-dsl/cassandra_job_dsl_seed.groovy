@@ -418,6 +418,7 @@ testTargets.each {
         label(slaveLabel)
         logRotator {
             numToKeep(50)
+            artifactNumToKeep(3)
         }
         wrappers {
             timeout {
