@@ -57,6 +57,6 @@ Contacts for system donators, when console hands may be needed by INFRA:
   Datastax: Joshua McKenzie <jmckenzie@apache.org>
             alternative group list: cassandra-te@datastax.com
 
-  Instaclustr: Kurt Greaves <kurt@instaclustr.com>
+  Instaclustr: Ben Bromhead <ben@instaclustr.com>
                alternative group list: admin@instaclustr.com
 
