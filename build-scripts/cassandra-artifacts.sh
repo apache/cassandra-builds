@@ -9,7 +9,8 @@
 # Sphinx is needed for the gen-doc target
 virtualenv venv
 source venv/bin/activate
-pip install Sphinx sphinx_rtd_theme
+# setuptools 45.0.0 requires python 3.5+
+pip install "setuptools<45" Sphinx sphinx_rtd_theme
 
 ################################
 #

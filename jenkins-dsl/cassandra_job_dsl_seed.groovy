@@ -13,8 +13,8 @@ def slaveLabel = 'cassandra'
 if(binding.hasVariable("CASSANDRA_SLAVE_LABEL")) {
     slaveLabel = "${CASSANDRA_SLAVE_LABEL}"
 }
-// The dtest-large target needs to run on >=32G slaves, so we provide an "OR" list of those servers
-def largeSlaveLabel = 'cassandra6||cassandra7'
+// The dtest-large target needs to run on >=32G slaves
+def largeSlaveLabel = 'cassandra-large'
 if(binding.hasVariable("CASSANDRA_LARGE_SLAVE_LABEL")) {
     largeSlaveLabel = "${CASSANDRA_LARGE_SLAVE_LABEL}"
 }
@@ -41,12 +41,12 @@ if(binding.hasVariable("CASSANDRA_BRANCHES")) {
     cassandraBranches = "${CASSANDRA_BRANCHES}".split(",")
 }
 // Ant test targets
-def testTargets = ['test', 'test-all', 'test-burn', 'test-cdc', 'test-compression']
+def testTargets = ['test', 'test-burn', 'test-cdc', 'test-compression', 'test-jvm-dtest-forking', 'stress-test', 'fqltool-test', 'long-test']
 if(binding.hasVariable("CASSANDRA_ANT_TEST_TARGETS")) {
     testTargets = "${CASSANDRA_ANT_TEST_TARGETS}".split(",")
 }
 // Dtest test targets
-def dtestTargets = ['dtest', 'dtest-novnode', 'dtest-offheap', 'dtest-large']
+def dtestTargets = ['dtest', 'dtest-novnode', 'dtest-offheap' /*, 'dtest-large'*/] // Skipping dtest-large until there are agents with >=32GB ram available
 if(binding.hasVariable("CASSANDRA_DTEST_TEST_TARGETS")) {
     dtestTargets = "${CASSANDRA_DTEST_TEST_TARGETS}".split(",")
 }
@@ -105,6 +105,27 @@ job('Cassandra-template-artifacts') {
             javadocDir 'build/javadoc'
             keepAll false
         }
+        extendedEmail {
+            recipientList('builds@cassandra.apache.org')
+            triggers {
+                failure {
+                    sendTo {
+                        recipientList()
+                        developers()
+                        requester()
+                        culprits()
+                    }
+                }
+                fixed {
+                    sendTo {
+                        recipientList()
+                        developers()
+                        requester()
+                        culprits()
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -118,6 +139,7 @@ job('Cassandra-template-test') {
     label(slaveLabel)
     logRotator {
         numToKeep(50)
+        artifactNumToKeep(1)
     }
     wrappers {
         timeout {
@@ -146,7 +168,12 @@ job('Cassandra-template-test') {
         shell("git clean -xdff ; git clone -b ${buildsBranch} ${buildsRepo}")
     }
     publishers {
-        archiveJunit('**/TEST-*.xml') {
+        archiveArtifacts {
+            pattern('build/test/**/TEST-*.xml')
+            allowEmpty()
+            fingerprint()
+        }
+        archiveJunit('build/test/**/TEST-*.xml') {
             testDataPublishers {
                 publishTestStabilityData()
             }
@@ -167,6 +194,7 @@ job('Cassandra-template-dtest') {
     label(slaveLabel)
     logRotator {
         numToKeep(50)
+        artifactNumToKeep(1)
     }
     wrappers {
         timeout {
@@ -192,7 +220,11 @@ job('Cassandra-template-dtest') {
         shell("git clean -xdff ; git clone -b ${buildsBranch} ${buildsRepo} ; git clone ${dtestRepo}")
     }
     publishers {
-        archiveArtifacts('test_stdout.txt')
+        archiveArtifacts {
+            pattern('**/test_stdout.txt,**/nosetests.xml')
+            allowEmpty()
+            fingerprint()
+        }
         archiveJunit('nosetests.xml') {
             testDataPublishers {
                 publishTestStabilityData()
@@ -212,6 +244,7 @@ matrixJob('Cassandra-template-cqlsh-tests') {
     description(jobDescription)
     logRotator {
         numToKeep(50)
+        artifactNumToKeep(1)
     }
     wrappers {
         timeout {
@@ -244,16 +277,21 @@ matrixJob('Cassandra-template-cqlsh-tests') {
     }
     steps {
         buildDescription('', buildDescStr)
-        shell("git clean -xdff ; git clone -b ${buildsBranch} ${buildsRepo} ; git clone ${dtestRepo}")
+        shell("git clean -xdff ; git clone ${dtestRepo}")
     }
     publishers {
-        archiveJunit('cqlshlib.xml, nosetests.xml') {
+        archiveArtifacts {
+            pattern('**/cqlshlib.xml,**/nosetests.xml')
+            allowEmpty()
+            fingerprint()
+        }
+        archiveJunit('**/cqlshlib.xml,**/nosetests.xml') {
             testDataPublishers {
                 publishTestStabilityData()
             }
         }
         postBuildTask {
-            task('.', 'echo "Finding job process orphans.."; if pgrep -af ${JOB_BASE_NAME}; then pkill -9 -f ${JOB_BASE_NAME}; fi')
+            task('.', 'echo "Finding job process orphans.."; if pgrep -af "${JOB_BASE_NAME}"; then pkill -9 -f "${JOB_BASE_NAME}"; fi')
         }
     }
 }
@@ -298,9 +336,14 @@ cassandraBranches.each {
             triggerInterval = '@weekly'
         }
 
-        // Skip test-cdc on cassandra-2.2 and cassandra-3.0 branches
-        if ((targetName == 'test-cdc') && ((branchName == 'cassandra-2.2') || (branchName == 'cassandra-3.0'))) {
+        // Skip tests that don't exist before cassandra-3.11
+        if ((targetName == 'test-cdc' || targetName == 'stress-test') && ((branchName == 'cassandra-2.2') || (branchName == 'cassandra-3.0'))) {
             println("Skipping ${targetName} on branch ${branchName}")
+
+        // Skip tests that don't exist before cassandra-4.0
+        } else if ((targetName == 'fqltool-test') && ((branchName == 'cassandra-2.2') || (branchName == 'cassandra-3.0') || (branchName == 'cassandra-3.11'))) {
+            println("Skipping ${targetName} on branch ${branchName}")
+
         } else {
              job("${jobNamePrefix}-${targetName}") {
                 disabled(false)
@@ -357,14 +400,18 @@ cassandraBranches.each {
     /**
      * Main branch cqlsh jobs
      */
-    matrixJob("${jobNamePrefix}-cqlsh-tests") {
-        disabled(false)
-        using('Cassandra-template-cqlsh-tests')
-        configure { node ->
-            node / scm / branches / 'hudson.plugins.git.BranchSpec' / name(branchName)
-        }
-        steps {
-            shell('./cassandra-builds/build-scripts/cassandra-cqlsh-tests.sh')
+    if (branchName == 'cassandra-2.2') {
+        println("Skipping ${jobNamePrefix}-cqlsh-tests, not supported on branch ${branchName}")
+    } else {
+        matrixJob("${jobNamePrefix}-cqlsh-tests") {
+            disabled(false)
+            using('Cassandra-template-cqlsh-tests')
+            configure { node ->
+                node / scm / branches / 'hudson.plugins.git.BranchSpec' / name(branchName)
+            }
+            steps {
+                shell('./pylib/cassandra-cqlsh-tests.sh $WORKSPACE')
+            }
         }
     }
 }
@@ -376,52 +423,62 @@ cassandraBranches.each {
 ////////////////////////////////////////////////////////////
 
 /**
- * Parameterized Dev Branch `ant test-all`
+ * Parameterized Dev Branch `ant test`
  */
-job('Cassandra-devbranch-testall') {
-    description(jobDescription)
-    concurrentBuild()
-    jdk(jdkLabel)
-    label(slaveLabel)
-    logRotator {
-        numToKeep(50)
-    }
-    wrappers {
-        timeout {
-            noActivity(1200)
+testTargets.each {
+    def targetName = it
+
+    job("Cassandra-devbranch-${targetName}") {
+        description(jobDescription)
+        concurrentBuild()
+        jdk(jdkLabel)
+        label(slaveLabel)
+        logRotator {
+            numToKeep(50)
+            artifactNumToKeep(1)
         }
-    }
-    throttleConcurrentBuilds {
-        categories(['Cassandra'])
-    }
-    parameters {
-        stringParam('REPO', 'apache', 'The github user/org to clone cassandra repo from')
-        stringParam('BRANCH', 'trunk', 'The branch of cassandra to checkout')
-    }
-    scm {
-        git {
-            remote {
-                url('https://github.com/${REPO}/cassandra.git')
-            }
-            branch('${BRANCH}')
-            extensions {
-                cleanAfterCheckout()
+        wrappers {
+            timeout {
+                noActivity(1200)
             }
         }
-    }
-    steps {
-        buildDescription('', buildDescStr)
-        shell("git clean -xdff ; git clone -b ${buildsBranch} ${buildsRepo}")
-        shell('./cassandra-builds/build-scripts/cassandra-unittest.sh test-all')
-    }
-    publishers {
-        archiveJunit('**/TEST-*.xml') {
-            testDataPublishers {
-                publishTestStabilityData()
+        throttleConcurrentBuilds {
+            categories(['Cassandra'])
+        }
+        parameters {
+            stringParam('REPO', 'apache', 'The github user/org to clone cassandra repo from')
+            stringParam('BRANCH', 'trunk', 'The branch of cassandra to checkout')
+        }
+        scm {
+            git {
+                remote {
+                    url('https://github.com/${REPO}/cassandra.git')
+                }
+                branch('${BRANCH}')
+                extensions {
+                    cleanAfterCheckout()
+                }
             }
         }
-        postBuildTask {
-            task('.', 'echo "Finding job process orphans.."; if pgrep -af ${JOB_BASE_NAME}; then pkill -9 -f ${JOB_BASE_NAME}; fi')
+        steps {
+            buildDescription('', buildDescStr)
+            shell("git clean -xdff ; git clone -b ${buildsBranch} ${buildsRepo}")
+            shell("./cassandra-builds/build-scripts/cassandra-unittest.sh ${targetName}")
+        }
+        publishers {
+        archiveArtifacts {
+            pattern('build/test/**/TEST-*.xml')
+            allowEmpty()
+            fingerprint()
+        }
+            archiveJunit('build/test/**/TEST-*.xml') {
+                testDataPublishers {
+                    publishTestStabilityData()
+                }
+            }
+            postBuildTask {
+                task('.', 'echo "Finding job process orphans.."; if pgrep -af ${JOB_BASE_NAME}; then pkill -9 -f ${JOB_BASE_NAME}; fi')
+            }
         }
     }
 }
@@ -436,6 +493,7 @@ job('Cassandra-devbranch-dtest') {
     label(slaveLabel)
     logRotator {
         numToKeep(50)
+        artifactNumToKeep(1)
     }
     wrappers {
         timeout {
@@ -469,7 +527,11 @@ job('Cassandra-devbranch-dtest') {
         shell("sh ./cassandra-builds/docker/jenkins/jenkinscommand.sh \$REPO \$BRANCH \$DTEST_REPO \$DTEST_BRANCH ${buildsRepo} ${buildsBranch} \$DOCKER_IMAGE")
     }
     publishers {
-        archiveArtifacts('test_stdout.txt')
+        archiveArtifacts {
+            pattern('**/test_stdout.txt,**/nosetests.xml')
+            allowEmpty()
+            fingerprint()
+        }
         archiveJunit('nosetests.xml') {
             testDataPublishers {
                 publishTestStabilityData()
@@ -490,6 +552,7 @@ matrixJob('Cassandra-devbranch-cqlsh-tests') {
     concurrentBuild()
     logRotator {
         numToKeep(50)
+        artifactNumToKeep(1)
     }
     wrappers {
         timeout {
@@ -525,18 +588,47 @@ matrixJob('Cassandra-devbranch-cqlsh-tests') {
     }
     steps {
         buildDescription('', buildDescStr)
-        shell("git clean -xdff ; git clone -b ${buildsBranch} ${buildsRepo}")
+        shell("git clean -xdff")
         shell('git clone -b ${DTEST_BRANCH} ${DTEST_REPO}')
-        shell('./cassandra-builds/build-scripts/cassandra-cqlsh-tests.sh')
+        shell('./pylib/cassandra-cqlsh-tests.sh $WORKSPACE')
     }
     publishers {
-        archiveJunit('cqlshlib.xml, nosetests.xml') {
+        archiveArtifacts {
+            pattern('**/cqlshlib.xml,**/nosetests.xml')
+            allowEmpty()
+            fingerprint()
+        }
+        archiveJunit('**/cqlshlib.xml,**/nosetests.xml') {
             testDataPublishers {
                 publishTestStabilityData()
             }
         }
         postBuildTask {
-            task('.', 'echo "Finding job process orphans.."; if pgrep -af ${JOB_BASE_NAME}; then pkill -9 -f ${JOB_BASE_NAME}; fi')
+            task('.', 'echo "Finding job process orphans.."; if pgrep -af "${JOB_BASE_NAME}"; then pkill -9 -f "${JOB_BASE_NAME}"; fi')
+        }
+    }
+}
+
+
+/**
+ * Parameterized Dev Branch Pipeline
+ */
+pipelineJob('Cassandra-devbranch') {
+    description(jobDescription)
+    logRotator {
+        numToKeep(50)
+        artifactNumToKeep(1)
+    }
+    parameters {
+        stringParam('REPO', 'apache', 'The github user/org to clone cassandra repo from')
+        stringParam('BRANCH', 'trunk', 'The branch of cassandra to checkout')
+        stringParam('DTEST_REPO', "${dtestRepo}", 'The cassandra-dtest repo URL')
+        stringParam('DTEST_BRANCH', 'master', 'The branch of cassandra-dtest to checkout')
+    }
+    definition {
+        cps {
+            script(readFileFromWorkspace('Cassandra-Job-DSL', 'jenkins-dsl/cassandra_pipeline.groovy'))
+            sandbox()
         }
     }
 }

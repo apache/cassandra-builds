@@ -199,8 +199,8 @@ echo "This version is a bug fix release[1] on the $series series. As always, ple
 echo "" >> $mail_file
 echo "Enjoy!" >> $mail_file
 echo "" >> $mail_file
-echo "[1]: (CHANGES.txt)" >> $mail_file
-echo "[2]: (NEWS.txt)" >> $mail_file
+echo "[1]: CHANGES.txt $asf_git_repo?p=cassandra.git;a=blob_plain;f=CHANGES.txt;hb=refs/tags/cassandra-$release" >> $mail_file
+echo "[2]: NEWS.txt $asf_git_repo?p=cassandra.git;a=blob_plain;f=NEWS.txt;hb=refs/tags/cassandra-$release" >> $mail_file
 echo "[3]: https://issues.apache.org/jira/browse/CASSANDRA" >> $mail_file
 
 
@@ -212,10 +212,8 @@ echo " 3) upload debian repo to bintray: ./upload_bintray.sh ${artifacts_svn_dir
 echo " 4) update the website (~/Git/hyde/hyde.py -g -s src/ -d publish/)"  # TODO - this is old info and needs updating..
 echo " 5) update CQL doc if appropriate"
 echo " 6) update wikipedia page if appropriate"
-echo " 7) send announcement email: draft in $mail_dir/mail_release_$release, misses short links for"
-echo "    > CHANGES.txt: $asf_git_repo?p=cassandra.git;a=blob_plain;f=CHANGES.txt;hb=refs/tags/cassandra-$release"
-echo "    > NEWS.txt:    $asf_git_repo?p=cassandra.git;a=blob_plain;f=NEWS.txt;hb=refs/tags/cassandra-$release"
-echo " 8) update #cassandra topic on irc (/msg chanserv op #cassandra)"
+echo " 7) send announcement email: draft in $mail_dir/mail_release_$release"
+echo " 8) update #cassandra topic on slack"
 echo " 9) tweet from @cassandra"
 echo " 10) release version in JIRA"
 echo " 11) remove old version from people.apache.org (in /www/www.apache.org/dist/cassandra and debian)"

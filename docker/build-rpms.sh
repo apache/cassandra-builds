@@ -10,6 +10,10 @@ CASSANDRA_BRANCH=$1
 
 cd $CASSANDRA_DIR
 git fetch
+git pull
+# clear and refetch tags to account for re-tagging a new sha
+git tag -d $(git tag) > /dev/null
+git fetch --tags > /dev/null 2>&1
 git checkout $CASSANDRA_BRANCH || exit 1
 
 # Used version for build will always depend on the git referenced used for checkout above
@@ -32,9 +36,9 @@ fi
 if [ "$tag" ]; then
    is_tag=true
    # Official release
-   regx_tag="cassandra-([0-9.]+)$"
+   regx_tag="cassandra-([0-9.].*)$"
    # Tentative release
-   regx_tag_tentative="([0-9.]+)-tentative$"
+   regx_tag_tentative="([0-9.].*)-tentative$"
    if [[ $tag =~ $regx_tag ]] || [[ $tag =~ $regx_tag_tentative ]]; then
       git_version=${BASH_REMATCH[1]}
    else
@@ -66,5 +70,9 @@ mkdir -p ./build/javadoc
 # Artifact will only be used internally for build process and won't be found with snapshot suffix
 ant artifacts -Drelease=true
 cp ./build/apache-cassandra-*-src.tar.gz ${RPM_BUILD_DIR}/SOURCES/
+
+# if CASSANDRA_VERSION is -alphaN, -betaN, -rcN, then rpmbuild fails on the '-' char; replace with '~'
+CASSANDRA_VERSION=${CASSANDRA_VERSION/-/\~}
+
 rpmbuild --define="version ${CASSANDRA_VERSION}" --define="revision ${CASSANDRA_REVISION}" -ba ./redhat/cassandra.spec
 cp $RPM_BUILD_DIR/SRPMS/*.rpm $RPM_BUILD_DIR/RPMS/noarch/*.rpm $RPM_DIST_DIR

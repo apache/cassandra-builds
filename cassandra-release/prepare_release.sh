@@ -155,7 +155,7 @@ then
     execute "cd cassandra"
     execute "git checkout $release-tentative"
     execute "ant realclean"
-    execute "ant publish -Drelease=true"
+    execute "ant publish -Drelease=true -Dbase.version=$release"
 
     echo "Artifacts uploaded, please close release on repository.apache.org and indicate the staging number:" 1>&3 2>&4
 else
@@ -222,6 +222,6 @@ echo "" >> $mail_file
 echo "The vote will be open for 72 hours (longer if needed)." >> $mail_file
 echo "" >> $mail_file
 echo "[1]: CHANGES.txt: $asf_git_repo?p=cassandra.git;a=blob_plain;f=CHANGES.txt;hb=refs/tags/$release-tentative" >> $mail_file
-echo "[2]: NEWS.txt: $asf_git_repo?p=cassandra.git;a=blob_plain;f=CHANGES.txt;hb=refs/tags/$release-tentative" >> $mail_file
+echo "[2]: NEWS.txt: $asf_git_repo?p=cassandra.git;a=blob_plain;f=NEWS.txt;hb=refs/tags/$release-tentative" >> $mail_file
 
 echo "Mail written to $mail_file"

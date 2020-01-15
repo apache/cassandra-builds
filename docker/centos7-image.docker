@@ -17,9 +17,15 @@ RUN yum -y install \
    git \
    java-1.7.0-openjdk-devel \
    java-1.8.0-openjdk-devel \
+   java-11-openjdk-devel \
    make \
    rpm-build \
    sudo
+
+# fix yum error after installing epel-release:
+#  Cannot retrieve metalink for repository: epel/x86_64. Please verify its path and try again
+# https://stackoverflow.com/questions/48320850/installing-epel-repository-on-centos-7-breaks-yum-functionality
+RUN yum -y update curl --disablerepo=epel
 
 # via epel-releases
 RUN yum -y install python2-pip
