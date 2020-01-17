@@ -4,7 +4,7 @@
 //
 ////////////////////////////////////////////////////////////
 
-def jobDescription = 'Apache Cassandra DSL-generated job - DSL git repo: <a href="https://gitbox.apache.org/repos/asf?p=cassandra-builds.git">cassandra-builds</a>'
+def jobDescription = '<img src="http://cassandra.apache.org/img/cassandra_logo.png" /><br/>Apache Cassandra DSL-generated job - DSL git repo: <a href="https://gitbox.apache.org/repos/asf?p=cassandra-builds.git">cassandra-builds</a>'
 def jdkLabel = 'JDK 1.8 (latest)'
 if(binding.hasVariable("CASSANDRA_JDK_LABEL")) {
     jdkLabel = "${CASSANDRA_JDK_LABEL}"
@@ -169,7 +169,7 @@ job('Cassandra-template-test') {
     }
     publishers {
         archiveArtifacts {
-            pattern('build/test/**/TEST-*.xml')
+            pattern('build/test/**/TEST-*.xml,build/**/eclipse_compiler_checks.txt')
             allowEmpty()
             fingerprint()
         }
@@ -414,6 +414,44 @@ cassandraBranches.each {
             }
         }
     }
+
+    /**
+     * Branch Pipelines
+     */
+    pipelineJob("${jobNamePrefix}") {
+        description(jobDescription)
+        logRotator {
+            numToKeep(50)
+            artifactNumToKeep(1)
+        }
+        wrappers {
+            timeout {
+                noActivity(1200)
+            }
+        }
+        throttleConcurrentBuilds {
+            categories(['Cassandra'])
+        }
+        definition {
+            cpsScm {
+                scm {
+                    git {
+                        remote {
+                            url(mainRepo)
+                        }
+                        branch("${branchName}")
+                        extensions {
+                            cleanAfterCheckout()
+                        }
+                    }
+                }
+                scriptPath('.jenkins/Jenkinsfile')
+            }
+        }
+        triggers {
+            scm('H/30 * * * *')
+        }
+    }
 }
 
 ////////////////////////////////////////////////////////////
@@ -466,11 +504,11 @@ testTargets.each {
             shell("./cassandra-builds/build-scripts/cassandra-unittest.sh ${targetName}")
         }
         publishers {
-        archiveArtifacts {
-            pattern('build/test/**/TEST-*.xml')
-            allowEmpty()
-            fingerprint()
-        }
+            archiveArtifacts {
+                pattern('build/test/**/TEST-*.xml,build/**/eclipse_compiler_checks.txt')
+                allowEmpty()
+                fingerprint()
+            }
             archiveJunit('build/test/**/TEST-*.xml') {
                 testDataPublishers {
                     publishTestStabilityData()
@@ -619,16 +657,36 @@ pipelineJob('Cassandra-devbranch') {
         numToKeep(50)
         artifactNumToKeep(1)
     }
+    wrappers {
+        timeout {
+            noActivity(1200)
+        }
+    }
+    throttleConcurrentBuilds {
+        categories(['Cassandra'])
+    }
     parameters {
         stringParam('REPO', 'apache', 'The github user/org to clone cassandra repo from')
         stringParam('BRANCH', 'trunk', 'The branch of cassandra to checkout')
         stringParam('DTEST_REPO', "${dtestRepo}", 'The cassandra-dtest repo URL')
         stringParam('DTEST_BRANCH', 'master', 'The branch of cassandra-dtest to checkout')
+        stringParam('DOCKER_IMAGE', "${dtestDockerImage}", 'Docker image for running dtests')
     }
     definition {
-        cps {
-            script(readFileFromWorkspace('Cassandra-Job-DSL', 'jenkins-dsl/cassandra_pipeline.groovy'))
-            sandbox()
+        cpsScm {
+            scm {
+                git {
+                    remote {
+                        url('https://github.com/${REPO}/cassandra.git')
+                    }
+                    branch('${BRANCH}')
+                    extensions {
+                        cleanAfterCheckout()
+                    }
+                }
+            }
+            lightweight()
+            scriptPath('.jenkins/Jenkinsfile')
         }
     }
 }
