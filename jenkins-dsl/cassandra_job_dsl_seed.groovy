@@ -649,14 +649,6 @@ pipelineJob('Cassandra-devbranch') {
         numToKeep(50)
         artifactNumToKeep(1)
     }
-    wrappers {
-        timeout {
-            noActivity(1200)
-        }
-    }
-    throttleConcurrentBuilds {
-        categories(['Cassandra'])
-    }
     parameters {
         stringParam('REPO', 'apache', 'The github user/org to clone cassandra repo from')
         stringParam('BRANCH', 'trunk', 'The branch of cassandra to checkout')
