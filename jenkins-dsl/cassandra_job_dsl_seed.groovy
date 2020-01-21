@@ -424,14 +424,6 @@ cassandraBranches.each {
             numToKeep(50)
             artifactNumToKeep(1)
         }
-        wrappers {
-            timeout {
-                noActivity(1200)
-            }
-        }
-        throttleConcurrentBuilds {
-            categories(['Cassandra'])
-        }
         definition {
             cpsScm {
                 scm {
