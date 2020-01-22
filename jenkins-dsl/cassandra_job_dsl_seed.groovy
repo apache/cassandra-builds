@@ -73,7 +73,7 @@ job('Cassandra-template-artifacts') {
     jdk(jdkLabel)
     label(slaveLabel)
     logRotator {
-        numToKeep(50)
+        numToKeep(25)
         artifactNumToKeep(1)
     }
     wrappers {
@@ -138,7 +138,7 @@ job('Cassandra-template-test') {
     jdk(jdkLabel)
     label(slaveLabel)
     logRotator {
-        numToKeep(50)
+        numToKeep(25)
         artifactNumToKeep(1)
     }
     wrappers {
@@ -193,7 +193,7 @@ job('Cassandra-template-dtest') {
     jdk(jdkLabel)
     label(slaveLabel)
     logRotator {
-        numToKeep(50)
+        numToKeep(25)
         artifactNumToKeep(1)
     }
     wrappers {
@@ -243,7 +243,7 @@ matrixJob('Cassandra-template-cqlsh-tests') {
     disabled(true)
     description(jobDescription)
     logRotator {
-        numToKeep(50)
+        numToKeep(25)
         artifactNumToKeep(1)
     }
     wrappers {
@@ -421,7 +421,7 @@ cassandraBranches.each {
     pipelineJob("${jobNamePrefix}") {
         description(jobDescription)
         logRotator {
-            numToKeep(50)
+            numToKeep(25)
             artifactNumToKeep(1)
         }
         definition {
@@ -464,7 +464,7 @@ testTargets.each {
         jdk(jdkLabel)
         label(slaveLabel)
         logRotator {
-            numToKeep(50)
+            numToKeep(25)
             artifactNumToKeep(1)
         }
         wrappers {
@@ -522,7 +522,7 @@ job('Cassandra-devbranch-dtest') {
     jdk(jdkLabel)
     label(slaveLabel)
     logRotator {
-        numToKeep(50)
+        numToKeep(25)
         artifactNumToKeep(1)
     }
     wrappers {
@@ -581,7 +581,7 @@ matrixJob('Cassandra-devbranch-cqlsh-tests') {
     description(jobDescription)
     concurrentBuild()
     logRotator {
-        numToKeep(50)
+        numToKeep(25)
         artifactNumToKeep(1)
     }
     wrappers {
@@ -646,7 +646,7 @@ matrixJob('Cassandra-devbranch-cqlsh-tests') {
 pipelineJob('Cassandra-devbranch') {
     description(jobDescription)
     logRotator {
-        numToKeep(50)
+        numToKeep(25)
         artifactNumToKeep(1)
     }
     parameters {
