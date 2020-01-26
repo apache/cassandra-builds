@@ -424,6 +424,46 @@ cassandraBranches.each {
 ////////////////////////////////////////////////////////////
 
 /**
+ * Parameterized Artifacts
+ */
+job('Cassandra-devbranch-artifacts') {
+    description(jobDescription)
+    jdk(jdkLabel)
+    label(slaveLabel)
+    logRotator {
+        numToKeep(25)
+        artifactNumToKeep(1)
+    }
+    wrappers {
+        timeout {
+            noActivity(300)
+        }
+    }
+    throttleConcurrentBuilds {
+        categories(['Cassandra'])
+    }
+    parameters {
+        stringParam('REPO', 'apache', 'The github user/org to clone cassandra repo from')
+        stringParam('BRANCH', 'trunk', 'The branch of cassandra to checkout')
+    }
+    scm {
+        git {
+            remote {
+                url('https://github.com/${REPO}/cassandra.git')
+            }
+            branch('${BRANCH}')
+            extensions {
+                cleanAfterCheckout()
+            }
+        }
+    }
+    steps {
+        buildDescription('', buildDescStr)
+        shell("git clean -xdff ; git clone -b ${buildsBranch} ${buildsRepo}")
+    }
+}
+
+/**
  * Parameterized Dev Branch `ant test`
  */
 testTargets.each {
@@ -628,20 +668,10 @@ pipelineJob('Cassandra-devbranch') {
         stringParam('DOCKER_IMAGE', "${dtestDockerImage}", 'Docker image for running dtests')
     }
     definition {
-        cpsScm {
-            scm {
-                git {
-                    remote {
-                        url('https://github.com/${REPO}/cassandra.git')
-                    }
-                    branch('${BRANCH}')
-                    extensions {
-                        cleanAfterCheckout()
-                    }
-                }
-            }
-            lightweight()
-            scriptPath('.jenkins/Jenkinsfile')
+        cps {
+            // Cassandra-devbranch still needs custom Jenkinsfile because of the parameters passed into the build jobs.
+            script(readFileFromWorkspace('Cassandra-Job-DSL', 'jenkins-dsl/cassandra_pipeline.groovy'))
+            sandbox()
         }
     }
 }
