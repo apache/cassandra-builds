@@ -123,6 +123,16 @@ job('Cassandra-template-artifacts') {
                 }
             }
         }
+        postBuildTask {
+            task('.', '''
+                echo "Cleaning project…";
+                ant realclean;
+                echo "Reporting disk usage…";
+                df -h ; du -hs `pwd` ; du -hs ../* ;
+                echo "Cleaning tmp…";
+                find /tmp -type -f -atime +3 -user jenkins -and -not -exec fuser -s {} ';' -and -delete 2>/dev/null
+                ''')
+        }
     }
 }
 
@@ -173,7 +183,15 @@ job('Cassandra-template-test') {
             }
         }
         postBuildTask {
-            task('.', 'echo "Finding job process orphans.."; if pgrep -af ${JOB_BASE_NAME}; then pkill -9 -f ${JOB_BASE_NAME}; fi')
+            task('.', '''
+                echo "Finding job process orphans…"; if pgrep -af ${JOB_BASE_NAME}; then pkill -9 -f ${JOB_BASE_NAME}; fi;
+                echo "Cleaning project…";
+                ant realclean;
+                echo "Reporting disk usage…";
+                df -h ; du -hs `pwd` ; du -hs ../* ;
+                echo "Cleaning tmp…";
+                find /tmp -type -f -atime +3 -user jenkins -and -not -exec fuser -s {} ';' -and -delete 2>/dev/null
+                ''')
         }
     }
 }
@@ -225,7 +243,15 @@ job('Cassandra-template-dtest') {
             }
         }
         postBuildTask {
-            task('.', 'echo "Finding job process orphans.."; if pgrep -af ${JOB_BASE_NAME}; then pkill -9 -f ${JOB_BASE_NAME}; fi')
+            task('.', '''
+                echo "Finding job process orphans…"; if pgrep -af ${JOB_BASE_NAME}; then pkill -9 -f ${JOB_BASE_NAME}; fi;
+                echo "Cleaning project…";
+                ant realclean;
+                echo "Reporting disk usage…";
+                df -h ; du -hs `pwd` ; du -hs ../* ;
+                echo "Cleaning tmp…";
+                find /tmp -type -f -atime +3 -user jenkins -and -not -exec fuser -s {} ';' -and -delete 2>/dev/null
+                ''')
         }
     }
 }
@@ -282,7 +308,15 @@ matrixJob('Cassandra-template-cqlsh-tests') {
             }
         }
         postBuildTask {
-            task('.', 'echo "Finding job process orphans.."; if pgrep -af "${JOB_BASE_NAME}"; then pkill -9 -f "${JOB_BASE_NAME}"; fi')
+            task('.', '''
+                echo "Finding job process orphans…"; if pgrep -af ${JOB_BASE_NAME}; then pkill -9 -f ${JOB_BASE_NAME}; fi;
+                echo "Cleaning project…";
+                ant realclean;
+                echo "Reporting disk usage…";
+                df -h ; du -hs `pwd` ; du -hs ../* ;
+                echo "Cleaning tmp…";
+                find /tmp -type -f -atime +3 -user jenkins -and -not -exec fuser -s {} ';' -and -delete 2>/dev/null
+                ''')
         }
     }
 }
@@ -461,6 +495,18 @@ job('Cassandra-devbranch-artifacts') {
         buildDescription('', buildDescStr)
         shell("git clean -xdff ; git clone -b ${buildsBranch} ${buildsRepo}")
     }
+    publishers {
+        postBuildTask {
+            task('.', '''
+                echo "Cleaning project…";
+                ant realclean;
+                echo "Reporting disk usage…";
+                df -h ; du -hs `pwd` ; du -hs ../* ;
+                echo "Cleaning tmp…";
+                find /tmp -type -f -atime +3 -user jenkins -and -not -exec fuser -s {} ';' -and -delete 2>/dev/null
+                ''')
+        }
+    }
 }
 
 /**
@@ -518,7 +564,15 @@ testTargets.each {
                 }
             }
             postBuildTask {
-                task('.', 'echo "Finding job process orphans.."; if pgrep -af ${JOB_BASE_NAME}; then pkill -9 -f ${JOB_BASE_NAME}; fi')
+                task('.', '''
+                    echo "Finding job process orphans…"; if pgrep -af ${JOB_BASE_NAME}; then pkill -9 -f ${JOB_BASE_NAME}; fi;
+                    echo "Cleaning project…";
+                    ant realclean;
+                    echo "Reporting disk usage…";
+                    df -h ; du -hs `pwd` ; du -hs ../* ;
+                    echo "Cleaning tmp…";
+                    find /tmp -type -f -atime +3 -user jenkins -and -not -exec fuser -s {} ';' -and -delete 2>/dev/null
+                    ''')
             }
         }
     }
@@ -579,7 +633,15 @@ job('Cassandra-devbranch-dtest') {
             }
         }
         postBuildTask {
-            task('.', 'echo "Finding job process orphans.."; if pgrep -af ${JOB_BASE_NAME}; then pkill -9 -f ${JOB_BASE_NAME}; fi')
+            task('.', '''
+                echo "Finding job process orphans…"; if pgrep -af ${JOB_BASE_NAME}; then pkill -9 -f ${JOB_BASE_NAME}; fi;
+                echo "Cleaning project…";
+                ant realclean;
+                echo "Reporting disk usage…";
+                df -h ; du -hs `pwd` ; du -hs ../* ;
+                echo "Cleaning tmp…";
+                find /tmp -type -f -atime +3 -user jenkins -and -not -exec fuser -s {} ';' -and -delete 2>/dev/null
+                ''')
         }
     }
 }
@@ -645,7 +707,15 @@ matrixJob('Cassandra-devbranch-cqlsh-tests') {
             }
         }
         postBuildTask {
-            task('.', 'echo "Finding job process orphans.."; if pgrep -af "${JOB_BASE_NAME}"; then pkill -9 -f "${JOB_BASE_NAME}"; fi')
+            task('.', '''
+                echo "Finding job process orphans…"; if pgrep -af ${JOB_BASE_NAME}; then pkill -9 -f ${JOB_BASE_NAME}; fi;
+                echo "Cleaning project…";
+                ant realclean;
+                echo "Reporting disk usage…";
+                df -h ; du -hs `pwd` ; du -hs ../* ;
+                echo "Cleaning tmp…";
+                find /tmp -type -f -atime +3 -user jenkins -and -not -exec fuser -s {} ';' -and -delete 2>/dev/null
+                ''')
         }
     }
 }
