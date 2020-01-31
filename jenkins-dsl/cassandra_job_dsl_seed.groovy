@@ -72,6 +72,7 @@ job('Cassandra-template-artifacts') {
     description(jobDescription)
     jdk(jdkLabel)
     label(slaveLabel)
+    compressBuildLog()
     logRotator {
         numToKeep(25)
         artifactNumToKeep(1)
@@ -144,6 +145,7 @@ job('Cassandra-template-test') {
     description(jobDescription)
     jdk(jdkLabel)
     label(slaveLabel)
+    compressBuildLog()
     logRotator {
         numToKeep(25)
         artifactNumToKeep(1)
@@ -204,6 +206,7 @@ job('Cassandra-template-dtest') {
     description(jobDescription)
     jdk(jdkLabel)
     label(slaveLabel)
+    compressBuildLog()
     logRotator {
         numToKeep(25)
         artifactNumToKeep(1)
@@ -262,6 +265,7 @@ job('Cassandra-template-dtest') {
 matrixJob('Cassandra-template-cqlsh-tests') {
     disabled(true)
     description(jobDescription)
+    compressBuildLog()
     logRotator {
         numToKeep(25)
         artifactNumToKeep(1)
@@ -425,6 +429,7 @@ cassandraBranches.each {
      */
     pipelineJob("${jobNamePrefix}") {
         description(jobDescription)
+        compressBuildLog()
         logRotator {
             numToKeep(25)
             artifactNumToKeep(1)
@@ -464,6 +469,7 @@ job('Cassandra-devbranch-artifacts') {
     description(jobDescription)
     jdk(jdkLabel)
     label(slaveLabel)
+    compressBuildLog()
     logRotator {
         numToKeep(25)
         artifactNumToKeep(1)
@@ -520,6 +526,7 @@ testTargets.each {
         concurrentBuild()
         jdk(jdkLabel)
         label(slaveLabel)
+        compressBuildLog()
         logRotator {
             numToKeep(25)
             artifactNumToKeep(1)
@@ -586,6 +593,7 @@ job('Cassandra-devbranch-dtest') {
     concurrentBuild()
     jdk(jdkLabel)
     label(slaveLabel)
+    compressBuildLog()
     logRotator {
         numToKeep(25)
         artifactNumToKeep(1)
@@ -653,6 +661,7 @@ job('Cassandra-devbranch-dtest') {
 matrixJob('Cassandra-devbranch-cqlsh-tests') {
     description(jobDescription)
     concurrentBuild()
+    compressBuildLog()
     logRotator {
         numToKeep(25)
         artifactNumToKeep(1)
@@ -726,6 +735,7 @@ matrixJob('Cassandra-devbranch-cqlsh-tests') {
  */
 pipelineJob('Cassandra-devbranch') {
     description(jobDescription)
+    compressBuildLog()
     logRotator {
         numToKeep(25)
         artifactNumToKeep(1)
