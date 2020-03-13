@@ -45,6 +45,11 @@ def testTargets = ['test', 'test-burn', 'test-cdc', 'test-compression', 'test-jv
 if(binding.hasVariable("CASSANDRA_ANT_TEST_TARGETS")) {
     testTargets = "${CASSANDRA_ANT_TEST_TARGETS}".split(",")
 }
+def testScriptTargets = ['jvm-dtest']
+if(binding.hasVariable("CASSANDRA_TEST_SCRIPT_TARGETS")) {
+    testScriptTargets = "${CASSANDRA_TEST_SCRIPT_TARGETS}".split(",")
+}
+
 // Dtest test targets
 def dtestTargets = ['dtest', 'dtest-novnode', 'dtest-offheap' /*, 'dtest-large'*/] // Skipping dtest-large until there are agents with >=32GB ram available
 if(binding.hasVariable("CASSANDRA_DTEST_TEST_TARGETS")) {
@@ -368,6 +373,24 @@ cassandraBranches.each {
                 steps {
                     shell("./cassandra-builds/build-scripts/cassandra-unittest.sh ${targetName}")
                 }
+            }
+        }
+    }
+
+    /**
+     * Main branch test script target jobs
+     */
+    testScriptTargets.each {
+        def targetName = it
+
+         job("${jobNamePrefix}-${targetName}") {
+            disabled(false)
+            using('Cassandra-template-test')
+            configure { node ->
+                node / scm / branches / 'hudson.plugins.git.BranchSpec' / name(branchName)
+            }
+            steps {
+                shell("./cassandra-builds/build-scripts/cassandra-${targetName}.sh")
             }
         }
     }
