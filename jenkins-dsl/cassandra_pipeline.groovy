@@ -47,14 +47,14 @@ pipeline {
                 success {
                     warnError('missing test xml files') {
                         script {
-                            copyTestResults('test-jvm-dtest-forking')
+                            copyTestResults('jvm-dtest')
                         }
                     }
                 }
                 unstable {
                     warnError('missing test xml files') {
                         script {
-                            copyTestResults('test-jvm-dtest-forking')
+                            copyTestResults('jvm-dtest')
                         }
                     }
                 }
