@@ -40,7 +40,7 @@ pipeline {
             stage('JVM DTests') {
               steps {
                   warnError('Tests unstable') {
-                    build job: "${env.JOB_NAME}-test-jvm-dtest-forking", parameters: [string(name: 'REPO', value: params.REPO), string(name: 'BRANCH', value: params.BRANCH)]
+                    build job: "${env.JOB_NAME}-jvm-dtest", parameters: [string(name: 'REPO', value: params.REPO), string(name: 'BRANCH', value: params.BRANCH)]
                   }
               }
               post {
