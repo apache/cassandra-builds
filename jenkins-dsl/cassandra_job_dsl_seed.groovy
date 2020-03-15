@@ -41,10 +41,11 @@ if(binding.hasVariable("CASSANDRA_BRANCHES")) {
     cassandraBranches = "${CASSANDRA_BRANCHES}".split(",")
 }
 // Ant test targets
-def testTargets = ['test', 'test-burn', 'test-cdc', 'test-compression', 'test-jvm-dtest-forking', 'stress-test', 'fqltool-test', 'long-test']
+def testTargets = ['test', 'test-burn', 'test-cdc', 'test-compression', 'stress-test', 'fqltool-test', 'long-test']
 if(binding.hasVariable("CASSANDRA_ANT_TEST_TARGETS")) {
     testTargets = "${CASSANDRA_ANT_TEST_TARGETS}".split(",")
 }
+
 // Dtest test targets
 def dtestTargets = ['dtest', 'dtest-novnode', 'dtest-offheap' /*, 'dtest-large'*/] // Skipping dtest-large until there are agents with >=32GB ram available
 if(binding.hasVariable("CASSANDRA_DTEST_TEST_TARGETS")) {
@@ -369,6 +370,17 @@ cassandraBranches.each {
                     shell("./cassandra-builds/build-scripts/cassandra-unittest.sh ${targetName}")
                 }
             }
+        }
+    }
+
+     job("${jobNamePrefix}-test-jvm-dtest-forking") {
+        disabled(false)
+        using('Cassandra-template-test')
+        configure { node ->
+            node / scm / branches / 'hudson.plugins.git.BranchSpec' / name(branchName)
+        }
+        steps {
+            shell("./cassandra-builds/build-scripts/cassandra-jvm-dtest.sh")
         }
     }
 
