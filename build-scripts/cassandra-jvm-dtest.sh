@@ -26,7 +26,7 @@ _main() {
   local test_timeout
   test_timeout=$(grep 'name="test.distributed.timeout"' build.xml | awk -F'"' '{print $4}')
 
-  ant testclasslist -Dtest.timeout="$test_timeout" -Dtest.classlistfile=<( _list_tests_no_upgrade ) -Dtest.classlistprefix=distributed
+  ant testclasslist -Dtest.timeout="$test_timeout" -Dtest.classlistfile=<( _list_tests_no_upgrade ) -Dtest.classlistprefix=distributed || echo "ant testclasslist failed"
 }
 
 _main "$@"
