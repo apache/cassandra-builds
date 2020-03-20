@@ -47,7 +47,7 @@ if(binding.hasVariable("CASSANDRA_ANT_TEST_TARGETS")) {
 }
 
 // Dtest test targets
-def dtestTargets = ['dtest', 'dtest-novnode', 'dtest-offheap' /*, 'dtest-large'*/] // Skipping dtest-large until there are agents with >=32GB ram available
+def dtestTargets = ['dtest', 'dtest-novnode', 'dtest-offheap', 'dtest-large']
 if(binding.hasVariable("CASSANDRA_DTEST_TEST_TARGETS")) {
     dtestTargets = "${CASSANDRA_DTEST_TEST_TARGETS}".split(",")
 }
