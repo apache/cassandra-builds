@@ -41,7 +41,7 @@ if(binding.hasVariable("CASSANDRA_BRANCHES")) {
     cassandraBranches = "${CASSANDRA_BRANCHES}".split(",")
 }
 // Ant test targets
-def testTargets = ['test', 'test-burn', 'test-cdc', 'test-compression', 'stress-test', 'fqltool-test', 'long-test']
+def testTargets = ['test', 'test-burn', 'test-cdc', 'test-compression', 'stress-test', 'fqltool-test', 'long-test', 'jvm-dtest']
 if(binding.hasVariable("CASSANDRA_ANT_TEST_TARGETS")) {
     testTargets = "${CASSANDRA_ANT_TEST_TARGETS}".split(",")
 }
@@ -367,20 +367,9 @@ cassandraBranches.each {
                     node / scm / branches / 'hudson.plugins.git.BranchSpec' / name(branchName)
                 }
                 steps {
-                    shell("./cassandra-builds/build-scripts/cassandra-unittest.sh ${targetName}")
+                    shell("./cassandra-builds/build-scripts/cassandra-test.sh ${targetName}")
                 }
             }
-        }
-    }
-
-     job("${jobNamePrefix}-test-jvm-dtest-forking") {
-        disabled(false)
-        using('Cassandra-template-test')
-        configure { node ->
-            node / scm / branches / 'hudson.plugins.git.BranchSpec' / name(branchName)
-        }
-        steps {
-            shell("./cassandra-builds/build-scripts/cassandra-jvm-dtest.sh")
         }
     }
 
@@ -423,6 +412,7 @@ cassandraBranches.each {
                 node / scm / branches / 'hudson.plugins.git.BranchSpec' / name(branchName)
             }
             steps {
+                shell("git clean -xdff")
                 shell('./pylib/cassandra-cqlsh-tests.sh $WORKSPACE')
             }
         }
@@ -561,7 +551,7 @@ testTargets.each {
         steps {
             buildDescription('', buildDescStr)
             shell("git clean -xdff ; git clone -b ${buildsBranch} ${buildsRepo}")
-            shell("./cassandra-builds/build-scripts/cassandra-unittest.sh ${targetName}")
+            shell("./cassandra-builds/build-scripts/cassandra-test.sh ${targetName}")
         }
         publishers {
             archiveArtifacts {
@@ -701,7 +691,6 @@ matrixJob('Cassandra-devbranch-cqlsh-tests') {
     steps {
         buildDescription('', buildDescStr)
         shell("git clean -xdff")
-        shell('git clone -b ${DTEST_BRANCH} ${DTEST_REPO}')
         shell('./pylib/cassandra-cqlsh-tests.sh $WORKSPACE')
     }
     publishers {
