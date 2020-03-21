@@ -7,17 +7,22 @@ Additional compute resource donations for the Apache Cassandra project are
 appreciated. If you have questions about compute resource donations, ask
 on the dev mailing list <dev@cassandra.apache.org>.
 
-The installed OS software is the stock online.net Ubuntu 16.04 LTS amd64 image
+The installed OS software is the stock online.net Ubuntu 18.04 LTS amd64 image
 with only their default installation of bind9 removed:
   $ sudo apt-get autoremove --purge bind9
   $ sudo rm -r /var/cache/bind
+
+On AWS you are free to re-use the public AMI `ami-02cd664c0e9899a91 cassandra-jenkins-host-v3`.
 
 Edit sudoers to allow INFRA to sudo without password, or provide them with the password.
 For example, set:  %sudo   ALL=(ALL:ALL) NOPASSWD:ALL
   $ sudo visudo
 
+Ensure the additional (500GB) data volume is mounted (and added to `/etc/fstab` at `/home/jenkins`
+
 Add jenkins user:
-  $ sudo useradd -m -s /bin/bash jenkins
+  $ sudo groupadd -g 910 jenkins
+  $ sudo useradd -m -u 910 -g 910 -s /bin/bash jenkins
 
 Add ssh pub key from puppet deployment repo:
   https://github.com/apache/infrastructure-puppet/blob/deployment/data/ubuntu/1404.yaml#L295
@@ -27,12 +32,38 @@ Add ssh pub key from puppet deployment repo:
   $ sudo chmod 700 /home/jenkins/.ssh
   $ sudo chmod 600 /home/jenkins/.ssh/authorized_keys
 
+Install and Configure Puppet:
+    1. I added an 'asf999' user which has a pub key file containing keys from the Infra Team. (It has our standard uid/gid of 910)
+        (See also: https://github.com/apache/infrastructure-puppet/blob/deployment/data/common.yaml#L55 )
+    2. The asf999 user has sudo no passwd (configured in visudo)
+    3. Installed Puppet 6  (Not Puppet 5 that Bionic would normally install)
+         and configured the puppet.conf file ready for use
+      3a. wget https://apt.puppetlabs.com/puppet-release-bionic.deb
+      3b. dpkg -i puppet-release-bionic.deb
+      3c. apt-get update
+      3d. apt-get install -y puppet-agent
+      3e. cat >> /etc/puppetlabs/puppet/puppet.conf << EOF
+        [main]
+        server = pm01-lw-us.apache.org
+        EOF
+
+
+Ensure `hostname` is configured to the server's public ip.
+
+
 ----
 
-Slaves for build.apache.org:
+Slaves for ci-cassandra.apache.org:
 
-'cassandra' label slaves (16G RAM)
+All have label 'cassandra'. Agents with 32GB+ RAM also have the label 'cassandra-large'.
 
+cassandra1  - 163.172.73.141 - Ubuntu 18.04 LTS amd64, 32G RAM, donated by Datastax
+cassandra2  - 163.172.73.156 - Ubuntu 18.04 LTS amd64, 32G RAM, donated by Datastax
+cassandra3  - 163.172.4.20   - Ubuntu 18.04 LTS amd64, 32G RAM, donated by Datastax
+cassandra4  - 163.172.4.140  - Ubuntu 18.04 LTS amd64, 32G RAM, donated by Datastax
+cassandra5  - 163.172.4.150  - Ubuntu 18.04 LTS amd64, 32G RAM, donated by Datastax
+cassandra6  - 163.172.4.175  - Ubuntu 18.04 LTS amd64, 32G RAM, donated by Datastax
+cassandra7  - 163.172.4.184  - Ubuntu 18.04 LTS amd64, 32G RAM, donated by Datastax
 cassandra8  - 35.160.175.252 - Ubuntu 16.04 LTS amd64, 16G RAM, 4 cores, donated by instaclustr
 cassandra9  - 34.210.158.175 - Ubuntu 16.04 LTS amd64, 16G RAM, 4 cores, donated by instaclustr
 cassandra10 - 35.165.114.131 - Ubuntu 16.04 LTS amd64, 16G RAM, 4 cores, donated by instaclustr
@@ -42,20 +73,27 @@ cassandra13 - 52.32.194.237  - Ubuntu 16.04 LTS amd64, 16G RAM, 4 cores, donated
 cassandra14 - 52.38.171.39   - Ubuntu 16.04 LTS amd64, 16G RAM, 4 cores, donated by instaclustr
 cassandra15 - 52.89.160.64   - Ubuntu 16.04 LTS amd64, 16G RAM, 4 cores, donated by instaclustr
 cassandra16 - 54.148.184.162 - Ubuntu 16.04 LTS amd64, 16G RAM, 4 cores, donated by instaclustr
+cassandra17 - 44.230.121.32  - Ubuntu 18.04 LTS amd64, 32G RAM, m5.2xlarge, donated by Amazon
+cassandra18 - 44.230.213.15  - Ubuntu 18.04 LTS amd64, 32G RAM, m5.2xlarge, donated by Amazon
+cassandra19 - 44.231.106.18  - Ubuntu 18.04 LTS amd64, 32G RAM, m5.2xlarge, donated by Amazon
+cassandra20 - 44.231.194.19  - Ubuntu 18.04 LTS amd64, 32G RAM, m5.2xlarge, donated by Amazon
+cassandra21 - 44.233.81.188  - Ubuntu 18.04 LTS amd64, 32G RAM, m5.2xlarge, donated by Amazon
+cassandra22 - 50.112.217.24  - Ubuntu 18.04 LTS amd64, 32G RAM, m5.2xlarge, donated by Amazon
+cassandra23 - 50.112.240.23  - Ubuntu 18.04 LTS amd64, 32G RAM, m5.2xlarge, donated by Amazon
+cassandra24 - 52.12.57.190   - Ubuntu 18.04 LTS amd64, 32G RAM, m5.2xlarge, donated by Amazon
+cassandra25 - 52.27.28.244   - Ubuntu 18.04 LTS amd64, 32G RAM, m5.2xlarge, donated by Amazon
+cassandra26 - 54.185.77.39   - Ubuntu 18.04 LTS amd64, 32G RAM, m5.2xlarge, donated by Amazon
+cassandra27 - 54.188.214.16  - Ubuntu 18.04 LTS amd64, 32G RAM, m5.2xlarge, donated by Amazon
+cassandra28 - 54.190.165.16  - Ubuntu 18.04 LTS amd64, 32G RAM, m5.2xlarge, donated by Amazon
+cassandra29 - 54.212.144.24  - Ubuntu 18.04 LTS amd64, 32G RAM, m5.2xlarge, donated by Amazon
+cassandra30 - 54.214.96.70   - Ubuntu 18.04 LTS amd64, 32G RAM, m5.2xlarge, donated by Amazon
+cassandra31 - 54.71.239.65   - Ubuntu 18.04 LTS amd64, 32G RAM, m5.2xlarge, donated by Amazon
+cassandra32 - 64.18.213.245  - Ubuntu 18.04 LTS amd64, 32G RAM, 16 core, donated by iland
+cassandra33 - 64.18.213.246  - Ubuntu 18.04 LTS amd64, 32G RAM, 16 core, donated by iland
+cassandra34 - 64.18.213.247  - Ubuntu 18.04 LTS amd64, 32G RAM, 16 core, donated by iland
+cassandra35 - 64.18.213.248  - Ubuntu 18.04 LTS amd64, 32G RAM, 16 core, donated by iland
+cassandra36 - 64.18.213.249  - Ubuntu 18.04 LTS amd64, 32G RAM, 16 core, donated by iland
 
-----
-
-Slaves for ci-cassandra.apache.org:
-
-'cassandra' label slaves (32G RAM) (IN PROGRESS: INFRA-19867)
-
-cassandra1 - 163.172.73.141 - Ubuntu 18.04 LTS amd64, 32G RAM, donated by Datastax
-cassandra2 - 163.172.73.156 - Ubuntu 18.04 LTS amd64, 32G RAM, donated by Datastax
-cassandra3 - 163.172.4.20   - Ubuntu 18.04 LTS amd64, 32G RAM, donated by Datastax
-cassandra4 - 163.172.4.140  - Ubuntu 18.04 LTS amd64, 32G RAM, donated by Datastax
-cassandra5 - 163.172.4.150  - Ubuntu 18.04 LTS amd64, 32G RAM, donated by Datastax
-cassandra6 - 163.172.4.175  - Ubuntu 18.04 LTS amd64, 32G RAM, donated by Datastax
-cassandra7 - 163.172.4.184  - Ubuntu 18.04 LTS amd64, 32G RAM, donated by Datastax
 
 ----
 
@@ -66,3 +104,6 @@ Contacts for system donators, when console hands may be needed by INFRA:
   Instaclustr: Ben Bromhead <ben@instaclustr.com>
                alternative group list: admin@instaclustr.com
 
+  Amazon: cassandra-hardware@amazon.com (Steve Mayszak)
+
+  iland: Julien Anguenot <julien@anguenot.org>
