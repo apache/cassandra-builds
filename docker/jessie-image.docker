@@ -1,10 +1,10 @@
-FROM debian:jessie-backports
+FROM debian:buster
 
 ENV DEB_DIST_DIR=/dist
 ENV BUILD_HOME=/home/build
 ENV CASSANDRA_DIR=$BUILD_HOME/cassandra
 
-LABEL org.cassandra.buildenv=jessie
+LABEL org.cassandra.buildenv=buster
 
 VOLUME ${DEB_DIST_DIR}
 
@@ -15,15 +15,14 @@ RUN apt-get update && apt-get -y install \
    curl \
    devscripts \
    git \
-   sudo
-
-RUN apt-get -y -t jessie-backports --no-install-recommends install \
-   openjdk-7-jdk \
-   openjdk-8-jdk
-
-RUN apt-get -y -t jessie-backports install \
+   sudo \
    python-sphinx \
    python-sphinx-rtd-theme
+
+RUN echo 'deb http://ftp.us.debian.org/debian sid main' >> /etc/apt/sources.list
+RUN apt-get update
+
+RUN apt-get install -y --no-install-recommends openjdk-8-jdk openjdk-11-jdk
 
 RUN update-java-alternatives --set java-1.8.0-openjdk-amd64
 
