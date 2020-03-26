@@ -1,6 +1,6 @@
 // Cassandra-devbranch needs custom Jenkinsfile because of the parameters passed into the build jobs.
 pipeline {
-  agent any
+  agent { label 'cassandra' }
   stages {
       stage('Init') {
         steps {
