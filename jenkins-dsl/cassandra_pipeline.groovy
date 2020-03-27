@@ -40,21 +40,21 @@ pipeline {
             stage('JVM DTests') {
               steps {
                   warnError('Tests unstable') {
-                    build job: "${env.JOB_NAME}-test-jvm-dtest-forking", parameters: [string(name: 'REPO', value: params.REPO), string(name: 'BRANCH', value: params.BRANCH)]
+                    build job: "${env.JOB_NAME}-jvm-dtest", parameters: [string(name: 'REPO', value: params.REPO), string(name: 'BRANCH', value: params.BRANCH)]
                   }
               }
               post {
                 success {
                     warnError('missing test xml files') {
                         script {
-                            copyTestResults('test-jvm-dtest-forking')
+                            copyTestResults('jvm-dtest')
                         }
                     }
                 }
                 unstable {
                     warnError('missing test xml files') {
                         script {
-                            copyTestResults('test-jvm-dtest-forking')
+                            copyTestResults('jvm-dtest')
                         }
                     }
                 }
