@@ -128,6 +128,7 @@ job('Cassandra-template-artifacts') {
         postBuildTask {
             task('.', '''
                 echo "Cleaning project…"; ant realclean;
+                echo "Pruning docker…" ; docker system prune -f --volumes ;
                 echo "Reporting disk usage…"; df -h ; du -hs `pwd` ; du -hs ../* ;
                 echo "Cleaning tmp…";
                 find /tmp -type f -atime +3 -user jenkins -and -not -exec fuser -s {} ';' -and -delete 2>/dev/null
@@ -187,6 +188,7 @@ job('Cassandra-template-test') {
             task('.', '''
                 echo "Finding job process orphans…"; if pgrep -af ${JOB_BASE_NAME}; then pkill -9 -f ${JOB_BASE_NAME}; fi;
                 echo "Cleaning project…"; ant realclean;
+                echo "Pruning docker…" ; docker system prune -f --volumes ;
                 echo "Reporting disk usage…"; df -h ; du -hs `pwd` ; du -hs ../* ;
                 echo "Cleaning tmp…";
                 find /tmp -type f -atime +3 -user jenkins -and -not -exec fuser -s {} ';' -and -delete 2>/dev/null
@@ -246,6 +248,7 @@ job('Cassandra-template-dtest') {
             task('.', '''
                 echo "Finding job process orphans…"; if pgrep -af ${JOB_BASE_NAME}; then pkill -9 -f ${JOB_BASE_NAME}; fi;
                 echo "Cleaning project…"; ant realclean;
+                echo "Pruning docker…" ; docker system prune -f --volumes ;
                 echo "Reporting disk usage…"; df -h ; du -hs `pwd` ; du -hs ../* ;
                 echo "Cleaning tmp…";
                 find /tmp -type f -atime +3 -user jenkins -and -not -exec fuser -s {} ';' -and -delete 2>/dev/null
@@ -310,6 +313,7 @@ matrixJob('Cassandra-template-cqlsh-tests') {
             task('.', '''
                 echo "Finding job process orphans…"; if pgrep -af ${JOB_BASE_NAME}; then pkill -9 -f ${JOB_BASE_NAME}; fi;
                 echo "Cleaning project…"; ant realclean;
+                echo "Pruning docker…" ; docker system prune -f --volumes ;
                 echo "Reporting disk usage…"; df -h ; du -hs `pwd` ; du -hs ../* ;
                 echo "Cleaning tmp…";
                 find /tmp -type f -atime +3 -user jenkins -and -not -exec fuser -s {} ';' -and -delete 2>/dev/null
@@ -498,10 +502,9 @@ job('Cassandra-devbranch-artifacts') {
     publishers {
         postBuildTask {
             task('.', '''
-                echo "Cleaning project…";
-                ant realclean;
-                echo "Reporting disk usage…";
-                df -h ; du -hs `pwd` ; du -hs ../* ;
+                echo "Cleaning project…"; ant realclean;
+                echo "Pruning docker…" ; docker system prune -f --volumes ;
+                echo "Reporting disk usage…"; df -h ; du -hs `pwd` ; du -hs ../* ;
                 echo "Cleaning tmp…";
                 find /tmp -type -f -atime +3 -user jenkins -and -not -exec fuser -s {} ';' -and -delete 2>/dev/null
                 ''')
@@ -568,6 +571,7 @@ testTargets.each {
                 task('.', '''
                     echo "Finding job process orphans…"; if pgrep -af ${JOB_BASE_NAME}; then pkill -9 -f ${JOB_BASE_NAME}; fi;
                     echo "Cleaning project…"; ant realclean;
+                    echo "Pruning docker…" ; docker system prune -f --volumes ;
                     echo "Reporting disk usage…"; df -h ; du -hs `pwd` ; du -hs ../* ;
                     echo "Cleaning tmp…";
                     find /tmp -type f -atime +3 -user jenkins -and -not -exec fuser -s {} ';' -and -delete 2>/dev/null
@@ -636,6 +640,7 @@ job('Cassandra-devbranch-dtest') {
             task('.', '''
                 echo "Finding job process orphans…"; if pgrep -af ${JOB_BASE_NAME}; then pkill -9 -f ${JOB_BASE_NAME}; fi;
                 echo "Cleaning project…"; ant realclean;
+                echo "Pruning docker…" ; docker system prune -f --volumes ;
                 echo "Reporting disk usage…"; df -h ; du -hs `pwd` ; du -hs ../* ;
                 echo "Cleaning tmp…";
                 find /tmp -type f -atime +3 -user jenkins -and -not -exec fuser -s {} ';' -and -delete 2>/dev/null
@@ -708,6 +713,7 @@ matrixJob('Cassandra-devbranch-cqlsh-tests') {
             task('.', '''
                 echo "Finding job process orphans…"; if pgrep -af ${JOB_BASE_NAME}; then pkill -9 -f ${JOB_BASE_NAME}; fi;
                 echo "Cleaning project…"; ant realclean;
+                echo "Pruning docker…" ; docker system prune -f --volumes ;
                 echo "Reporting disk usage…"; df -h ; du -hs `pwd` ; du -hs ../* ;
                 echo "Cleaning tmp…";
                 find /tmp -type f -atime +3 -user jenkins -and -not -exec fuser -s {} ';' -and -delete 2>/dev/null
