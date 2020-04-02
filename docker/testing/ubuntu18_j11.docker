@@ -81,7 +81,7 @@ RUN echo 'export ANT_HOME=/usr/share/ant' >> /home/cassandra/.bashrc && \
     echo 'export JAVA_HOME=$JAVA8_HOME' >> /home/cassandra/.bashrc
 
 # run pip commands and setup virtualenv (note we do this after we switch to cassandra user so we
-# setup the virtualenv for the cassandrauser and not the root user by acident)
+# setup the virtualenv for the cassandra user and not the root user by accident)
 RUN virtualenv --python=python3.6 --no-site-packages env
 RUN chmod +x env/bin/activate
 RUN /bin/bash -c "source ~/env/bin/activate && pip3 install Cython && pip3 install -r /opt/requirements.txt && pip3 freeze --user"
