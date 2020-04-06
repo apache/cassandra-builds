@@ -17,10 +17,16 @@
    ```docker build -t cass-build-rpms -f docker/centos7-image.docker docker/```
    The image will contain a clone of the Apache git repository by default. Using a different repository is possible by adding the `--build-arg CASSANDRA_GIT_URL=https://github.com/myuser/cassandra.git` parameter. All successive builds will be executed based on the repository cloned during docker image creation.
 2. Run build script through docker (specify branch, e.g. cassandra-3.0 and version, e.g. 3.0.11):
-   * Debian:
+   * Debian Jessie:
     ```docker run --rm -v `pwd`/dist:/dist `docker images -f label=org.cassandra.buildenv=jessie -q` /home/build/build-debs.sh <branch/tag>```
+   * Debian Buster
+    ```docker run --rm -v `pwd`/dist:/dist `docker images -f label=org.cassandra.buildenv=buster -q` /home/build/build-debs.sh <branch/tag>```
    * RPM:
     ```docker run --rm -v `pwd`/dist:/dist `docker images -f label=org.cassandra.buildenv=centos -q` /home/build/build-rpms.sh <branch/tag>```
+
+For the build by Debian Buster, you have the possibility to build Cassandra either by Java 8 (default) or by Java 11. You control the Java version like following. If you want to build with Java 8, just omit that last option.
+
+```docker run --rm -v `pwd`/dist:/dist `docker images -f label=org.cassandra.buildenv=buster -q` /home/build/build-debs.sh <branch/tag> 11```
 
 You should find newly created Debian and RPM packages in the `dist` directory.
 
