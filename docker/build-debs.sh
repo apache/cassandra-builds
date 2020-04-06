@@ -1,12 +1,25 @@
 #!/bin/bash -x
 set -e
 
-if [ "$#" -ne 1 ]; then
-   echo "$0 <branch>"
+if [ "$#" -lt 1 ]; then
+   echo "$0 <branch> <java version>"
+   echo "if Java version is not set, it is set to 8 by default, choose from 8 or 11"
    exit 1
 fi
 
 CASSANDRA_BRANCH=$1
+JAVA_VERSION=$2
+
+if [ "$JAVA_VERSION" = "" ]; then
+    JAVA_VERSION=8
+fi
+
+regx_java_version="(8|11)"
+
+if [[ ! "$JAVA_VERSION" =~ $regx_java_version ]]; then
+   echo "Error: Java version is not set to 8 nor 11, it is set to $JAVA_VERSION"
+   exit 1
+fi
 
 cd $CASSANDRA_DIR
 git fetch
@@ -74,6 +87,14 @@ buildxml_version=`grep 'property\s*name="base.version"' build.xml |sed -ne 's/.*
 if [ $buildxml_version != $git_version ]; then
    echo "Error: build.xml version ($buildxml_version) not matching git tag derived version ($git_version)">&2
    exit 4
+fi
+
+if [ $JAVA_VERSION = "11" ]; then
+   sudo update-java-alternatives --set java-1.11.0-openjdk-amd64
+   export CASSANDRA_USE_JDK11=true
+   echo "Cassandra will be built with Java 11"
+else
+   echo "Cassandra will be built with Java 8"
 fi
 
 # Install build dependencies and build package
