@@ -2,6 +2,9 @@
 //
 // Common Vars and Branch List
 //
+//  To update the variable via the Jenkins UI, use the EnvInject plugin
+//   example: https://github.com/apache/cassandra-builds/pull/19#issuecomment-610822772
+//
 ////////////////////////////////////////////////////////////
 
 def jobDescription = '<img src="http://cassandra.apache.org/img/cassandra_logo.png" /><br/>Apache Cassandra DSL-generated job - DSL git repo: <a href="https://gitbox.apache.org/repos/asf?p=cassandra-builds.git">cassandra-builds</a>'
@@ -129,8 +132,9 @@ job('Cassandra-template-artifacts') {
             task('.', '''
                 echo "Cleaning project…"; ant realclean;
                 echo "Pruning docker…" ; docker system prune -f --volumes ;
-                echo "Reporting disk usage…"; df -h ; du -hs `pwd` ; du -hs ../* ;
+                echo "Reporting disk usage…"; df -h ; find . -maxdepth 2 -type d -exec du -hs {} ';' ; du -hs ../* ;
                 echo "Cleaning tmp…";
+                find . -type d -name tmp -delete 2>/dev/null ;
                 find /tmp -type f -atime +3 -user jenkins -and -not -exec fuser -s {} ';' -and -delete 2>/dev/null
                 ''')
         }
@@ -189,8 +193,9 @@ job('Cassandra-template-test') {
                 echo "Finding job process orphans…"; if pgrep -af ${JOB_BASE_NAME}; then pkill -9 -f ${JOB_BASE_NAME}; fi;
                 echo "Cleaning project…"; ant realclean;
                 echo "Pruning docker…" ; docker system prune -f --volumes ;
-                echo "Reporting disk usage…"; df -h ; du -hs `pwd` ; du -hs ../* ;
+                echo "Reporting disk usage…"; df -h ; find . -maxdepth 2 -type d -exec du -hs {} ';' ; du -hs ../* ;
                 echo "Cleaning tmp…";
+                find . -type d -name tmp -delete 2>/dev/null ;
                 find /tmp -type f -atime +3 -user jenkins -and -not -exec fuser -s {} ';' -and -delete 2>/dev/null
             ''')
         }
@@ -249,8 +254,9 @@ job('Cassandra-template-dtest') {
                 echo "Finding job process orphans…"; if pgrep -af ${JOB_BASE_NAME}; then pkill -9 -f ${JOB_BASE_NAME}; fi;
                 echo "Cleaning project…"; ant realclean;
                 echo "Pruning docker…" ; docker system prune -f --volumes ;
-                echo "Reporting disk usage…"; df -h ; du -hs `pwd` ; du -hs ../* ;
+                echo "Reporting disk usage…"; df -h ; find . -maxdepth 2 -type d -exec du -hs {} ';' ; du -hs ../* ;
                 echo "Cleaning tmp…";
+                find . -type d -name tmp -delete 2>/dev/null ;
                 find /tmp -type f -atime +3 -user jenkins -and -not -exec fuser -s {} ';' -and -delete 2>/dev/null
             ''')
         }
@@ -314,8 +320,9 @@ matrixJob('Cassandra-template-cqlsh-tests') {
                 echo "Finding job process orphans…"; if pgrep -af ${JOB_BASE_NAME}; then pkill -9 -f ${JOB_BASE_NAME}; fi;
                 echo "Cleaning project…"; ant realclean;
                 echo "Pruning docker…" ; docker system prune -f --volumes ;
-                echo "Reporting disk usage…"; df -h ; du -hs `pwd` ; du -hs ../* ;
+                echo "Reporting disk usage…"; df -h ; find . -maxdepth 2 -type d -exec du -hs {} ';' ; du -hs ../* ;
                 echo "Cleaning tmp…";
+                find . -type d -name tmp -delete 2>/dev/null ;
                 find /tmp -type f -atime +3 -user jenkins -and -not -exec fuser -s {} ';' -and -delete 2>/dev/null
             ''')
         }
@@ -504,8 +511,9 @@ job('Cassandra-devbranch-artifacts') {
             task('.', '''
                 echo "Cleaning project…"; ant realclean;
                 echo "Pruning docker…" ; docker system prune -f --volumes ;
-                echo "Reporting disk usage…"; df -h ; du -hs `pwd` ; du -hs ../* ;
+                echo "Reporting disk usage…"; df -h ; find . -maxdepth 2 -type d -exec du -hs {} ';' ; du -hs ../* ;
                 echo "Cleaning tmp…";
+                find . -type d -name tmp -delete 2>/dev/null ;
                 find /tmp -type -f -atime +3 -user jenkins -and -not -exec fuser -s {} ';' -and -delete 2>/dev/null
                 ''')
         }
@@ -572,8 +580,9 @@ testTargets.each {
                     echo "Finding job process orphans…"; if pgrep -af ${JOB_BASE_NAME}; then pkill -9 -f ${JOB_BASE_NAME}; fi;
                     echo "Cleaning project…"; ant realclean;
                     echo "Pruning docker…" ; docker system prune -f --volumes ;
-                    echo "Reporting disk usage…"; df -h ; du -hs `pwd` ; du -hs ../* ;
+                    echo "Reporting disk usage…"; df -h ; find . -maxdepth 2 -type d -exec du -hs {} ';' ; du -hs ../* ;
                     echo "Cleaning tmp…";
+                    find . -type d -name tmp -delete 2>/dev/null ;
                     find /tmp -type f -atime +3 -user jenkins -and -not -exec fuser -s {} ';' -and -delete 2>/dev/null
                 ''')
             }
@@ -641,8 +650,9 @@ job('Cassandra-devbranch-dtest') {
                 echo "Finding job process orphans…"; if pgrep -af ${JOB_BASE_NAME}; then pkill -9 -f ${JOB_BASE_NAME}; fi;
                 echo "Cleaning project…"; ant realclean;
                 echo "Pruning docker…" ; docker system prune -f --volumes ;
-                echo "Reporting disk usage…"; df -h ; du -hs `pwd` ; du -hs ../* ;
+                echo "Reporting disk usage…"; df -h ; find . -maxdepth 2 -type d -exec du -hs {} ';' ; du -hs ../* ;
                 echo "Cleaning tmp…";
+                find . -type d -name tmp -delete 2>/dev/null ;
                 find /tmp -type f -atime +3 -user jenkins -and -not -exec fuser -s {} ';' -and -delete 2>/dev/null
             ''')
         }
@@ -714,8 +724,9 @@ matrixJob('Cassandra-devbranch-cqlsh-tests') {
                 echo "Finding job process orphans…"; if pgrep -af ${JOB_BASE_NAME}; then pkill -9 -f ${JOB_BASE_NAME}; fi;
                 echo "Cleaning project…"; ant realclean;
                 echo "Pruning docker…" ; docker system prune -f --volumes ;
-                echo "Reporting disk usage…"; df -h ; du -hs `pwd` ; du -hs ../* ;
+                echo "Reporting disk usage…"; df -h ; find . -maxdepth 2 -type d -exec du -hs {} ';' ; du -hs ../* ;
                 echo "Cleaning tmp…";
+                find . -type d -name tmp -delete 2>/dev/null ;
                 find /tmp -type f -atime +3 -user jenkins -and -not -exec fuser -s {} ';' -and -delete 2>/dev/null
             ''')
         }

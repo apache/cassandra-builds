@@ -18,6 +18,7 @@ export CCM_HEAP_NEWSIZE="200M"
 export CCM_CONFIG_DIR=${WORKSPACE}/.ccm
 export NUM_TOKENS="32"
 export CASSANDRA_DIR=${WORKSPACE}
+export TMPDIR="./tmp"
 
 # Loop to prevent failure due to maven-ant-tasks not downloading a jar..
 for x in $(seq 1 3); do
@@ -35,7 +36,7 @@ fi
 
 # Set up venv with dtest dependencies
 set -e # enable immediate exit if venv setup fails
-virtualenv --python=python2 --no-site-packages venv
+virtualenv --python=python2 venv
 source venv/bin/activate
 pip install -r cassandra-dtest/requirements.txt
 pip freeze
@@ -48,6 +49,7 @@ pip freeze
 
 cd cassandra-dtest/
 rm -r upgrade_tests/ # TEMP: remove upgrade_tests - we have no dual JDK installation
+mkdir -p ${TMPDIR}
 set +e # disable immediate exit from this point
 if [ "${DTEST_TARGET}" = "dtest" ]; then
     ./run_dtests.py --vnodes true --nose-options="--verbosity=3 --with-xunit --nocapture --attr=!resource-intensive" | tee -a ${WORKSPACE}/test_stdout.txt

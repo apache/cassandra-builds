@@ -20,6 +20,7 @@ export NUM_TOKENS="32"
 export CASSANDRA_DIR=${WORKSPACE}
 #Have Cassandra skip all fsyncs to improve test performance and reliability
 export CASSANDRA_SKIP_SYNC=true
+export TMPDIR="./tmp"
 
 # set JAVA_HOME environment to enable multi-version jar files for >4.0
 # both JAVA8/11_HOME env variables must exist
@@ -49,7 +50,7 @@ fi
 
 # Set up venv with dtest dependencies
 set -e # enable immediate exit if venv setup fails
-virtualenv --python=python3 --no-site-packages venv
+virtualenv --python=python3 venv
 source venv/bin/activate
 pip3 install -r cassandra-dtest/requirements.txt
 pip3 freeze
@@ -62,6 +63,7 @@ pip3 freeze
 
 cd cassandra-dtest/
 rm -r upgrade_tests/ # TEMP: remove upgrade_tests - we have no dual JDK installation
+mkdir -p ${TMPDIR}
 set +e # disable immediate exit from this point
 if [ "${DTEST_TARGET}" = "dtest" ]; then
     pytest -vv --log-level="INFO" --use-vnodes --num-tokens=32 --junit-xml=nosetests.xml -s --cassandra-dir=$CASSANDRA_DIR --skip-resource-intensive-tests 2>&1 | tee -a ${WORKSPACE}/test_stdout.txt
