@@ -505,6 +505,7 @@ job('Cassandra-devbranch-artifacts') {
     steps {
         buildDescription('', buildDescStr)
         shell("git clean -xdff ; git clone -b ${buildsBranch} ${buildsRepo}")
+        shell('./cassandra-builds/build-scripts/cassandra-artifacts.sh')
     }
     publishers {
         postBuildTask {
