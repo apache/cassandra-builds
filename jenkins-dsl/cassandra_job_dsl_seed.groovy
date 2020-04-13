@@ -135,7 +135,7 @@ job('Cassandra-template-artifacts') {
                 echo "Reporting disk usage…"; df -h ; find . -maxdepth 2 -type d -exec du -hs {} ';' ; du -hs ../* ;
                 echo "Cleaning tmp…";
                 find . -type d -name tmp -delete 2>/dev/null ;
-                find /tmp -type f -atime +3 -user jenkins -and -not -exec fuser -s {} ';' -and -delete 2>/dev/null
+                find /tmp -type f -atime +2 -user jenkins -and -not -exec fuser -s {} ';' -and -delete 2>/dev/null
                 ''')
         }
     }
@@ -196,7 +196,7 @@ job('Cassandra-template-test') {
                 echo "Reporting disk usage…"; df -h ; find . -maxdepth 2 -type d -exec du -hs {} ';' ; du -hs ../* ;
                 echo "Cleaning tmp…";
                 find . -type d -name tmp -delete 2>/dev/null ;
-                find /tmp -type f -atime +3 -user jenkins -and -not -exec fuser -s {} ';' -and -delete 2>/dev/null
+                find /tmp -type f -atime +2 -user jenkins -and -not -exec fuser -s {} ';' -and -delete 2>/dev/null
             ''')
         }
     }
@@ -257,7 +257,7 @@ job('Cassandra-template-dtest') {
                 echo "Reporting disk usage…"; df -h ; find . -maxdepth 2 -type d -exec du -hs {} ';' ; du -hs ../* ;
                 echo "Cleaning tmp…";
                 find . -type d -name tmp -delete 2>/dev/null ;
-                find /tmp -type f -atime +3 -user jenkins -and -not -exec fuser -s {} ';' -and -delete 2>/dev/null
+                find /tmp -type f -atime +2 -user jenkins -and -not -exec fuser -s {} ';' -and -delete 2>/dev/null
             ''')
         }
     }
@@ -323,7 +323,7 @@ matrixJob('Cassandra-template-cqlsh-tests') {
                 echo "Reporting disk usage…"; df -h ; find . -maxdepth 2 -type d -exec du -hs {} ';' ; du -hs ../* ;
                 echo "Cleaning tmp…";
                 find . -type d -name tmp -delete 2>/dev/null ;
-                find /tmp -type f -atime +3 -user jenkins -and -not -exec fuser -s {} ';' -and -delete 2>/dev/null
+                find /tmp -type f -atime +2 -user jenkins -and -not -exec fuser -s {} ';' -and -delete 2>/dev/null
             ''')
         }
     }
@@ -584,7 +584,7 @@ testTargets.each {
                     echo "Reporting disk usage…"; df -h ; find . -maxdepth 2 -type d -exec du -hs {} ';' ; du -hs ../* ;
                     echo "Cleaning tmp…";
                     find . -type d -name tmp -delete 2>/dev/null ;
-                    find /tmp -type f -atime +3 -user jenkins -and -not -exec fuser -s {} ';' -and -delete 2>/dev/null
+                    find /tmp -type f -atime +2 -user jenkins -and -not -exec fuser -s {} ';' -and -delete 2>/dev/null
                 ''')
             }
         }
@@ -654,7 +654,7 @@ job('Cassandra-devbranch-dtest') {
                 echo "Reporting disk usage…"; df -h ; find . -maxdepth 2 -type d -exec du -hs {} ';' ; du -hs ../* ;
                 echo "Cleaning tmp…";
                 find . -type d -name tmp -delete 2>/dev/null ;
-                find /tmp -type f -atime +3 -user jenkins -and -not -exec fuser -s {} ';' -and -delete 2>/dev/null
+                find /tmp -type f -atime +2 -user jenkins -and -not -exec fuser -s {} ';' -and -delete 2>/dev/null
             ''')
         }
     }
@@ -728,7 +728,7 @@ matrixJob('Cassandra-devbranch-cqlsh-tests') {
                 echo "Reporting disk usage…"; df -h ; find . -maxdepth 2 -type d -exec du -hs {} ';' ; du -hs ../* ;
                 echo "Cleaning tmp…";
                 find . -type d -name tmp -delete 2>/dev/null ;
-                find /tmp -type f -atime +3 -user jenkins -and -not -exec fuser -s {} ';' -and -delete 2>/dev/null
+                find /tmp -type f -atime +2 -user jenkins -and -not -exec fuser -s {} ';' -and -delete 2>/dev/null
             ''')
         }
     }

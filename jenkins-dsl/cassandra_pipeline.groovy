@@ -229,7 +229,9 @@ pipeline {
       }
       stage('Summary') {
         steps {
-            junit '**/TEST*.xml,**/cqlshlib.xml,**/nosetests.xml'
+            shell("git clean -xdff ; git clone -b ${buildsBranch} ${buildsRepo}")
+            shell("./cassandra-builds/build-scripts/cassandra-test-report.sh")
+            junit 'TESTS-TestSuites.xml'
         }
       }
   }

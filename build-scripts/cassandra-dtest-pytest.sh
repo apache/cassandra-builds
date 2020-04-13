@@ -66,13 +66,13 @@ rm -r upgrade_tests/ # TEMP: remove upgrade_tests - we have no dual JDK installa
 mkdir -p ${TMPDIR}
 set +e # disable immediate exit from this point
 if [ "${DTEST_TARGET}" = "dtest" ]; then
-    pytest -vv --log-level="INFO" --use-vnodes --num-tokens=32 --junit-xml=nosetests.xml -s --cassandra-dir=$CASSANDRA_DIR --skip-resource-intensive-tests 2>&1 | tee -a ${WORKSPACE}/test_stdout.txt
+    pytest -vv --log-level="INFO" --use-vnodes --num-tokens=32 --junit-xml=nosetests.xml --junit-prefix=${DTEST_TARGET} -s --cassandra-dir=$CASSANDRA_DIR --skip-resource-intensive-tests 2>&1 | tee -a ${WORKSPACE}/test_stdout.txt
 elif [ "${DTEST_TARGET}" = "dtest-novnode" ]; then
-    pytest -vv --log-level="INFO" --junit-xml=nosetests.xml -s --cassandra-dir=$CASSANDRA_DIR --skip-resource-intensive-tests 2>&1 | tee -a ${WORKSPACE}/test_stdout.txt
+    pytest -vv --log-level="INFO" --junit-xml=nosetests.xml --junit-prefix=${DTEST_TARGET} -s --cassandra-dir=$CASSANDRA_DIR --skip-resource-intensive-tests 2>&1 | tee -a ${WORKSPACE}/test_stdout.txt
 elif [ "${DTEST_TARGET}" = "dtest-offheap" ]; then
-    pytest -vv --log-level="INFO" --use-vnodes --num-tokens=32 --use-off-heap-memtables --junit-xml=nosetests.xml -s --cassandra-dir=$CASSANDRA_DIR --skip-resource-intensive-tests 2>&1 | tee -a ${WORKSPACE}/test_stdout.txt
+    pytest -vv --log-level="INFO" --use-vnodes --num-tokens=32 --use-off-heap-memtables --junit-xml=nosetests.xml --junit-prefix=${DTEST_TARGET} -s --cassandra-dir=$CASSANDRA_DIR --skip-resource-intensive-tests 2>&1 | tee -a ${WORKSPACE}/test_stdout.txt
 elif [ "${DTEST_TARGET}" = "dtest-large" ]; then
-    pytest -vv --log-level="INFO" --use-vnodes --num-tokens=32 --junit-xml=nosetests.xml -s --cassandra-dir=$CASSANDRA_DIR --force-resource-intensive-tests 2>&1 | tee -a ${WORKSPACE}/test_stdout.txt
+    pytest -vv --log-level="INFO" --use-vnodes --num-tokens=32 --junit-xml=nosetests.xml --junit-prefix=${DTEST_TARGET} -s --cassandra-dir=$CASSANDRA_DIR --only-resource-intensive-tests 2>&1 | tee -a ${WORKSPACE}/test_stdout.txt
 else
     echo "Unknown dtest target: ${DTEST_TARGET}"
     exit 1
