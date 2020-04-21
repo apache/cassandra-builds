@@ -185,14 +185,14 @@ pipeline {
                 success {
                     warnError('missing test xml files') {
                         script {
-                            copyTestResults('cqlsh-test')
+                            copyTestResults('cqlsh-tests')
                         }
                     }
                 }
                 unstable {
                     warnError('missing test xml files') {
                         script {
-                            copyTestResults('cqlsh-test')
+                            copyTestResults('cqlsh-tests')
                         }
                     }
                 }
