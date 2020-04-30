@@ -229,8 +229,8 @@ pipeline {
       }
       stage('Summary') {
         steps {
-            shell("git clean -xdff ; git clone -b ${buildsBranch} ${buildsRepo}")
-            shell("./cassandra-builds/build-scripts/cassandra-test-report.sh")
+            sh "git clone https://gitbox.apache.org/repos/asf/cassandra-builds.git"
+            sh "./cassandra-builds/build-scripts/cassandra-test-report.sh"
             junit 'TESTS-TestSuites.xml'
         }
       }
