@@ -85,6 +85,7 @@ job('Cassandra-template-artifacts') {
         timeout {
             noActivity(300)
         }
+        timestamps()
     }
     scm {
         git {
@@ -158,6 +159,7 @@ job('Cassandra-template-test') {
         timeout {
             noActivity(1200)
         }
+        timestamps()
     }
     throttleConcurrentBuilds {
         categories(['Cassandra'])
@@ -219,6 +221,7 @@ job('Cassandra-template-dtest') {
         timeout {
             noActivity(1200)
         }
+        timestamps()
     }
     throttleConcurrentBuilds {
         categories(['Cassandra'])
@@ -278,6 +281,7 @@ matrixJob('Cassandra-template-cqlsh-tests') {
         timeout {
             noActivity(1200)
         }
+        timestamps()
     }
     throttleConcurrentBuilds {
         categories(['Cassandra'])
@@ -483,6 +487,7 @@ job('Cassandra-devbranch-artifacts') {
         timeout {
             noActivity(300)
         }
+        timestamps()
     }
     throttleConcurrentBuilds {
         categories(['Cassandra'])
@@ -541,6 +546,7 @@ testTargets.each {
             timeout {
                 noActivity(1200)
             }
+            timestamps()
         }
         throttleConcurrentBuilds {
             categories(['Cassandra'])
@@ -608,6 +614,7 @@ job('Cassandra-devbranch-dtest') {
         timeout {
             noActivity(2400)
         }
+        timestamps()
     }
     throttleConcurrentBuilds {
         categories(['Cassandra'])
@@ -676,6 +683,7 @@ matrixJob('Cassandra-devbranch-cqlsh-tests') {
         timeout {
             noActivity(1200)
         }
+        timestamps()
     }
     throttleConcurrentBuilds {
         categories(['Cassandra'])
