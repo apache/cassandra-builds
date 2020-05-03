@@ -231,9 +231,7 @@ pipeline {
         steps {
             sh "git clone https://gitbox.apache.org/repos/asf/cassandra-builds.git"
             sh "./cassandra-builds/build-scripts/cassandra-test-report.sh"
-            // remove TESTS-TestSuites.xml as it is too big for the jenkins junit plugin to parse
-            sh 'rm TESTS-TestSuites.xml'
-            junit '**/TEST*.xml,**/cqlshlib.xml,**/nosetests.xml'
+            junit '**/build/test/**/TEST*.xml,**/cqlshlib.xml,**/nosetests.xml'
         }
       }
   }
