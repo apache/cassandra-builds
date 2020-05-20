@@ -3,9 +3,14 @@ pipeline {
   agent { label 'cassandra' }
   stages {
       stage('Init') {
-        steps {
-            cleanWs()
-        }
+          steps {
+              cleanWs()
+              sh "git clone -b ${BRANCH} https://github.com/${REPO}/cassandra.git"
+              sh "test -f cassandra/.jenkins/Jenkinsfile"
+              sh "git clone -b ${DTEST_BRANCH} ${DTEST_REPO}"
+              sh "test -f cassandra-dtest/requirements.txt"
+              sh "docker pull ${DOCKER_IMAGE}"
+          }
       }
       stage('Build') {
         steps {
@@ -229,9 +234,15 @@ pipeline {
       }
       stage('Summary') {
         steps {
+            sh "rm -fR cassandra-builds"
             sh "git clone https://gitbox.apache.org/repos/asf/cassandra-builds.git"
             sh "./cassandra-builds/build-scripts/cassandra-test-report.sh"
             junit '**/build/test/**/TEST*.xml,**/cqlshlib.xml,**/nosetests.xml'
+        }
+        post {
+            always {
+                archiveArtifacts artifacts: 'cassandra-test-report.txt', fingerprint: true
+            }
         }
       }
   }
