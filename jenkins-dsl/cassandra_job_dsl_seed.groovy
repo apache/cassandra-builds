@@ -74,6 +74,7 @@ if(binding.hasVariable("CASSANDRA_DOCKER_IMAGE")) {
 job('Cassandra-template-artifacts') {
     disabled(true)
     description(jobDescription)
+    concurrentBuild()
     jdk(jdkLabel)
     label(slaveLabel)
     compressBuildLog()
@@ -131,8 +132,8 @@ job('Cassandra-template-artifacts') {
         }
         postBuildTask {
             task('.', '''
-                echo "Cleaning project…"; ant realclean;
-                echo "Pruning docker…" ; docker system prune -f --volumes ;
+                echo "Cleaning project…"; git clean -xdff ;
+                echo "Pruning docker…" ; docker system prune -f --filter "until=48h"  ;
                 echo "Reporting disk usage…"; df -h ; find . -maxdepth 2 -type d -exec du -hs {} ';' ; du -hs ../* ;
                 echo "Cleaning tmp…";
                 find . -type d -name tmp -delete 2>/dev/null ;
@@ -148,6 +149,7 @@ job('Cassandra-template-artifacts') {
 job('Cassandra-template-test') {
     disabled(true)
     description(jobDescription)
+    concurrentBuild()
     jdk(jdkLabel)
     label(slaveLabel)
     compressBuildLog()
@@ -193,8 +195,8 @@ job('Cassandra-template-test') {
         postBuildTask {
             task('.', '''
                 echo "Finding job process orphans…"; if pgrep -af ${JOB_BASE_NAME}; then pkill -9 -f ${JOB_BASE_NAME}; fi;
-                echo "Cleaning project…"; ant realclean;
-                echo "Pruning docker…" ; docker system prune -f --volumes ;
+                echo "Cleaning project…"; git clean -xdff ;
+                echo "Pruning docker…" ; docker system prune -f --filter "until=48h"  ;
                 echo "Reporting disk usage…"; df -h ; find . -maxdepth 2 -type d -exec du -hs {} ';' ; du -hs ../* ;
                 echo "Cleaning tmp…";
                 find . -type d -name tmp -delete 2>/dev/null ;
@@ -210,6 +212,7 @@ job('Cassandra-template-test') {
 job('Cassandra-template-dtest') {
     disabled(true)
     description(jobDescription)
+    concurrentBuild()
     jdk(jdkLabel)
     label(slaveLabel)
     compressBuildLog()
@@ -222,9 +225,6 @@ job('Cassandra-template-dtest') {
             noActivity(1200)
         }
         timestamps()
-    }
-    throttleConcurrentBuilds {
-        categories(['Cassandra'])
     }
     scm {
         git {
@@ -254,9 +254,8 @@ job('Cassandra-template-dtest') {
         }
         postBuildTask {
             task('.', '''
-                echo "Finding job process orphans…"; if pgrep -af ${JOB_BASE_NAME}; then pkill -9 -f ${JOB_BASE_NAME}; fi;
-                echo "Cleaning project…"; ant realclean;
-                echo "Pruning docker…" ; docker system prune -f --volumes ;
+                echo "Cleaning project…"; git clean -xdff ;
+                echo "Pruning docker…" ; if pgrep -af jenkinscommand.sh; then system prune -f --filter 'until=48h'; else docker system prune -f --volumes ; fi;
                 echo "Reporting disk usage…"; df -h ; find . -maxdepth 2 -type d -exec du -hs {} ';' ; du -hs ../* ;
                 echo "Cleaning tmp…";
                 find . -type d -name tmp -delete 2>/dev/null ;
@@ -272,6 +271,7 @@ job('Cassandra-template-dtest') {
 matrixJob('Cassandra-template-cqlsh-tests') {
     disabled(true)
     description(jobDescription)
+    concurrentBuild()
     compressBuildLog()
     logRotator {
         numToKeep(25)
@@ -322,8 +322,8 @@ matrixJob('Cassandra-template-cqlsh-tests') {
         postBuildTask {
             task('.', '''
                 echo "Finding job process orphans…"; if pgrep -af ${JOB_BASE_NAME}; then pkill -9 -f ${JOB_BASE_NAME}; fi;
-                echo "Cleaning project…"; ant realclean;
-                echo "Pruning docker…" ; docker system prune -f --volumes ;
+                echo "Cleaning project…"; git clean -xdff ;
+                echo "Pruning docker…" ; docker system prune -f --filter "until=48h"  ;
                 echo "Reporting disk usage…"; df -h ; find . -maxdepth 2 -type d -exec du -hs {} ';' ; du -hs ../* ;
                 echo "Cleaning tmp…";
                 find . -type d -name tmp -delete 2>/dev/null ;
@@ -489,9 +489,6 @@ job('Cassandra-devbranch-artifacts') {
         }
         timestamps()
     }
-    throttleConcurrentBuilds {
-        categories(['Cassandra'])
-    }
     parameters {
         stringParam('REPO', 'apache', 'The github user/org to clone cassandra repo from')
         stringParam('BRANCH', 'trunk', 'The branch of cassandra to checkout')
@@ -515,8 +512,8 @@ job('Cassandra-devbranch-artifacts') {
     publishers {
         postBuildTask {
             task('.', '''
-                echo "Cleaning project…"; ant realclean;
-                echo "Pruning docker…" ; docker system prune -f --volumes ;
+                echo "Cleaning project…"; git clean -xdff ;
+                echo "Pruning docker…" ; docker system prune -f --filter "until=48h"  ;
                 echo "Reporting disk usage…"; df -h ; find . -maxdepth 2 -type d -exec du -hs {} ';' ; du -hs ../* ;
                 echo "Cleaning tmp…";
                 find . -type d -name tmp -delete 2>/dev/null ;
@@ -585,8 +582,8 @@ testTargets.each {
             postBuildTask {
                 task('.', '''
                     echo "Finding job process orphans…"; if pgrep -af ${JOB_BASE_NAME}; then pkill -9 -f ${JOB_BASE_NAME}; fi;
-                    echo "Cleaning project…"; ant realclean;
-                    echo "Pruning docker…" ; docker system prune -f --volumes ;
+                    echo "Cleaning project…"; git clean -xdff ;
+                    echo "Pruning docker…" ; docker system prune -f --filter "until=48h"  ;
                     echo "Reporting disk usage…"; df -h ; find . -maxdepth 2 -type d -exec du -hs {} ';' ; du -hs ../* ;
                     echo "Cleaning tmp…";
                     find . -type d -name tmp -delete 2>/dev/null ;
@@ -615,9 +612,6 @@ job('Cassandra-devbranch-dtest') {
             noActivity(2400)
         }
         timestamps()
-    }
-    throttleConcurrentBuilds {
-        categories(['Cassandra'])
     }
     parameters {
         stringParam('REPO', 'apache', 'The github user/org to clone cassandra repo from')
@@ -655,9 +649,8 @@ job('Cassandra-devbranch-dtest') {
         }
         postBuildTask {
             task('.', '''
-                echo "Finding job process orphans…"; if pgrep -af ${JOB_BASE_NAME}; then pkill -9 -f ${JOB_BASE_NAME}; fi;
-                echo "Cleaning project…"; ant realclean;
-                echo "Pruning docker…" ; docker system prune -f --volumes ;
+                echo "Cleaning project…" ; git clean -xdff ;
+                echo "Pruning docker…" ; if pgrep -af jenkinscommand.sh; then system prune -f --filter 'until=48h'; else docker system prune -f --volumes ; fi;
                 echo "Reporting disk usage…"; df -h ; find . -maxdepth 2 -type d -exec du -hs {} ';' ; du -hs ../* ;
                 echo "Cleaning tmp…";
                 find . -type d -name tmp -delete 2>/dev/null ;
@@ -731,8 +724,8 @@ matrixJob('Cassandra-devbranch-cqlsh-tests') {
         postBuildTask {
             task('.', '''
                 echo "Finding job process orphans…"; if pgrep -af ${JOB_BASE_NAME}; then pkill -9 -f ${JOB_BASE_NAME}; fi;
-                echo "Cleaning project…"; ant realclean;
-                echo "Pruning docker…" ; docker system prune -f --volumes ;
+                echo "Cleaning project…"; git clean -xdff ;
+                echo "Pruning docker…" ; docker system prune -f --filter "until=48h" ;
                 echo "Reporting disk usage…"; df -h ; find . -maxdepth 2 -type d -exec du -hs {} ';' ; du -hs ../* ;
                 echo "Cleaning tmp…";
                 find . -type d -name tmp -delete 2>/dev/null ;
