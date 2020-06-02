@@ -1,12 +1,33 @@
 #!/bin/bash -x
+# Expected to be run from inside cassandra-builds/docker/centos7-image.docker
 set -e
 
-if [ "$#" -ne 1 ]; then
-   echo "$0 <branch>"
+if [ "$#" -lt 1 ]; then
+   echo "$0 <branch|tag|sha> <java version>"
+   echo "if Java version is not set, it is set to 8 by default, choose from 8 or 11"
    exit 1
 fi
 
-CASSANDRA_BRANCH=$1
+[ "x${RPM_BUILD_DIR}" != "x" ] || { echo >&2 "RPM_BUILD_DIR needs to be defined"; exit 1; }
+[ -d "${RPM_BUILD_DIR}/SOURCES" ] || { echo >&2 "Directory ${RPM_BUILD_DIR}/SOURCES must exist"; exit 1; }
+[ "x${RPM_DIST_DIR}" != "x" ] || { echo >&2 "RPM_DIST_DIR needs to be defined"; exit 1; }
+[ -d "${RPM_DIST_DIR}" ] || { echo >&2 "Directory ${RPM_DIST_DIR} must exist"; exit 1; }
+[ "x${CASSANDRA_DIR}" != "x" ] || { echo >&2 "CASSANDRA_DIR needs to be defined"; exit 1; }
+[ -d "${CASSANDRA_DIR}" ] || { echo >&2 "Directory ${CASSANDRA_DIR} must exist"; exit 1; }
+
+CASSANDRA_SHA=$1
+JAVA_VERSION=$2
+
+if [ "$JAVA_VERSION" = "" ]; then
+    JAVA_VERSION=8
+fi
+
+regx_java_version="(8|11)"
+
+if [[ ! "$JAVA_VERSION" =~ $regx_java_version ]]; then
+   echo "Error: Java version is not set to 8 nor 11, it is set to $JAVA_VERSION"
+   exit 1
+fi
 
 cd $CASSANDRA_DIR
 git fetch
@@ -14,7 +35,7 @@ git pull
 # clear and refetch tags to account for re-tagging a new sha
 git tag -d $(git tag) > /dev/null
 git fetch --tags > /dev/null 2>&1
-git checkout $CASSANDRA_BRANCH || exit 1
+git checkout $CASSANDRA_SHA || exit 1
 
 # Used version for build will always depend on the git referenced used for checkout above
 # Branches will always be created as snapshots, while tags are releases
@@ -22,7 +43,6 @@ tag=`git describe --tags --exact-match` 2> /dev/null || true
 branch=`git symbolic-ref -q --short HEAD` 2> /dev/null || true
 
 is_tag=false
-is_branch=false
 git_version=''
 
 # Parse version from build.xml so we can verify version against release tags and use the build.xml version
@@ -36,9 +56,9 @@ fi
 if [ "$tag" ]; then
    is_tag=true
    # Official release
-   regx_tag="cassandra-([0-9.].*)$"
+   regx_tag="cassandra-(([0-9.]+)(-(alpha|beta|rc)[0-9]+)?)$"
    # Tentative release
-   regx_tag_tentative="([0-9.].*)-tentative$"
+   regx_tag_tentative="([0-9.]+)-tentative$"
    if [[ $tag =~ $regx_tag ]] || [[ $tag =~ $regx_tag_tentative ]]; then
       git_version=${BASH_REMATCH[1]}
    else
@@ -51,18 +71,22 @@ if [ "$tag" ]; then
    fi
    CASSANDRA_VERSION=$git_version
    CASSANDRA_REVISION='1'
-elif [ "$branch" ]; then
-   # Dev branch
-   is_branch=true
-   # This could be either trunk or any dev branch, so we won't be able to get the version
+else
+   # This could be either trunk or any dev branch or SHA, so we won't be able to get the version
    # from the branch name. In this case, fall back to version specified in build.xml.
    CASSANDRA_VERSION="${buildxml_version}"
    dt=`date +"%Y%m%d"`
    ref=`git rev-parse --short HEAD`
    CASSANDRA_REVISION="${dt}git${ref}"
+fi
+
+if [ $JAVA_VERSION = "11" ]; then
+   sudo alternatives --set java $(alternatives --display java | grep 'family java-11-openjdk' | cut -d' ' -f1)
+   sudo alternatives --set javac $(alternatives --display javac | grep 'family java-11-openjdk' | cut -d' ' -f1)
+   export CASSANDRA_USE_JDK11=true
+   echo "Cassandra will be built with Java 11"
 else
-   echo "Error: invalid git reference; must either be branch or tag">&2
-   exit 1
+   echo "Cassandra will be built with Java 8"
 fi
 
 # javadoc target is broken in docker without this mkdir

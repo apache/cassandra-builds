@@ -16,8 +16,6 @@ mail_dir="$HOME/Mail"
 command -v svn >/dev/null 2>&1 || { echo >&2 "subversion needs to be installed"; exit 1; }
 command -v git >/dev/null 2>&1 || { echo >&2 "git needs to be installed"; exit 1; }
 command -v ant >/dev/null 2>&1 || { echo >&2 "ant needs to be installed"; exit 1; }
-command -v dpkg-buildpackage >/dev/null 2>&1 || { echo >&2 "dpkg needs to be installed"; exit 1; }
-command -v dpatch >/dev/null 2>&1 || { echo >&2 "dpatch needs to be installed"; exit 1; } # can be removed after 2.2 EOL
 command -v debsign >/dev/null 2>&1 || { echo >&2 "devscripts needs to be installed"; exit 1; }
 command -v reprepro >/dev/null 2>&1 || { echo >&2 "reprepro needs to be installed"; exit 1; }
 command -v rpmsign >/dev/null 2>&1 || { echo >&2 "rpmsign needs to be installed"; exit 1; }
@@ -166,7 +164,7 @@ execute()
 }
 
 current_dir=`pwd`
-cassandra_builds_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )/.."
+declare -x cassandra_builds_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )/.."
 tmp_dir=`mktemp -d`
 build_dir=${tmp_dir}/cassandra/build
 debian_package_dir="${tmp_dir}/debian"
@@ -187,6 +185,7 @@ if [ $only_deb -eq 0 ] && [ $only_rpm -eq 0 ]
 then
     echo "Update debian changelog, please correct changelog, name, and email."
     read -n 1 -s -r -p "press any key to continue…" 1>&3 2>&4
+    echo ""
     execute "dch -r -D unstable"
     echo "Prepare debian changelog for $release" > "_tmp_msg_"
     execute "git commit -F _tmp_msg_ debian/changelog"
@@ -234,19 +233,16 @@ then
     execute "mkdir -p $debian_package_dir"
     execute "cd $debian_package_dir"
 
-    deb_dir=cassandra_${release}_debian
+    [ $fake_mode -eq 1 ] && echo ">> declare -x deb_dir=${debian_package_dir}/cassandra_${release}_debian"
+    declare -x deb_dir=${debian_package_dir}/cassandra_${release}_debian
     [ ! -e "$deb_dir" ] || rm -rf $deb_dir
     execute "mkdir $deb_dir"
     execute "cd $deb_dir"
 
     echo "Building debian package ..." 1>&3 2>&4
 
-    execute "mkdir -p $build_dir"
-    execute "cp $tmp_dir/cassandra-dist-dev/${release}/apache-cassandra-$release-src.tar.gz ${build_dir}/"
-    execute "tar xvzf ${build_dir}/apache-cassandra-${release}-src.tar.gz"
-    execute "cd apache-cassandra-${release}-src"
-    execute "dpkg-buildpackage -rfakeroot -us -uc"
-    execute "cd .."
+    execute "${cassandra_builds_dir}/build-scripts/cassandra-deb-packaging.sh ${release}-tentative"
+
     # Debsign might ask the passphrase on stdin so don't hide what he says even if no verbose
     # (I haven't tested carefully but I've also seen it fail unexpectedly with it's output redirected.
     execute "debsign -k$gpg_key cassandra_${deb_release}_amd64.changes" 1>&3 2>&4
@@ -289,17 +285,13 @@ then
     execute "mkdir -p $rpm_package_dir"
     execute "cd $rpm_package_dir"
 
-    rpm_dir=$rpm_package_dir/cassandra_${release}_rpm
+    [ $fake_mode -eq 1 ] && echo ">> declare -x rpm_dir=$rpm_package_dir/cassandra_${release}_rpm"
+    declare -x rpm_dir=$rpm_package_dir/cassandra_${release}_rpm
     [ ! -e "$rpm_dir" ] || rm -rf $rpm_dir
     execute "mkdir $rpm_dir"
 
-    execute "cd $cassandra_builds_dir"
-    if [[ $(docker images -f label=org.cassandra.buildenv=centos -q) ]]
-    then
-        execute "docker image rm -f  `docker images -f label=org.cassandra.buildenv=centos -q`"
-    fi
-    execute "docker build -f docker/centos7-image.docker docker/"
-    execute "docker run --rm -v ${rpm_dir}:/dist `docker images -f label=org.cassandra.buildenv=centos -q` /home/build/build-rpms.sh ${release}-tentative"
+    execute "${cassandra_builds_dir}/build-scripts/cassandra-rpm-packaging.sh ${release}-tentative"
+
     execute "rpmsign --addsign ${rpm_dir}/*.rpm"
 
     execute "mkdir $tmp_dir/cassandra-dist-dev/${release}/redhat"
@@ -327,11 +319,12 @@ then
     [ $verbose -eq 1 ] || exec 1>&3 3>&- 2>&4 4>&-
 
     # Cleaning up
+    [ $fake_mode -eq 1 ] && echo ">> rm -rf $tmp_dir"
     rm -rf $tmp_dir
 
 
     ## Email templates ##
-
+    [ $fake_mode -eq 1 ] && echo ">> rm -rf $mail_dir"
     [ ! -e "$mail_dir" ] || rm -rf $mail_dir
     mkdir $mail_dir
     mail_test_announce_file="$mail_dir/mail_stage_announce_$release"

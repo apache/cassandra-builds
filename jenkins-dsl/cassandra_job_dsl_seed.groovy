@@ -79,8 +79,8 @@ job('Cassandra-template-artifacts') {
     label(slaveLabel)
     compressBuildLog()
     logRotator {
-        numToKeep(25)
-        artifactNumToKeep(1)
+        numToKeep(30)
+        artifactNumToKeep(10)
     }
     wrappers {
         timeout {
@@ -104,7 +104,7 @@ job('Cassandra-template-artifacts') {
         shell("git clean -xdff ; git clone -b ${buildsBranch} ${buildsRepo}")
     }
     publishers {
-        archiveArtifacts('build/*.tar.gz, build/**/eclipse_compiler_checks.txt')
+        archiveArtifacts('build/apache-cassandra-*.tar.gz, build/apache-cassandra-*.jar, build/apache-cassandra-*.pom, build/cassandra*.deb, build/cassandra*.rpm, build/**/eclipse_compiler_checks.txt')
         archiveJavadoc {
             javadocDir 'build/javadoc'
             keepAll false
@@ -154,8 +154,8 @@ job('Cassandra-template-test') {
     label(slaveLabel)
     compressBuildLog()
     logRotator {
-        numToKeep(25)
-        artifactNumToKeep(1)
+        numToKeep(30)
+        artifactNumToKeep(10)
     }
     wrappers {
         timeout {
@@ -217,8 +217,8 @@ job('Cassandra-template-dtest') {
     label(slaveLabel)
     compressBuildLog()
     logRotator {
-        numToKeep(25)
-        artifactNumToKeep(1)
+        numToKeep(30)
+        artifactNumToKeep(10)
     }
     wrappers {
         timeout {
@@ -274,8 +274,8 @@ matrixJob('Cassandra-template-cqlsh-tests') {
     concurrentBuild()
     compressBuildLog()
     logRotator {
-        numToKeep(25)
-        artifactNumToKeep(1)
+        numToKeep(30)
+        artifactNumToKeep(10)
     }
     wrappers {
         timeout {
@@ -440,8 +440,8 @@ cassandraBranches.each {
         description(jobDescription)
         compressBuildLog()
         logRotator {
-            numToKeep(25)
-            artifactNumToKeep(1)
+            numToKeep(30)
+            artifactNumToKeep(10)
         }
         definition {
             cpsScm {
@@ -480,8 +480,8 @@ job('Cassandra-devbranch-artifacts') {
     label(slaveLabel)
     compressBuildLog()
     logRotator {
-        numToKeep(25)
-        artifactNumToKeep(1)
+        numToKeep(30)
+        artifactNumToKeep(10)
     }
     wrappers {
         timeout {
@@ -536,8 +536,8 @@ testTargets.each {
         label(slaveLabel)
         compressBuildLog()
         logRotator {
-            numToKeep(25)
-            artifactNumToKeep(1)
+            numToKeep(30)
+            artifactNumToKeep(10)
         }
         wrappers {
             timeout {
@@ -604,8 +604,8 @@ job('Cassandra-devbranch-dtest') {
     label(slaveLabel)
     compressBuildLog()
     logRotator {
-        numToKeep(25)
-        artifactNumToKeep(1)
+        numToKeep(30)
+        artifactNumToKeep(10)
     }
     wrappers {
         timeout {
@@ -669,8 +669,8 @@ matrixJob('Cassandra-devbranch-cqlsh-tests') {
     concurrentBuild()
     compressBuildLog()
     logRotator {
-        numToKeep(25)
-        artifactNumToKeep(1)
+        numToKeep(30)
+        artifactNumToKeep(10)
     }
     wrappers {
         timeout {
@@ -743,8 +743,8 @@ pipelineJob('Cassandra-devbranch') {
     description(jobDescription)
     compressBuildLog()
     logRotator {
-        numToKeep(25)
-        artifactNumToKeep(1)
+        numToKeep(30)
+        artifactNumToKeep(10)
     }
     parameters {
         stringParam('REPO', 'apache', 'The github user/org to clone cassandra repo from')
