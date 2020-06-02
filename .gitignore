@@ -1,2 +1,4 @@
 dist/cassandra*
 .idea
+*.iml
+

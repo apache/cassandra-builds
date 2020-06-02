@@ -52,7 +52,7 @@ fi
 set -e # enable immediate exit if venv setup fails
 virtualenv --python=python3 venv
 source venv/bin/activate
-pip3 install -r cassandra-dtest/requirements.txt
+pip3 install --exists-action w -r cassandra-dtest/requirements.txt
 pip3 freeze
 
 ################################
