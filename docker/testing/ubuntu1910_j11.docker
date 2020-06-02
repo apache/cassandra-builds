@@ -92,6 +92,11 @@ RUN echo 'export ANT_HOME=/usr/share/ant' >> /home/cassandra/.bashrc && \
     echo 'export JAVA11_HOME=/usr/lib/jvm/java-11-openjdk-amd64' >> /home/cassandra/.bashrc && \
     echo 'export JAVA_HOME=$JAVA8_HOME' >> /home/cassandra/.bashrc
 
+ENV ANT_HOME=/usr/share/ant \
+    JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64 \
+    JAVA8_HOME=/usr/lib/jvm/java-8-openjdk-amd64 \
+    JAVA11_HOME=/usr/lib/jvm/java-11-openjdk-amd64
+
 # run pip commands and setup virtualenv (note we do this after we switch to cassandra user so we
 # setup the virtualenv for the cassandra user and not the root user by accident) for Python 3.6/3.7/3.8
 RUN virtualenv --python=python3.6 env3.6
