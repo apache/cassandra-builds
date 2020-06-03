@@ -50,7 +50,7 @@ if(binding.hasVariable("CASSANDRA_ANT_TEST_TARGETS")) {
 }
 
 // Dtest test targets
-def dtestTargets = ['dtest', 'dtest-novnode', 'dtest-offheap', 'dtest-large']
+def dtestTargets = ['dtest', 'dtest-novnode', 'dtest-offheap', 'dtest-large', 'dtest-upgrade']
 if(binding.hasVariable("CASSANDRA_DTEST_TEST_TARGETS")) {
     dtestTargets = "${CASSANDRA_DTEST_TEST_TARGETS}".split(",")
 }
@@ -370,12 +370,12 @@ cassandraBranches.each {
         if ((targetName == 'test-cdc' || targetName == 'stress-test') && ((branchName == 'cassandra-2.2') || (branchName == 'cassandra-3.0'))) {
             println("Skipping ${targetName} on branch ${branchName}")
 
-        // Skip tests that don't exist before cassandra-4.0
+            // Skip tests that don't exist before cassandra-4.0
         } else if ((targetName == 'fqltool-test') && ((branchName == 'cassandra-2.2') || (branchName == 'cassandra-3.0') || (branchName == 'cassandra-3.11'))) {
             println("Skipping ${targetName} on branch ${branchName}")
 
         } else {
-             job("${jobNamePrefix}-${targetName}") {
+            job("${jobNamePrefix}-${targetName}") {
                 disabled(false)
                 using('Cassandra-template-test')
                 configure { node ->
@@ -595,67 +595,78 @@ testTargets.each {
 }
 
 /**
- * Parameterized Dev Branch dtest in docker
+ * Parameterized Dev Branch dtest in docker.
+ *
+ * Only the vanilla dtest target is used in the Cassandra-devbranch pipeline,
+ *  but they are all added here for developers needing to pre-commit test them specifically.
  */
-job('Cassandra-devbranch-dtest') {
-    description(jobDescription)
-    concurrentBuild()
-    jdk(jdkLabel)
-    label(slaveLabel)
-    compressBuildLog()
-    logRotator {
-        numToKeep(30)
-        artifactNumToKeep(10)
-    }
-    wrappers {
-        timeout {
-            noActivity(2400)
+dtestTargets.each {
+    def targetName = it
+
+    job("Cassandra-devbranch-${targetName}") {
+        description(jobDescription)
+        concurrentBuild()
+        jdk(jdkLabel)
+        if (targetName == 'dtest-large') {
+            label(largeSlaveLabel)
+        } else {
+            label(slaveLabel)
         }
-        timestamps()
-    }
-    parameters {
-        stringParam('REPO', 'apache', 'The github user/org to clone cassandra repo from')
-        stringParam('BRANCH', 'trunk', 'The branch of cassandra to checkout')
-        stringParam('DTEST_REPO', "${dtestRepo}", 'The cassandra-dtest repo URL')
-        stringParam('DTEST_BRANCH', 'master', 'The branch of cassandra-dtest to checkout')
-        stringParam('DOCKER_IMAGE', "${dtestDockerImage}", 'Docker image for running dtests')
-    }
-    scm {
-        git {
-            remote {
-                url('https://github.com/${REPO}/cassandra.git')
+        compressBuildLog()
+        logRotator {
+            numToKeep(30)
+            artifactNumToKeep(10)
+        }
+        wrappers {
+            timeout {
+                noActivity(2400)
             }
-            branch('${BRANCH}')
-            extensions {
-                cleanAfterCheckout()
-            }
+            timestamps()
         }
-    }
-    steps {
-        buildDescription('', buildDescStr)
-        shell("git clean -xdff ; git clone -b ${buildsBranch} ${buildsRepo}")
-        shell("sh ./cassandra-builds/docker/jenkins/jenkinscommand.sh \$REPO \$BRANCH \$DTEST_REPO \$DTEST_BRANCH ${buildsRepo} ${buildsBranch} \$DOCKER_IMAGE")
-    }
-    publishers {
-        archiveArtifacts {
-            pattern('**/test_stdout.txt,**/nosetests.xml')
-            allowEmpty()
-            fingerprint()
+        parameters {
+            stringParam('REPO', 'apache', 'The github user/org to clone cassandra repo from')
+            stringParam('BRANCH', 'trunk', 'The branch of cassandra to checkout')
+            stringParam('DTEST_REPO', "${dtestRepo}", 'The cassandra-dtest repo URL')
+            stringParam('DTEST_BRANCH', 'master', 'The branch of cassandra-dtest to checkout')
+            stringParam('DOCKER_IMAGE', "${dtestDockerImage}", 'Docker image for running dtests')
         }
-        archiveJunit('nosetests.xml') {
-            testDataPublishers {
-                publishTestStabilityData()
+        scm {
+            git {
+                remote {
+                    url('https://github.com/${REPO}/cassandra.git')
+                }
+                branch('${BRANCH}')
+                extensions {
+                    cleanAfterCheckout()
+                }
             }
         }
-        postBuildTask {
-            task('.', '''
-                echo "Cleaning project…" ; git clean -xdff ;
-                echo "Pruning docker…" ; if pgrep -af jenkinscommand.sh; then system prune -f --filter 'until=48h'; else docker system prune -f --volumes ; fi;
-                echo "Reporting disk usage…"; df -h ; find . -maxdepth 2 -type d -exec du -hs {} ';' ; du -hs ../* ;
-                echo "Cleaning tmp…";
-                find . -type d -name tmp -delete 2>/dev/null ;
-                find /tmp -type f -atime +2 -user jenkins -and -not -exec fuser -s {} ';' -and -delete 2>/dev/null
-            ''')
+        steps {
+            buildDescription('', buildDescStr)
+            shell("git clean -xdff ; git clone -b ${buildsBranch} ${buildsRepo}")
+            shell("sh ./cassandra-builds/docker/jenkins/jenkinscommand.sh \$REPO \$BRANCH \$DTEST_REPO \$DTEST_BRANCH ${buildsRepo} ${buildsBranch} \$DOCKER_IMAGE  ${targetName}")
+        }
+        publishers {
+            archiveArtifacts {
+                pattern('**/test_stdout.txt,**/nosetests.xml')
+                allowEmpty()
+                fingerprint()
+            }
+            archiveJunit('nosetests.xml') {
+                testDataPublishers {
+                    publishTestStabilityData()
+                }
+            }
+            postBuildTask {
+                task('.', '''
+                    echo "Cleaning project…" ; git clean -xdff ;
+                    echo "Pruning docker…" ; if pgrep -af jenkinscommand.sh; then system prune -f --filter 'until=48h'; else docker system prune -f --volumes ; fi;
+                    echo "Reporting disk usage…"; df -h ; find . -maxdepth 2 -type d -exec du -hs {} ';' ; du -hs ../* ;
+                    echo "Cleaning tmp…";
+                    find . -type d -name tmp -delete 2>/dev/null ;
+                    find /tmp -type f -atime +2 -user jenkins -and -not -exec fuser -s {} ';' -and -delete 2>/dev/null
+                ''')
+            }
         }
     }
 }
