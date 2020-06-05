@@ -243,7 +243,7 @@ job('Cassandra-template-dtest') {
     }
     publishers {
         archiveArtifacts {
-            pattern('**/test_stdout.txt,**/nosetests.xml')
+            pattern('**/test_stdout.txt,**/nosetests.xml,**/ccm_logs.tar.xz')
             allowEmpty()
             fingerprint()
         }
@@ -648,7 +648,7 @@ dtestTargets.each {
         }
         publishers {
             archiveArtifacts {
-                pattern('**/test_stdout.txt,**/nosetests.xml')
+                pattern('**/test_stdout.txt,**/nosetests.xml,**/ccm_logs.tar.xz')
                 allowEmpty()
                 fingerprint()
             }
