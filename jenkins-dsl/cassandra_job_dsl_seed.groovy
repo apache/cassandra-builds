@@ -476,6 +476,7 @@ cassandraBranches.each {
  */
 job('Cassandra-devbranch-artifacts') {
     description(jobDescription)
+    concurrentBuild()
     jdk(jdkLabel)
     label(slaveLabel)
     compressBuildLog()
