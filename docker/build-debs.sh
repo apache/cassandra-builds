@@ -112,6 +112,9 @@ else
    echo "Cassandra will be built with Java 8"
 fi
 
+java -version
+javac -version
+
 # Install build dependencies and build package
 echo "y" | sudo mk-build-deps --install
 dpkg-buildpackage -rfakeroot -uc -us

@@ -89,6 +89,9 @@ else
    echo "Cassandra will be built with Java 8"
 fi
 
+java -version
+javac -version
+
 # javadoc target is broken in docker without this mkdir
 mkdir -p ./build/javadoc
 # Artifact will only be used internally for build process and won't be found with snapshot suffix

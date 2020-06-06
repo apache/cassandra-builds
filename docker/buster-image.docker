@@ -37,6 +37,5 @@ USER build
 ARG CASSANDRA_GIT_URL=https://gitbox.apache.org/repos/asf/cassandra.git
 RUN git clone ${CASSANDRA_GIT_URL} ${CASSANDRA_DIR}
 WORKDIR ${CASSANDRA_DIR}
-RUN ant maven-ant-tasks-retrieve-build
 
 COPY build-debs.sh $BUILD_HOME/
