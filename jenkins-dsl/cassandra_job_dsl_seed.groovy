@@ -255,7 +255,7 @@ job('Cassandra-template-dtest') {
         postBuildTask {
             task('.', '''
                 echo "Cleaning project…"; git clean -xdff ;
-                echo "Pruning docker…" ; if pgrep -af jenkinscommand.sh; then system prune -f --filter 'until=48h'; else docker system prune -f --volumes ; fi;
+                echo "Pruning docker…" ; if pgrep -af jenkinscommand.sh; then docker system prune -f --filter 'until=48h'; else docker system prune -f --volumes ; fi;
                 echo "Reporting disk usage…"; df -h ; find . -maxdepth 2 -type d -exec du -hs {} ';' ; du -hs ../* ;
                 echo "Cleaning tmp…";
                 find . -type d -name tmp -delete 2>/dev/null ;
