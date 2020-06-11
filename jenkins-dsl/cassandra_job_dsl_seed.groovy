@@ -134,7 +134,7 @@ job('Cassandra-template-artifacts') {
             task('.', '''
                 echo "Cleaning project…"; git clean -xdff ;
                 echo "Pruning docker…" ; docker system prune -f --filter "until=48h"  ;
-                echo "Reporting disk usage…"; df -h ; find . -maxdepth 2 -type d -exec du -hs {} ';' ; du -hs ../* ;
+                echo "Reporting disk usage…"; df -h ; du -hs ../* ;
                 echo "Cleaning tmp…";
                 find . -type d -name tmp -delete 2>/dev/null ;
                 find /tmp -type f -atime +2 -user jenkins -and -not -exec fuser -s {} ';' -and -delete 2>/dev/null
@@ -197,7 +197,7 @@ job('Cassandra-template-test') {
                 echo "Finding job process orphans…"; if pgrep -af ${JOB_BASE_NAME}; then pkill -9 -f ${JOB_BASE_NAME}; fi;
                 echo "Cleaning project…"; git clean -xdff ;
                 echo "Pruning docker…" ; docker system prune -f --filter "until=48h"  ;
-                echo "Reporting disk usage…"; df -h ; find . -maxdepth 2 -type d -exec du -hs {} ';' ; du -hs ../* ;
+                echo "Reporting disk usage…"; df -h ; du -hs ../* ;
                 echo "Cleaning tmp…";
                 find . -type d -name tmp -delete 2>/dev/null ;
                 find /tmp -type f -atime +2 -user jenkins -and -not -exec fuser -s {} ';' -and -delete 2>/dev/null
@@ -256,7 +256,7 @@ job('Cassandra-template-dtest') {
             task('.', '''
                 echo "Cleaning project…"; git clean -xdff ;
                 echo "Pruning docker…" ; if pgrep -af jenkinscommand.sh; then docker system prune -f --filter 'until=48h'; else docker system prune -f --volumes ; fi;
-                echo "Reporting disk usage…"; df -h ; find . -maxdepth 2 -type d -exec du -hs {} ';' ; du -hs ../* ;
+                echo "Reporting disk usage…"; df -h ; du -hs ../* ;
                 echo "Cleaning tmp…";
                 find . -type d -name tmp -delete 2>/dev/null ;
                 find /tmp -type f -atime +2 -user jenkins -and -not -exec fuser -s {} ';' -and -delete 2>/dev/null
@@ -324,7 +324,7 @@ matrixJob('Cassandra-template-cqlsh-tests') {
                 echo "Finding job process orphans…"; if pgrep -af ${JOB_BASE_NAME}; then pkill -9 -f ${JOB_BASE_NAME}; fi;
                 echo "Cleaning project…"; git clean -xdff ;
                 echo "Pruning docker…" ; docker system prune -f --filter "until=48h"  ;
-                echo "Reporting disk usage…"; df -h ; find . -maxdepth 2 -type d -exec du -hs {} ';' ; du -hs ../* ;
+                echo "Reporting disk usage…"; df -h ; du -hs ../* ;
                 echo "Cleaning tmp…";
                 find . -type d -name tmp -delete 2>/dev/null ;
                 find /tmp -type f -atime +2 -user jenkins -and -not -exec fuser -s {} ';' -and -delete 2>/dev/null
@@ -515,7 +515,7 @@ job('Cassandra-devbranch-artifacts') {
             task('.', '''
                 echo "Cleaning project…"; git clean -xdff ;
                 echo "Pruning docker…" ; docker system prune -f --filter "until=48h"  ;
-                echo "Reporting disk usage…"; df -h ; find . -maxdepth 2 -type d -exec du -hs {} ';' ; du -hs ../* ;
+                echo "Reporting disk usage…"; df -h ; du -hs ../* ;
                 echo "Cleaning tmp…";
                 find . -type d -name tmp -delete 2>/dev/null ;
                 find /tmp -type -f -atime +3 -user jenkins -and -not -exec fuser -s {} ';' -and -delete 2>/dev/null
@@ -585,7 +585,7 @@ testTargets.each {
                     echo "Finding job process orphans…"; if pgrep -af ${JOB_BASE_NAME}; then pkill -9 -f ${JOB_BASE_NAME}; fi;
                     echo "Cleaning project…"; git clean -xdff ;
                     echo "Pruning docker…" ; docker system prune -f --filter "until=48h"  ;
-                    echo "Reporting disk usage…"; df -h ; find . -maxdepth 2 -type d -exec du -hs {} ';' ; du -hs ../* ;
+                    echo "Reporting disk usage…"; df -h ; du -hs ../* ;
                     echo "Cleaning tmp…";
                     find . -type d -name tmp -delete 2>/dev/null ;
                     find /tmp -type f -atime +2 -user jenkins -and -not -exec fuser -s {} ';' -and -delete 2>/dev/null
@@ -662,7 +662,7 @@ dtestTargets.each {
                 task('.', '''
                     echo "Cleaning project…" ; git clean -xdff ;
                     echo "Pruning docker…" ; if pgrep -af jenkinscommand.sh; then system prune -f --filter 'until=48h'; else docker system prune -f --volumes ; fi;
-                    echo "Reporting disk usage…"; df -h ; find . -maxdepth 2 -type d -exec du -hs {} ';' ; du -hs ../* ;
+                    echo "Reporting disk usage…"; df -h ; du -hs ../* ;
                     echo "Cleaning tmp…";
                     find . -type d -name tmp -delete 2>/dev/null ;
                     find /tmp -type f -atime +2 -user jenkins -and -not -exec fuser -s {} ';' -and -delete 2>/dev/null
@@ -738,7 +738,7 @@ matrixJob('Cassandra-devbranch-cqlsh-tests') {
                 echo "Finding job process orphans…"; if pgrep -af ${JOB_BASE_NAME}; then pkill -9 -f ${JOB_BASE_NAME}; fi;
                 echo "Cleaning project…"; git clean -xdff ;
                 echo "Pruning docker…" ; docker system prune -f --filter "until=48h" ;
-                echo "Reporting disk usage…"; df -h ; find . -maxdepth 2 -type d -exec du -hs {} ';' ; du -hs ../* ;
+                echo "Reporting disk usage…"; df -h ; du -hs ../* ;
                 echo "Cleaning tmp…";
                 find . -type d -name tmp -delete 2>/dev/null ;
                 find /tmp -type f -atime +2 -user jenkins -and -not -exec fuser -s {} ';' -and -delete 2>/dev/null
