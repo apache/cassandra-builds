@@ -53,7 +53,7 @@ Ensure `hostname` is configured to the server's public ip.
 
 ----
 
-Slaves for ci-cassandra.apache.org:
+Jenkins Agents for ci-cassandra.apache.org:
 
 All have label 'cassandra'. Agents with 32GB+ RAM also have the label 'cassandra-large'.
 
