@@ -23,14 +23,23 @@ status="$?"
 echo "$ID done (${status}), copying files"
 
 if [ "$status" -ne 0 ] ; then
+    echo "$ID failed (${status}), debug…"
+    docker inspect $ID
+    echo "–––"
+    docker logs $ID
+    echo "–––"
     docker ps -a
+    echo "–––"
     docker info
+    echo "–––"
+    dmesg
+else
+    echo "$ID done (${status}), copying files"
+    # pytest results
+    docker cp $ID:/home/cassandra/cassandra/cassandra-dtest/nosetests.xml .
+    # pytest logs
+    docker cp $ID:/home/cassandra/cassandra/test_stdout.txt .
+    docker cp $ID:/home/cassandra/cassandra/cassandra-dtest/ccm_logs.tar.xz .
 fi
-
-# pytest results
-docker cp $ID:/home/cassandra/cassandra/cassandra-dtest/nosetests.xml .
-# pytest logs
-docker cp $ID:/home/cassandra/cassandra/test_stdout.txt .
-docker cp $ID:/home/cassandra/cassandra/cassandra-dtest/ccm_logs.tar.xz .
 
 docker rm $ID

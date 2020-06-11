@@ -22,8 +22,11 @@ if(binding.hasVariable("CASSANDRA_LARGE_SLAVE_LABEL")) {
     largeSlaveLabel = "${CASSANDRA_LARGE_SLAVE_LABEL}"
 }
 def mainRepo = "https://gitbox.apache.org/repos/asf/cassandra.git"
+def githubRepo = "https://github.com/apache/cassandra.git"
 if(binding.hasVariable("CASSANDRA_GIT_URL")) {
     mainRepo = "${CASSANDRA_GIT_URL}"
+    // just presume custom repos are github, not critical if they are not
+    githubRepo = "${mainRepo}"
 }
 def buildsRepo = "https://gitbox.apache.org/repos/asf/cassandra-builds.git"
 if(binding.hasVariable("CASSANDRA_BUILDS_GIT_URL")) {
@@ -79,7 +82,7 @@ job('Cassandra-template-artifacts') {
     label(slaveLabel)
     compressBuildLog()
     logRotator {
-        numToKeep(30)
+        numToKeep(10)
         artifactNumToKeep(10)
     }
     wrappers {
@@ -87,6 +90,9 @@ job('Cassandra-template-artifacts') {
             noActivity(300)
         }
         timestamps()
+    }
+    properties {
+        githubProjectUrl(githubRepo)
     }
     scm {
         git {
@@ -154,7 +160,7 @@ job('Cassandra-template-test') {
     label(slaveLabel)
     compressBuildLog()
     logRotator {
-        numToKeep(30)
+        numToKeep(10)
         artifactNumToKeep(10)
     }
     wrappers {
@@ -165,6 +171,9 @@ job('Cassandra-template-test') {
     }
     throttleConcurrentBuilds {
         categories(['Cassandra'])
+    }
+    properties {
+        githubProjectUrl(githubRepo)
     }
     scm {
         git {
@@ -217,7 +226,7 @@ job('Cassandra-template-dtest') {
     label(slaveLabel)
     compressBuildLog()
     logRotator {
-        numToKeep(30)
+        numToKeep(10)
         artifactNumToKeep(10)
     }
     wrappers {
@@ -225,6 +234,9 @@ job('Cassandra-template-dtest') {
             noActivity(1200)
         }
         timestamps()
+    }
+    properties {
+        githubProjectUrl(githubRepo)
     }
     scm {
         git {
@@ -274,7 +286,7 @@ matrixJob('Cassandra-template-cqlsh-tests') {
     concurrentBuild()
     compressBuildLog()
     logRotator {
-        numToKeep(30)
+        numToKeep(10)
         artifactNumToKeep(10)
     }
     wrappers {
@@ -293,6 +305,9 @@ matrixJob('Cassandra-template-cqlsh-tests') {
     }
     // this should prevent long path expansion from the axis definitions
     childCustomWorkspace('.')
+    properties {
+        githubProjectUrl(githubRepo)
+    }
     scm {
         git {
             remote {
@@ -481,7 +496,7 @@ job('Cassandra-devbranch-artifacts') {
     label(slaveLabel)
     compressBuildLog()
     logRotator {
-        numToKeep(30)
+        numToKeep(10)
         artifactNumToKeep(10)
     }
     wrappers {
@@ -493,6 +508,9 @@ job('Cassandra-devbranch-artifacts') {
     parameters {
         stringParam('REPO', 'apache', 'The github user/org to clone cassandra repo from')
         stringParam('BRANCH', 'trunk', 'The branch of cassandra to checkout')
+    }
+    properties {
+        githubProjectUrl(githubRepo)
     }
     scm {
         git {
@@ -537,7 +555,7 @@ testTargets.each {
         label(slaveLabel)
         compressBuildLog()
         logRotator {
-            numToKeep(30)
+            numToKeep(10)
             artifactNumToKeep(10)
         }
         wrappers {
@@ -552,6 +570,9 @@ testTargets.each {
         parameters {
             stringParam('REPO', 'apache', 'The github user/org to clone cassandra repo from')
             stringParam('BRANCH', 'trunk', 'The branch of cassandra to checkout')
+        }
+        properties {
+            githubProjectUrl(githubRepo)
         }
         scm {
             git {
@@ -575,11 +596,7 @@ testTargets.each {
                 allowEmpty()
                 fingerprint()
             }
-            archiveJunit('build/test/**/TEST-*.xml') {
-                testDataPublishers {
-                    publishTestStabilityData()
-                }
-            }
+            archiveJunit('build/test/**/TEST-*.xml')
             postBuildTask {
                 task('.', '''
                     echo "Finding job process orphans…"; if pgrep -af ${JOB_BASE_NAME}; then pkill -9 -f ${JOB_BASE_NAME}; fi;
@@ -615,7 +632,7 @@ dtestTargets.each {
         }
         compressBuildLog()
         logRotator {
-            numToKeep(30)
+            numToKeep(10)
             artifactNumToKeep(10)
         }
         wrappers {
@@ -630,6 +647,9 @@ dtestTargets.each {
             stringParam('DTEST_REPO', "${dtestRepo}", 'The cassandra-dtest repo URL')
             stringParam('DTEST_BRANCH', 'master', 'The branch of cassandra-dtest to checkout')
             stringParam('DOCKER_IMAGE', "${dtestDockerImage}", 'Docker image for running dtests')
+        }
+        properties {
+            githubProjectUrl(githubRepo)
         }
         scm {
             git {
@@ -653,11 +673,7 @@ dtestTargets.each {
                 allowEmpty()
                 fingerprint()
             }
-            archiveJunit('nosetests.xml') {
-                testDataPublishers {
-                    publishTestStabilityData()
-                }
-            }
+            archiveJunit('nosetests.xml')
             postBuildTask {
                 task('.', '''
                     echo "Cleaning project…" ; git clean -xdff ;
@@ -681,7 +697,7 @@ matrixJob('Cassandra-devbranch-cqlsh-tests') {
     concurrentBuild()
     compressBuildLog()
     logRotator {
-        numToKeep(30)
+        numToKeep(10)
         artifactNumToKeep(10)
     }
     wrappers {
@@ -706,6 +722,9 @@ matrixJob('Cassandra-devbranch-cqlsh-tests') {
     }
     // this should prevent long path expansion from the axis definitions
     childCustomWorkspace('.')
+    properties {
+        githubProjectUrl(githubRepo)
+    }
     scm {
         git {
             remote {
@@ -728,11 +747,7 @@ matrixJob('Cassandra-devbranch-cqlsh-tests') {
             allowEmpty()
             fingerprint()
         }
-        archiveJunit('**/cqlshlib.xml,**/nosetests.xml') {
-            testDataPublishers {
-                publishTestStabilityData()
-            }
-        }
+        archiveJunit('**/cqlshlib.xml,**/nosetests.xml')
         postBuildTask {
             task('.', '''
                 echo "Finding job process orphans…"; if pgrep -af ${JOB_BASE_NAME}; then pkill -9 -f ${JOB_BASE_NAME}; fi;
@@ -764,6 +779,9 @@ pipelineJob('Cassandra-devbranch') {
         stringParam('DTEST_REPO', "${dtestRepo}", 'The cassandra-dtest repo URL')
         stringParam('DTEST_BRANCH', 'master', 'The branch of cassandra-dtest to checkout')
         stringParam('DOCKER_IMAGE', "${dtestDockerImage}", 'Docker image for running dtests')
+    }
+    properties {
+        githubProjectUrl(githubRepo)
     }
     definition {
         cps {

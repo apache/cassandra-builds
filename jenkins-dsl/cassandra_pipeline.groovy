@@ -238,6 +238,11 @@ pipeline {
             sh "git clone https://gitbox.apache.org/repos/asf/cassandra-builds.git"
             sh "./cassandra-builds/build-scripts/cassandra-test-report.sh"
             junit '**/build/test/**/TEST*.xml,**/cqlshlib.xml,**/nosetests.xml'
+            script {
+              // though this is not used in the devbranch pipeline, it exists here for testing the in-tree Jenkinsfile
+              changes = formatChanges(currentBuild.changeSets)
+              echo "changes: ${changes}"
+            }
         }
         post {
             always {
@@ -257,3 +262,14 @@ def copyTestResults(target) {
             target: target]);
 }
 
+def formatChanges(changeLogSets) {
+    def result = ''
+    for (int i = 0; i < changeLogSets.size(); i++) {
+        def entries = changeLogSets[i].items
+        for (int j = 0; j < entries.length; j++) {
+            def entry = entries[j]
+            result = result + "${entry.commitId} by ${entry.author} on ${new Date(entry.timestamp)}: ${entry.msg}\n"
+        }
+    }
+    return result
+}
