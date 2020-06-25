@@ -22,11 +22,11 @@ if(binding.hasVariable("CASSANDRA_LARGE_SLAVE_LABEL")) {
     largeSlaveLabel = "${CASSANDRA_LARGE_SLAVE_LABEL}"
 }
 def mainRepo = "https://gitbox.apache.org/repos/asf/cassandra.git"
-def githubRepo = "https://github.com/apache/cassandra.git"
+def githubRepo = "https://github.com/apache/cassandra"
 if(binding.hasVariable("CASSANDRA_GIT_URL")) {
     mainRepo = "${CASSANDRA_GIT_URL}"
     // just presume custom repos are github, not critical if they are not
-    githubRepo = "${mainRepo}"
+    githubRepo = "${mainRepo}".minus(".git")
 }
 def buildsRepo = "https://gitbox.apache.org/repos/asf/cassandra-builds.git"
 if(binding.hasVariable("CASSANDRA_BUILDS_GIT_URL")) {
@@ -457,6 +457,9 @@ cassandraBranches.each {
         logRotator {
             numToKeep(30)
             artifactNumToKeep(10)
+        }
+        properties {
+            githubProjectUrl(githubRepo)
         }
         definition {
             cpsScm {
