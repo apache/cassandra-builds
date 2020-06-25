@@ -31,25 +31,25 @@ _main() {
 
   case $target in
     "stress-test" | "fqltool-test")
-      ant $target -Dtmp.dir="$(pwd)/tmp" || echo "failed $target"
+      ant -DforceJenkinsListenAddress=true $target -Dtmp.dir="$(pwd)/tmp" || echo "failed $target"
       ;;
     "test")
-      ant testclasslist -Dtest.classlistfile=<( _list_tests "unit" ) -Dtmp.dir="$(pwd)/tmp" || echo "failed $target"
+      ant -DforceJenkinsListenAddress=true testclasslist -Dtest.classlistfile=<( _list_tests "unit" ) -Dtmp.dir="$(pwd)/tmp" || echo "failed $target"
       ;;
     "test-cdc")
-      ant testclasslist-cdc -Dtest.classlistfile=<( _list_tests "unit" ) -Dtmp.dir="$(pwd)/tmp" || echo "failed $target"
+      ant -DforceJenkinsListenAddress=true testclasslist-cdc -Dtest.classlistfile=<( _list_tests "unit" ) -Dtmp.dir="$(pwd)/tmp" || echo "failed $target"
       ;;
     "test-compression")
-      ant testclasslist-compression -Dtest.classlistfile=<( _list_tests "unit" ) -Dtmp.dir="$(pwd)/tmp" || echo "failed $target"
+      ant -DforceJenkinsListenAddress=true testclasslist-compression -Dtest.classlistfile=<( _list_tests "unit" ) -Dtmp.dir="$(pwd)/tmp" || echo "failed $target"
       ;;
     "test-burn")
-      ant testclasslist -Dtest.classlistprefix=burn -Dtest.timeout=$(_timeout_for "test.burn.timeout") -Dtest.classlistfile=<( _list_tests "burn" ) -Dtmp.dir="$(pwd)/tmp" || echo "failed $target"
+      ant -DforceJenkinsListenAddress=true testclasslist -Dtest.classlistprefix=burn -Dtest.timeout=$(_timeout_for "test.burn.timeout") -Dtest.classlistfile=<( _list_tests "burn" ) -Dtmp.dir="$(pwd)/tmp" || echo "failed $target"
       ;;
     "long-test")
-      ant testclasslist -Dtest.classlistprefix=long -Dtest.timeout=$(_timeout_for "test.long.timeout") -Dtest.classlistfile=<( _list_tests "long" ) -Dtmp.dir="$(pwd)/tmp" || echo "failed $target"
+      ant -DforceJenkinsListenAddress=true testclasslist -Dtest.classlistprefix=long -Dtest.timeout=$(_timeout_for "test.long.timeout") -Dtest.classlistfile=<( _list_tests "long" ) -Dtmp.dir="$(pwd)/tmp" || echo "failed $target"
       ;;
     "jvm-dtest")
-      ant testclasslist -Dtest.classlistprefix=distributed -Dtest.timeout=$(_timeout_for "test.distributed.timeout") -Dtest.classlistfile=<( _list_distributed_tests_no_upgrade ) -Dtmp.dir="$(pwd)/tmp" || echo "failed $target"
+      ant -DforceJenkinsListenAddress=true testclasslist -Dtest.classlistprefix=distributed -Dtest.timeout=$(_timeout_for "test.distributed.timeout") -Dtest.classlistfile=<( _list_distributed_tests_no_upgrade ) -Dtmp.dir="$(pwd)/tmp" || echo "failed $target"
       ;;
     *)
       echo "unregconised \"$target\""
