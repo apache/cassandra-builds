@@ -239,10 +239,12 @@ pipeline {
             sh "./cassandra-builds/build-scripts/cassandra-test-report.sh"
             junit '**/build/test/**/TEST*.xml,**/cqlshlib.xml,**/nosetests.xml'
             script {
-              // though this is not used in the devbranch pipeline, it exists here for testing the in-tree Jenkinsfile
-              changes = formatChanges(currentBuild.changeSets)
-              echo "changes: ${changes}"
+              // env.GIT_COMMIT or changeLogSets is not defined by parameterised manual builds
+              commit_head_sha = sh(returnStdout: true, script:"(git -C cassandra log -1 --no-merges --pretty=format:'%h')").trim()
+              commit_head_msg = sh(returnStdout: true, script:"(git -C cassandra log -1 --no-merges --pretty=format:'%an %ad %s')").trim()
+              echo "sha: ${commit_head_sha}; msg: ${commit_head_msg}"
             }
+            slackSend channel: '#cassandra-builds-patches', message: ":apache: <${env.BUILD_URL}|${currentBuild.fullDisplayName}> completed: ${currentBuild.result}. <https://github.com/${REPO}/cassandra/commit/${commit_head_sha}|${REPO} ${commit_head_sha}>\n${commit_head_msg}"
         }
         post {
             always {
@@ -260,16 +262,4 @@ def copyTestResults(target) {
             fingerprintArtifacts: true,
             selector: [$class: 'StatusBuildSelector', stable: false],
             target: target]);
-}
-
-def formatChanges(changeLogSets) {
-    def result = ''
-    for (int i = 0; i < changeLogSets.size(); i++) {
-        def entries = changeLogSets[i].items
-        for (int j = 0; j < entries.length; j++) {
-            def entry = entries[j]
-            result = result + "${entry.commitId} by ${entry.author} on ${new Date(entry.timestamp)}: ${entry.msg}\n"
-        }
-    }
-    return result
 }

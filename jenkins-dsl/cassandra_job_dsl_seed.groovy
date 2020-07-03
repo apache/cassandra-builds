@@ -790,7 +790,6 @@ pipelineJob('Cassandra-devbranch') {
         cps {
             // Cassandra-devbranch still needs custom Jenkinsfile because of the parameters passed into the build jobs.
             script(readFileFromWorkspace('Cassandra-Job-DSL', 'jenkins-dsl/cassandra_pipeline.groovy'))
-            sandbox()
         }
     }
 }
