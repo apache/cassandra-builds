@@ -1,4 +1,8 @@
 // Cassandra-devbranch needs custom Jenkinsfile because of the parameters passed into the build jobs.
+//
+// Validate/lint this file using the following command
+// `curl -X POST  -F "jenkinsfile=<jenkins-dsl/cassandra_pipeline.groovy" https://ci-cassandra.apache.org/pipeline-model-converter/validate`
+
 pipeline {
   agent { label 'cassandra' }
   stages {
@@ -22,21 +26,23 @@ pipeline {
             stage('stress') {
               steps {
                   warnError('Tests unstable') {
-                      build job: "${env.JOB_NAME}-stress-test", parameters: [string(name: 'REPO', value: params.REPO), string(name: 'BRANCH', value: params.BRANCH)]
+                      script {
+                        built = build job: "${env.JOB_NAME}-stress-test", parameters: [string(name: 'REPO', value: params.REPO), string(name: 'BRANCH', value: params.BRANCH)]
+                      }
                   }
               }
               post {
                 success {
                     warnError('missing test xml files') {
                         script {
-                            copyTestResults('stress-test')
+                            copyTestResults('stress-test', built.getNumber())
                         }
                     }
                 }
                 unstable {
                     warnError('missing test xml files') {
                         script {
-                            copyTestResults('stress-test')
+                            copyTestResults('stress-test', built.getNumber())
                         }
                     }
                 }
@@ -45,21 +51,23 @@ pipeline {
             stage('JVM DTests') {
               steps {
                   warnError('Tests unstable') {
-                    build job: "${env.JOB_NAME}-jvm-dtest", parameters: [string(name: 'REPO', value: params.REPO), string(name: 'BRANCH', value: params.BRANCH)]
+                      script {
+                        built = build job: "${env.JOB_NAME}-jvm-dtest", parameters: [string(name: 'REPO', value: params.REPO), string(name: 'BRANCH', value: params.BRANCH)]
+                      }
                   }
               }
               post {
                 success {
                     warnError('missing test xml files') {
                         script {
-                            copyTestResults('jvm-dtest')
+                            copyTestResults('jvm-dtest', built.getNumber())
                         }
                     }
                 }
                 unstable {
                     warnError('missing test xml files') {
                         script {
-                            copyTestResults('jvm-dtest')
+                            copyTestResults('jvm-dtest', built.getNumber())
                         }
                     }
                 }
@@ -68,21 +76,23 @@ pipeline {
             stage('units') {
                 steps {
                   warnError('Tests unstable') {
-                    build job: "${env.JOB_NAME}-test", parameters: [string(name: 'REPO', value: params.REPO), string(name: 'BRANCH', value: params.BRANCH)]
+                      script {
+                        built = build job: "${env.JOB_NAME}-test", parameters: [string(name: 'REPO', value: params.REPO), string(name: 'BRANCH', value: params.BRANCH)]
+                      }
                   }
                 }
               post {
                 success {
                     warnError('missing test xml files') {
                         script {
-                            copyTestResults('test')
+                            copyTestResults('test', built.getNumber())
                         }
                     }
                 }
                 unstable {
                     warnError('missing test xml files') {
                         script {
-                            copyTestResults('test')
+                            copyTestResults('test', built.getNumber())
                         }
                     }
                 }
@@ -91,21 +101,23 @@ pipeline {
             stage('long units') {
               steps {
                   warnError('Tests unstable') {
-                      build job: "${env.JOB_NAME}-long-test", parameters: [string(name: 'REPO', value: params.REPO), string(name: 'BRANCH', value: params.BRANCH)]
+                      script {
+                        built = build job: "${env.JOB_NAME}-long-test", parameters: [string(name: 'REPO', value: params.REPO), string(name: 'BRANCH', value: params.BRANCH)]
+                      }
                   }
               }
               post {
                 success {
                     warnError('missing test xml files') {
                         script {
-                            copyTestResults('long-test')
+                            copyTestResults('long-test', built.getNumber())
                         }
                     }
                 }
                 unstable {
                     warnError('missing test xml files') {
                         script {
-                            copyTestResults('long-test')
+                            copyTestResults('long-test', built.getNumber())
                         }
                     }
                 }
@@ -114,21 +126,23 @@ pipeline {
             stage('burn') {
               steps {
                   warnError('Tests unstable') {
-                    build job: "${env.JOB_NAME}-test-burn", parameters: [string(name: 'REPO', value: params.REPO), string(name: 'BRANCH', value: params.BRANCH)]
+                      script {
+                        built = build job: "${env.JOB_NAME}-test-burn", parameters: [string(name: 'REPO', value: params.REPO), string(name: 'BRANCH', value: params.BRANCH)]
+                      }
                   }
               }
               post {
                 success {
                     warnError('missing test xml files') {
                         script {
-                            copyTestResults('test-burn')
+                            copyTestResults('test-burn', built.getNumber())
                         }
                     }
                 }
                 unstable {
                     warnError('missing test xml files') {
                         script {
-                            copyTestResults('test-burn')
+                            copyTestResults('test-burn', built.getNumber())
                         }
                     }
                 }
@@ -137,21 +151,23 @@ pipeline {
             stage('cdc') {
               steps {
                   warnError('Tests unstable') {
-                      build job: "${env.JOB_NAME}-test-cdc", parameters: [string(name: 'REPO', value: params.REPO), string(name: 'BRANCH', value: params.BRANCH)]
+                      script {
+                        built = build job: "${env.JOB_NAME}-test-cdc", parameters: [string(name: 'REPO', value: params.REPO), string(name: 'BRANCH', value: params.BRANCH)]
+                      }
                   }
               }
               post {
                 success {
                     warnError('missing test xml files') {
                         script {
-                            copyTestResults('test-cdc')
+                            copyTestResults('test-cdc', built.getNumber())
                         }
                     }
                 }
                 unstable {
                     warnError('missing test xml files') {
                         script {
-                            copyTestResults('test-cdc')
+                            copyTestResults('test-cdc', built.getNumber())
                         }
                     }
                 }
@@ -160,21 +176,23 @@ pipeline {
             stage('compression') {
               steps {
                   warnError('Tests unstable') {
-                    build job: "${env.JOB_NAME}-test-compression", parameters: [string(name: 'REPO', value: params.REPO), string(name: 'BRANCH', value: params.BRANCH)]
+                      script {
+                        built = build job: "${env.JOB_NAME}-test-compression", parameters: [string(name: 'REPO', value: params.REPO), string(name: 'BRANCH', value: params.BRANCH)]
+                      }
                   }
               }
               post {
                 success {
                     warnError('missing test xml files') {
                         script {
-                            copyTestResults('test-compression')
+                            copyTestResults('test-compression', built.getNumber())
                         }
                     }
                 }
                 unstable {
                     warnError('missing test xml files') {
                         script {
-                            copyTestResults('test-compression')
+                            copyTestResults('test-compression', built.getNumber())
                         }
                     }
                 }
@@ -183,21 +201,23 @@ pipeline {
             stage('cqlsh') {
               steps {
                   warnError('Tests unstable') {
-                    build job: "${env.JOB_NAME}-cqlsh-tests", parameters: [string(name: 'REPO', value: params.REPO), string(name: 'BRANCH', value: params.BRANCH), string(name: 'DTEST_REPO', value: params.DTEST_REPO), string(name: 'DTEST_BRANCH', value: params.DTEST_BRANCH)]
+                      script {
+                        built = build job: "${env.JOB_NAME}-cqlsh-tests", parameters: [string(name: 'REPO', value: params.REPO), string(name: 'BRANCH', value: params.BRANCH), string(name: 'DTEST_REPO', value: params.DTEST_REPO), string(name: 'DTEST_BRANCH', value: params.DTEST_BRANCH)]
+                      }
                   }
               }
               post {
                 success {
                     warnError('missing test xml files') {
                         script {
-                            copyTestResults('cqlsh-tests')
+                            copyTestResults('cqlsh-tests', built.getNumber())
                         }
                     }
                 }
                 unstable {
                     warnError('missing test xml files') {
                         script {
-                            copyTestResults('cqlsh-tests')
+                            copyTestResults('cqlsh-tests', built.getNumber())
                         }
                     }
                 }
@@ -210,21 +230,23 @@ pipeline {
             stage('dtest') {
               steps {
                   warnError('Tests unstable') {
-                    build job: "${env.JOB_NAME}-dtest", parameters: [string(name: 'REPO', value: params.REPO), string(name: 'BRANCH', value: params.BRANCH), string(name: 'DTEST_REPO', value: params.DTEST_REPO), string(name: 'DTEST_BRANCH', value: params.DTEST_BRANCH), string(name: 'DOCKER_IMAGE', value: params.DOCKER_IMAGE)]
+                      script {
+                        built = build job: "${env.JOB_NAME}-dtest", parameters: [string(name: 'REPO', value: params.REPO), string(name: 'BRANCH', value: params.BRANCH), string(name: 'DTEST_REPO', value: params.DTEST_REPO), string(name: 'DTEST_BRANCH', value: params.DTEST_BRANCH), string(name: 'DOCKER_IMAGE', value: params.DOCKER_IMAGE)]
+                      }
                   }
               }
               post {
                 success {
                     warnError('missing test xml files') {
                         script {
-                            copyTestResults('dtest')
+                            copyTestResults('dtest', built.getNumber())
                         }
                     }
                 }
                 unstable {
                     warnError('missing test xml files') {
                         script {
-                            copyTestResults('dtest')
+                            copyTestResults('dtest', built.getNumber())
                         }
                     }
                 }
@@ -255,11 +277,11 @@ pipeline {
   }
 }
 
-def copyTestResults(target) {
+def copyTestResults(target, build_number) {
     step([$class: 'CopyArtifact',
             projectName: "${env.JOB_NAME}-${target}",
             optional: true,
             fingerprintArtifacts: true,
-            selector: [$class: 'StatusBuildSelector', stable: false],
+            selector: specific("${build_number}"),
             target: target]);
 }
