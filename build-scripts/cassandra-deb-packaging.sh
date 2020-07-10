@@ -38,7 +38,7 @@ pushd $cassandra_builds_dir
 docker build --build-arg CASSANDRA_GIT_URL=$CASSANDRA_GIT_URL -t cassandra-artifacts-buster:${sha} -f docker/buster-image.docker docker/
 
 # Run build script through docker (specify branch, tag, or sha)
-chmod 777 ${deb_dir}
-docker run --rm -v ${deb_dir}:/dist cassandra-artifacts-buster:${sha} /home/build/build-debs.sh ${sha} ${java_version}
+chmod 777 "${deb_dir}"
+docker run --rm -v "${deb_dir}":/dist cassandra-artifacts-buster:${sha} /home/build/build-debs.sh ${sha} ${java_version}
 
 popd

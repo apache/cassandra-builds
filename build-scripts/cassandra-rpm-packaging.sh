@@ -38,7 +38,7 @@ pushd $cassandra_builds_dir
 docker build --build-arg CASSANDRA_GIT_URL=$CASSANDRA_GIT_URL -t cassandra-artifacts-centos7:${sha} -f docker/centos7-image.docker docker/
 
 # Run build script through docker (specify branch, tag, or sha)
-chmod 777 ${rpm_dir}
-docker run --rm -v ${rpm_dir}:/dist cassandra-artifacts-centos7:${sha} /home/build/build-rpms.sh ${sha} ${java_version}
+chmod 777 "${rpm_dir}"
+docker run --rm -v "${rpm_dir}":/dist cassandra-artifacts-centos7:${sha} /home/build/build-rpms.sh ${sha} ${java_version}
 
 popd

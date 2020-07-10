@@ -48,6 +48,31 @@ pipeline {
                 }
               }
             }
+            stage('fqltool') {
+              steps {
+                  warnError('Tests unstable') {
+                      script {
+                        built = build job: "${env.JOB_NAME}-fqltool-test", parameters: [string(name: 'REPO', value: params.REPO), string(name: 'BRANCH', value: params.BRANCH)]
+                      }
+                  }
+              }
+              post {
+                success {
+                    warnError('missing test xml files') {
+                        script {
+                            copyTestResults('fqltool-test', built.getNumber())
+                        }
+                    }
+                }
+                unstable {
+                    warnError('missing test xml files') {
+                        script {
+                            copyTestResults('fqltool-test', built.getNumber())
+                        }
+                    }
+                }
+              }
+            }
             stage('JVM DTests') {
               steps {
                   warnError('Tests unstable') {

@@ -74,12 +74,10 @@ if(binding.hasVariable("CASSANDRA_DOCKER_IMAGE")) {
 /**
  * Artifacts and eclipse-warnings template
  */
-job('Cassandra-template-artifacts') {
+matrixJob('Cassandra-template-artifacts') {
     disabled(true)
     description(jobDescription)
     concurrentBuild()
-    jdk(jdkLabel)
-    label(slaveLabel)
     compressBuildLog()
     logRotator {
         numToKeep(10)
@@ -203,7 +201,7 @@ job('Cassandra-template-test') {
         }
         postBuildTask {
             task('.', '''
-                echo "Finding job process orphans…"; if pgrep -af ${JOB_BASE_NAME}; then pkill -9 -f ${JOB_BASE_NAME}; fi;
+                echo "Finding job process orphans…"; if pgrep -af "${JOB_BASE_NAME}"; then pkill -9 -f "${JOB_BASE_NAME}"; fi;
                 echo "Cleaning project…"; git clean -xdff ;
                 echo "Pruning docker…" ; docker system prune -f --filter "until=48h"  ;
                 echo "Reporting disk usage…"; df -h ; du -hs ../* ;
@@ -336,7 +334,7 @@ matrixJob('Cassandra-template-cqlsh-tests') {
         }
         postBuildTask {
             task('.', '''
-                echo "Finding job process orphans…"; if pgrep -af ${JOB_BASE_NAME}; then pkill -9 -f ${JOB_BASE_NAME}; fi;
+                echo "Finding job process orphans…"; if pgrep -af "${JOB_BASE_NAME}"; then pkill -9 -f "${JOB_BASE_NAME}"; fi;
                 echo "Cleaning project…"; git clean -xdff ;
                 echo "Pruning docker…" ; docker system prune -f --filter "until=48h"  ;
                 echo "Reporting disk usage…"; df -h ; du -hs ../* ;
@@ -364,9 +362,17 @@ cassandraBranches.each {
     /**
      * Main branch artifacts and eclipse-warnings job
      */
-    job("${jobNamePrefix}-artifacts") {
+    matrixJob("${jobNamePrefix}-artifacts") {
         disabled(false)
         using('Cassandra-template-artifacts')
+        axes {
+            if (branchName == 'trunk') {
+                jdk('JDK 1.8 (latest)','JDK 11 (latest)')
+            } else {
+                jdk('JDK 1.8 (latest)')
+            }
+            label('label', slaveLabel)
+        }
         configure { node ->
             node / scm / branches / 'hudson.plugins.git.BranchSpec' / name(branchName)
         }
@@ -492,11 +498,13 @@ cassandraBranches.each {
 /**
  * Parameterized Artifacts
  */
-job('Cassandra-devbranch-artifacts') {
+matrixJob('Cassandra-devbranch-artifacts') {
     description(jobDescription)
     concurrentBuild()
-    jdk(jdkLabel)
-    label(slaveLabel)
+    axes {
+        jdk('JDK 1.8 (latest)','JDK 11 (latest)')
+        label('label', slaveLabel)
+    }
     compressBuildLog()
     logRotator {
         numToKeep(10)
@@ -599,10 +607,12 @@ testTargets.each {
                 allowEmpty()
                 fingerprint()
             }
-            archiveJunit('build/test/**/TEST-*.xml')
+            archiveJunit('build/test/**/TEST-*.xml') {
+                allowEmptyResults()
+            }
             postBuildTask {
                 task('.', '''
-                    echo "Finding job process orphans…"; if pgrep -af ${JOB_BASE_NAME}; then pkill -9 -f ${JOB_BASE_NAME}; fi;
+                    echo "Finding job process orphans…"; if pgrep -af "${JOB_BASE_NAME}"; then pkill -9 -f "${JOB_BASE_NAME}"; fi;
                     echo "Cleaning project…"; git clean -xdff ;
                     echo "Pruning docker…" ; docker system prune -f --filter "until=48h"  ;
                     echo "Reporting disk usage…"; df -h ; du -hs ../* ;
@@ -753,7 +763,7 @@ matrixJob('Cassandra-devbranch-cqlsh-tests') {
         archiveJunit('**/cqlshlib.xml,**/nosetests.xml')
         postBuildTask {
             task('.', '''
-                echo "Finding job process orphans…"; if pgrep -af ${JOB_BASE_NAME}; then pkill -9 -f ${JOB_BASE_NAME}; fi;
+                echo "Finding job process orphans…"; if pgrep -af "${JOB_BASE_NAME}"; then pkill -9 -f "${JOB_BASE_NAME}"; fi;
                 echo "Cleaning project…"; git clean -xdff ;
                 echo "Pruning docker…" ; docker system prune -f --filter "until=48h" ;
                 echo "Reporting disk usage…"; df -h ; du -hs ../* ;

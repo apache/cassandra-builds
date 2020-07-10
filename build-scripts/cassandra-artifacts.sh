@@ -31,6 +31,19 @@ pip install "setuptools<45" Sphinx sphinx_rtd_theme
 #
 ################################
 
+# Setup JDK
+java_version=$(java -version 2>&1 | awk -F '"' '/version/ {print $2}' | awk -F. '{print $1}')
+if [ "$java_version" -ge 11 ]; then
+    java_version="11"
+    export CASSANDRA_USE_JDK11=true
+    if ! grep -q CASSANDRA_USE_JDK11 build.xml ; then
+        echo "Skipping build. JDK11 not supported against $(grep 'property\s*name=\"base.version\"' build.xml |sed -ne 's/.*value=\"\([^"]*\)\".*/\1/p')"
+        exit 0
+    fi
+else
+    java_version="8"
+fi
+
 # Loop to prevent failure due to maven-ant-tasks not downloading a jar..
 set +e # disable immediate exit from this point
 for x in $(seq 1 3); do
@@ -47,9 +60,9 @@ for x in $(seq 1 3); do
             declare -x cassandra_builds_dir="${cassandra_builds_dir}"
             declare -x CASSANDRA_GIT_URL="`git remote get-url origin`"
             # debian
-            deb_dir="`pwd`/build" ${cassandra_builds_dir}/build-scripts/cassandra-deb-packaging.sh ${head_commit}
+            deb_dir="`pwd`/build" ${cassandra_builds_dir}/build-scripts/cassandra-deb-packaging.sh ${head_commit} ${java_version}
             # rpm
-            rpm_dir="`pwd`/build" ${cassandra_builds_dir}/build-scripts/cassandra-rpm-packaging.sh ${head_commit}
+            rpm_dir="`pwd`/build" ${cassandra_builds_dir}/build-scripts/cassandra-rpm-packaging.sh ${head_commit} ${java_version}
         fi
         break
     fi

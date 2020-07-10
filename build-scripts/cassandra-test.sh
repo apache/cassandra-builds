@@ -24,6 +24,15 @@ _main() {
   local java_version=$(java -version 2>&1 | awk -F '"' '/version/ {print $2}' | awk -F. '{print $1}')
   if [ "$java_version" -ge 11 ]; then
     export CASSANDRA_USE_JDK11=true
+    if ! grep -q CASSANDRA_USE_JDK11 build.xml ; then
+        echo "Skipping ${target}. JDK11 not supported against $(grep 'property\s*name=\"base.version\"' build.xml |sed -ne 's/.*value=\"\([^"]*\)\".*/\1/p')"
+        exit 0
+    fi
+  fi
+
+  if ! ant -projecthelp | grep -q " $target " ; then
+    echo "Skipping ${target}. It does not exist in $(grep 'property\s*name=\"base.version\"' build.xml |sed -ne 's/.*value=\"\([^"]*\)\".*/\1/p')"
+    exit 0
   fi
 
   ant clean jar
