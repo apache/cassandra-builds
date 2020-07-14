@@ -325,8 +325,7 @@ then
 
     ## Email templates ##
     [ $fake_mode -eq 1 ] && echo ">> rm -rf $mail_dir"
-    [ ! -e "$mail_dir" ] || rm -rf $mail_dir
-    mkdir $mail_dir
+    mkdir -p $mail_dir
     mail_test_announce_file="$mail_dir/mail_stage_announce_$release"
     mail_vote_file="$mail_dir/mail_vote_$release"
 
@@ -369,7 +368,6 @@ fi
 
 echo "Done cutting and staging release artifacts. Please make sure to:"
 echo " 1) verify all staged artifacts"
-echo " 2) close the nexus staging repository $staging_number"
-echo " 3) forward merge and atomic push the debian/changelog commit"
-echo " 4) email the announcement email"
-echo " 5) after a couple of days, email the vote email"
+echo " 2) forward merge and atomic push the debian/changelog commit"
+echo " 3) email the announcement email"
+echo " 4) after a couple of days, email the vote email"
