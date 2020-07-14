@@ -23,7 +23,7 @@ command -v docker >/dev/null 2>&1 || { echo >&2 "docker needs to be installed"; 
 virtualenv venv
 source venv/bin/activate
 # setuptools 45.0.0 requires python 3.5+
-pip install "setuptools<45" Sphinx sphinx_rtd_theme
+python -m pip install "setuptools<45" Sphinx sphinx_rtd_theme
 
 ################################
 #
