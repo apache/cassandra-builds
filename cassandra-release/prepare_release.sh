@@ -357,7 +357,7 @@ then
     echo "" >> $mail_vote_file
     echo "The Source and Build Artifacts, and the Debian and RPM packages and repositories, are available here: https://dist.apache.org/repos/dist/dev/cassandra/$release/" >> $mail_vote_file
     echo "" >> $mail_vote_file
-    echo "The vote will be open for 72 hours (longer if needed). Everyone who has tested the build is invited to vote. Votes by PMC members are considered binding. A vote passes if there are at least three binding +1s." >> $mail_vote_file
+    echo "The vote will be open for 72 hours (longer if needed). Everyone who has tested the build is invited to vote. Votes by PMC members are considered binding. A vote passes if there are at least three binding +1s and no -1's." >> $mail_vote_file
     echo "" >> $mail_vote_file
     echo "[1]: CHANGES.txt: $asf_git_repo?p=cassandra.git;a=blob_plain;f=CHANGES.txt;hb=refs/tags/$release-tentative" >> $mail_vote_file
     echo "[2]: NEWS.txt: $asf_git_repo?p=cassandra.git;a=blob_plain;f=NEWS.txt;hb=refs/tags/$release-tentative" >> $mail_vote_file
