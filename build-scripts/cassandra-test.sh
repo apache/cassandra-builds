@@ -22,18 +22,27 @@ _timeout_for() {
 _main() {
   local target="${1:-}"
   local java_version=$(java -version 2>&1 | awk -F '"' '/version/ {print $2}' | awk -F. '{print $1}')
+  local version=$(grep 'property\s*name=\"base.version\"' build.xml |sed -ne 's/.*value=\"\([^"]*\)\".*/\1/p')
   if [ "$java_version" -ge 11 ]; then
     export CASSANDRA_USE_JDK11=true
     if ! grep -q CASSANDRA_USE_JDK11 build.xml ; then
-        echo "Skipping ${target}. JDK11 not supported against $(grep 'property\s*name=\"base.version\"' build.xml |sed -ne 's/.*value=\"\([^"]*\)\".*/\1/p')"
+        echo "Skipping ${target}. JDK11 not supported against ${version}"
         exit 0
     fi
   fi
 
-  if ! ant -projecthelp | grep -q " $target " ; then
-    echo "Skipping ${target}. It does not exist in $(grep 'property\s*name=\"base.version\"' build.xml |sed -ne 's/.*value=\"\([^"]*\)\".*/\1/p')"
-    exit 0
-  fi
+  # check test target exists in code
+  case $target in
+    "stress-test" | "fqltool-test")
+      ant -projecthelp | grep -q " $target " || { echo "Skipping ${target}. It does not exist in ${version}"; exit 0; }
+      ;;
+    "test-cdc")
+      regx_version="2.2([0-9]+)$"
+      ! [[ $version =~ $version ]] || { echo "Skipping ${target}. It does not exist in ${version}"; exit 0; }
+      ;;
+    *)
+      ;;
+  esac
 
   ant clean jar
   mkdir -p tmp
