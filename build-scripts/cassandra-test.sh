@@ -37,8 +37,8 @@ _main() {
       ant -projecthelp | grep -q " $target " || { echo "Skipping ${target}. It does not exist in ${version}"; exit 0; }
       ;;
     "test-cdc")
-      regx_version="2.2([0-9]+)$"
-      ! [[ $version =~ $version ]] || { echo "Skipping ${target}. It does not exist in ${version}"; exit 0; }
+      regx_version="(2.2|3.0).([0-9]+)$"
+      ! [[ $version =~ $regx_version ]] || { echo "Skipping ${target}. It does not exist in ${version}"; exit 0; }
       ;;
     *)
       ;;
