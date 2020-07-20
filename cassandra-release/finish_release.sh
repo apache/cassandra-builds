@@ -102,7 +102,7 @@ exec 3>&1 4>&2
 
 if [ $verbose -eq 0 ]
 then
-    # Not verbose, redirect all ouptut to a logfile 
+    # Not verbose, redirect all ouptut to a logfile
     logfile="release-${release}.log"
     [ ! -e "$logfile" ] || rm $logfile
     touch $logfile
@@ -160,7 +160,8 @@ rm _tmp_msg_
 echo "Deploying debian packages ..." 1>&3 2>&4
 
 # Upload to bintray
-debian_dist_dir=$tmp_dir/cassandra-dist-$release
+debian_dist_dir=$tmp_dir/cassandra-dist-$release-debian
+execute "svn co https://dist.apache.org/repos/dist/release/cassandra/$release/debian $debian_dist_dir"
 [ -e "$debian_dist_dir" ] || mkdir $debian_dist_dir # create it for fake mode, to satisfy `find …` command below
 execute "cd $debian_dist_dir"
 
@@ -251,7 +252,7 @@ echo "[3]: https://issues.apache.org/jira/browse/CASSANDRA" >> $mail_file
 echo 'Done deploying artifacts. Please make sure to:'
 echo ' 1) release artifacts from repository.apache.org'
 echo ' 2) wait for the artifacts to sync at https://downloads.apache.org/cassandra/'
-echo ' 3) login to bintray and \"publish\" the uploaded artifacts'
+echo ' 3) login to bintray and \"publish\" the uploaded artifacts, at https://bintray.com/apache/cassandra'
 echo ' 4) update the website (TODO provide link)'  # TODO - this is old info and needs updating..
 echo ' 5) update CQL doc if appropriate'
 echo ' 6) update wikipedia page if appropriate'
