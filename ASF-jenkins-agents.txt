@@ -13,6 +13,11 @@ with only their default installation of bind9 removed:
   $ sudo rm -r /var/cache/bind
 
 On AWS you are free to re-use the public AMI `ami-02cd664c0e9899a91 cassandra-jenkins-host-v3`.
+You will find this AMI in region `us-west-2`.
+
+It is highly prefferable to provision nodes in a such way that its reboot nor shutdown / start will
+change node's IP address. Use Elastic IPs for this. The default limit per region is 5. You may 
+ask for more in console https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/elastic-ip-addresses-eip.html#using-instance-addressing-limit
 
 Edit sudoers to allow INFRA to sudo without password, or provide them with the password.
 For example, set:  %sudo   ALL=(ALL:ALL) NOPASSWD:ALL
@@ -64,15 +69,15 @@ cassandra4  - 163.172.4.140  - Ubuntu 18.04 LTS amd64, 32G RAM, donated by Datas
 cassandra5  - 163.172.4.150  - Ubuntu 18.04 LTS amd64, 32G RAM, donated by Datastax
 cassandra6  - 163.172.4.175  - Ubuntu 18.04 LTS amd64, 32G RAM, donated by Datastax
 cassandra7  - 163.172.4.184  - Ubuntu 18.04 LTS amd64, 32G RAM, donated by Datastax
-cassandra8  - 35.160.175.252 - Ubuntu 16.04 LTS amd64, 16G RAM, 4 cores, donated by instaclustr
-cassandra9  - 34.210.158.175 - Ubuntu 16.04 LTS amd64, 16G RAM, 4 cores, donated by instaclustr
-cassandra10 - 35.165.114.131 - Ubuntu 16.04 LTS amd64, 16G RAM, 4 cores, donated by instaclustr
-cassandra11 - 35.164.80.43   - Ubuntu 16.04 LTS amd64, 16G RAM, 4 cores, donated by instaclustr
-cassandra12 - 52.10.125.176  - Ubuntu 16.04 LTS amd64, 16G RAM, 4 cores, donated by instaclustr
-cassandra13 - 52.32.194.237  - Ubuntu 16.04 LTS amd64, 16G RAM, 4 cores, donated by instaclustr
-cassandra14 - 52.38.171.39   - Ubuntu 16.04 LTS amd64, 16G RAM, 4 cores, donated by instaclustr
-cassandra15 - 52.89.160.64   - Ubuntu 16.04 LTS amd64, 16G RAM, 4 cores, donated by instaclustr
-cassandra16 - 54.148.184.162 - Ubuntu 16.04 LTS amd64, 16G RAM, 4 cores, donated by instaclustr
+cassandra8  - 52.38.142.130  - Ubuntu 18.04 LTS amd64, 32G RAM, m4.2xlarge, donated by Instaclustr
+cassandra9  - 34.223.128.131 - Ubuntu 18.04 LTS amd64, 32G RAM, m4.2xlarge, donated by Instaclustr
+cassandra10 - 34.209.95.9    - Ubuntu 18.04 LTS amd64, 32G RAM, m4.2xlarge, donated by Instaclustr
+cassandra11 - 52.13.31.44    - Ubuntu 18.04 LTS amd64, 32G RAM, m4.2xlarge, donated by Instaclustr
+cassandra12 - 52.88.147.81   - Ubuntu 18.04 LTS amd64, 32G RAM, m4.2xlarge, donated by Instaclustr
+cassandra13 - 34.213.143.168 - Ubuntu 18.04 LTS amd64, 32G RAM, m4.2xlarge, donated by Instaclustr
+cassandra14 - 54.148.1.179   - Ubuntu 18.04 LTS amd64, 32G RAM, m4.2xlarge, donated by Instaclustr
+cassandra15 - 54.189.131.27  - Ubuntu 18.04 LTS amd64, 32G RAM, m4.2xlarge, donated by Instaclustr
+cassandra16 - 54.201.88.175  - Ubuntu 18.04 LTS amd64, 32G RAM, m4.2xlarge, donated by Instaclustr
 cassandra17 - 44.230.121.32  - Ubuntu 18.04 LTS amd64, 32G RAM, m5.2xlarge, donated by Amazon
 cassandra18 - 44.230.213.15  - Ubuntu 18.04 LTS amd64, 32G RAM, m5.2xlarge, donated by Amazon
 cassandra19 - 44.231.106.18  - Ubuntu 18.04 LTS amd64, 32G RAM, m5.2xlarge, donated by Amazon
@@ -101,7 +106,7 @@ Contacts for system donators, when console hands may be needed by INFRA:
 
   Datastax: Joshua McKenzie <jmckenzie@apache.org>
 
-  Instaclustr: Ben Bromhead <ben@instaclustr.com>
+  Instaclustr: Stefan Miklosovic <stefan.miklosovic@instaclustr.com>
                alternative group list: admin@instaclustr.com
 
   Amazon: cassandra-hardware@amazon.com (Steve Mayszak)
