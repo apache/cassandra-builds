@@ -105,7 +105,7 @@ matrixJob('Cassandra-template-artifacts') {
     }
     steps {
         buildDescription('', buildDescStr)
-        shell("git clean -xdff ; git clone -b ${buildsBranch} ${buildsRepo}")
+        shell("git clean -xdff ; git clone --depth 1 --single-branch -b ${buildsBranch} ${buildsRepo}")
     }
     publishers {
         archiveArtifacts('build/apache-cassandra-*.tar.gz, build/apache-cassandra-*.jar, build/apache-cassandra-*.pom, build/cassandra*.deb, build/cassandra*.rpm, build/**/eclipse_compiler_checks.txt')
@@ -186,7 +186,7 @@ job('Cassandra-template-test') {
     }
     steps {
         buildDescription('', buildDescStr)
-        shell("git clean -xdff ; git clone -b ${buildsBranch} ${buildsRepo}")
+        shell("git clean -xdff ; git clone --depth 1 --single-branch -b ${buildsBranch} ${buildsRepo}")
     }
     publishers {
         archiveArtifacts {
@@ -249,7 +249,7 @@ job('Cassandra-template-dtest') {
     }
     steps {
         buildDescription('', buildDescStr)
-        shell("git clean -xdff ; git clone -b ${buildsBranch} ${buildsRepo} ; git clone ${dtestRepo}")
+        shell("git clean -xdff ; git clone --depth 1 --single-branch -b ${buildsBranch} ${buildsRepo} ; git clone --depth 1 --single-branch ${dtestRepo}")
     }
     publishers {
         archiveArtifacts {
@@ -319,7 +319,7 @@ matrixJob('Cassandra-template-cqlsh-tests') {
     }
     steps {
         buildDescription('', buildDescStr)
-        shell("git clean -xdff ; git clone ${dtestRepo}")
+        shell("git clean -xdff ; git clone --depth 1 --single-branch ${dtestRepo}")
     }
     publishers {
         archiveArtifacts {
@@ -536,7 +536,7 @@ matrixJob('Cassandra-devbranch-artifacts') {
     }
     steps {
         buildDescription('', buildDescStr)
-        shell("git clean -xdff ; git clone -b ${buildsBranch} ${buildsRepo}")
+        shell("git clean -xdff ; git clone --depth 1 --single-branch -b ${buildsBranch} ${buildsRepo}")
         shell('./cassandra-builds/build-scripts/cassandra-artifacts.sh')
     }
     publishers {
@@ -598,7 +598,7 @@ testTargets.each {
         }
         steps {
             buildDescription('', buildDescStr)
-            shell("git clean -xdff ; git clone -b ${buildsBranch} ${buildsRepo}")
+            shell("git clean -xdff ; git clone --depth 1 --single-branch -b ${buildsBranch} ${buildsRepo}")
             shell("./cassandra-builds/build-scripts/cassandra-test.sh ${targetName}")
         }
         publishers {
@@ -677,7 +677,7 @@ dtestTargets.each {
         }
         steps {
             buildDescription('', buildDescStr)
-            shell("git clean -xdff ; git clone -b ${buildsBranch} ${buildsRepo}")
+            shell("git clean -xdff ; git clone --depth 1 --single-branch -b ${buildsBranch} ${buildsRepo}")
             shell("sh ./cassandra-builds/docker/jenkins/jenkinscommand.sh \$REPO \$BRANCH \$DTEST_REPO \$DTEST_BRANCH ${buildsRepo} ${buildsBranch} \$DOCKER_IMAGE  ${targetName}")
         }
         publishers {
