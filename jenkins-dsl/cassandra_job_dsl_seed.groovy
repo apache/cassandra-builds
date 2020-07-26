@@ -275,6 +275,64 @@ job('Cassandra-template-dtest') {
     }
 }
 
+// wip – parallelise dtests, starting with just upgrade dtests
+matrixJob('Cassandra-template-dtest-matrix') {
+    disabled(true)
+    description(jobDescription)
+    concurrentBuild()
+    compressBuildLog()
+    logRotator {
+        numToKeep(10)
+        artifactNumToKeep(10)
+    }
+    wrappers {
+        timeout {
+            noActivity(1200)
+        }
+        timestamps()
+    }
+    properties {
+        githubProjectUrl(githubRepo)
+    }
+    scm {
+        git {
+            remote {
+                url(mainRepo)
+            }
+            branch('*/null')
+            extensions {
+                cleanAfterCheckout()
+            }
+        }
+    }
+    steps {
+        buildDescription('', buildDescStr)
+        shell("git clean -xdff ; git clone --depth 1 --single-branch -b ${buildsBranch} ${buildsRepo} ; git clone --depth 1 --single-branch ${dtestRepo}")
+    }
+    publishers {
+        archiveArtifacts {
+            pattern('**/test_stdout.txt,**/nosetests.xml,**/ccm_logs.tar.xz')
+            allowEmpty()
+            fingerprint()
+        }
+        archiveJunit('nosetests.xml') {
+            testDataPublishers {
+                publishTestStabilityData()
+            }
+        }
+        postBuildTask {
+            task('.', '''
+                echo "Cleaning project…"; git clean -xdff ;
+                echo "Pruning docker…" ; if pgrep -af jenkinscommand.sh; then docker system prune -f --filter 'until=48h'; else docker system prune -f --volumes ; fi;
+                echo "Reporting disk usage…"; df -h ; du -hs ../* ;
+                echo "Cleaning tmp…";
+                find . -type d -name tmp -delete 2>/dev/null ;
+                find /tmp -type f -atime +2 -user jenkins -and -not -exec fuser -s {} ';' -and -delete 2>/dev/null
+            ''')
+        }
+    }
+}
+
 /**
  * cqlsh template
  */
@@ -418,6 +476,25 @@ cassandraBranches.each {
         // Skip dtest-offheap on cassandra-3.0 branch
         if ((targetName == 'dtest-offheap') && (branchName == 'cassandra-3.0')) {
             println("Skipping ${targetName} on branch ${branchName}")
+        } else if (targetName == 'dtest-upgrade') {
+            // wip – parallelise dtests, starting with just upgrade dtests
+            matrixJob("${jobNamePrefix}-${targetName}") {
+                disabled(false)
+                using('Cassandra-template-dtest-matrix')
+                axes {
+                    splits = 64
+                    List<String> values = new ArrayList<String>()
+                    (1..splits).each { values << it.toString() }
+                    text('split', values)
+                    label('label', slaveLabel)
+                }
+                configure { node ->
+                    node / scm / branches / 'hudson.plugins.git.BranchSpec' / name(branchName)
+                }
+                steps {
+                    shell("sh ./cassandra-builds/docker/jenkins/jenkinscommand.sh apache ${branchName} https://github.com/apache/cassandra-dtest.git master ${buildsRepo} ${buildsBranch} ${dtestDockerImage} ${targetName} \${split}/${splits}")
+                }
+            }
         } else {
             job("${jobNamePrefix}-${targetName}") {
                 disabled(false)

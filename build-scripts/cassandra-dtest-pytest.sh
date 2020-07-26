@@ -8,6 +8,8 @@
 
 # Pass in target to run, default to base dtest
 DTEST_TARGET="${1:-dtest}"
+# Optional: pass in chunk to test, formatted as "K/N" for the Kth chunk of N chunks
+DTEST_SPLIT_CHUNK="$2"
 
 export PYTHONIOENCODING="utf-8"
 export PYTHONUNBUFFERED=true
@@ -37,6 +39,7 @@ for x in $(seq 1 3); do
         break
     fi
 done
+
 # Exit, if we didn't build successfully
 if [ "${RETURN}" -ne "0" ]; then
     echo "Build failed with exit code: ${RETURN}"
@@ -65,20 +68,30 @@ cd cassandra-dtest/
 mkdir -p ${TMPDIR}
 set +e # disable immediate exit from this point
 if [ "${DTEST_TARGET}" = "dtest" ]; then
-    pytest -vv --log-level="INFO" --use-vnodes --num-tokens=32 --junit-xml=nosetests.xml --junit-prefix=${DTEST_TARGET} -s --cassandra-dir=$CASSANDRA_DIR --skip-resource-intensive-tests 2>&1 | tee -a ${WORKSPACE}/test_stdout.txt
+    DTEST_ARGS="--use-vnodes --num-tokens=${NUM_TOKENS} --skip-resource-intensive-tests"
 elif [ "${DTEST_TARGET}" = "dtest-novnode" ]; then
-    pytest -vv --log-level="INFO" --junit-xml=nosetests.xml --junit-prefix=${DTEST_TARGET} -s --cassandra-dir=$CASSANDRA_DIR --skip-resource-intensive-tests 2>&1 | tee -a ${WORKSPACE}/test_stdout.txt
+    DTEST_ARGS="--skip-resource-intensive-tests"
 elif [ "${DTEST_TARGET}" = "dtest-offheap" ]; then
-    pytest -vv --log-level="INFO" --use-vnodes --num-tokens=32 --use-off-heap-memtables --junit-xml=nosetests.xml --junit-prefix=${DTEST_TARGET} -s --cassandra-dir=$CASSANDRA_DIR --skip-resource-intensive-tests 2>&1 | tee -a ${WORKSPACE}/test_stdout.txt
+    DTEST_ARGS="--use-vnodes --num-tokens=${NUM_TOKENS} --use-off-heap-memtables --skip-resource-intensive-tests"
 elif [ "${DTEST_TARGET}" = "dtest-large" ]; then
-    pytest -vv --log-level="INFO" --use-vnodes --num-tokens=32 --junit-xml=nosetests.xml --junit-prefix=${DTEST_TARGET} -s --cassandra-dir=$CASSANDRA_DIR --only-resource-intensive-tests 2>&1 | tee -a ${WORKSPACE}/test_stdout.txt
+    DTEST_ARGS="--use-vnodes --num-tokens=${NUM_TOKENS} --only-resource-intensive-tests"
 elif [ "${DTEST_TARGET}" = "dtest-upgrade" ]; then
+    DTEST_ARGS="--execute-upgrade-tests-only "
     export RUN_STATIC_UPGRADE_MATRIX=true
-    pytest -vv --log-level="INFO" --execute-upgrade-tests-only --junit-xml=nosetests.xml --junit-prefix=${DTEST_TARGET} -s --cassandra-dir=$CASSANDRA_DIR 2>&1 | tee -a ${WORKSPACE}/test_stdout.txt
 else
     echo "Unknown dtest target: ${DTEST_TARGET}"
     exit 1
 fi
+
+SPLIT_TESTS=""
+if [ "x${DTEST_SPLIT_CHUNK}" != "x" ] ; then
+    ./run_dtests.py --cassandra-dir=$CASSANDRA_DIR ${DTEST_ARGS} --dtest-print-tests-only --dtest-print-tests-output=${WORKSPACE}/test_list.txt 2>&1 | tee -a ${WORKSPACE}/test_stdout.txt
+    SPLIT_TESTS=$(split -n l/${DTEST_SPLIT_CHUNK} ${WORKSPACE}/test_list.txt)
+fi
+
+PYTEST_OPTS="-vv --log-level="INFO" --junit-xml=nosetests.xml --junit-prefix=${DTEST_TARGET} -s"
+
+pytest ${PYTEST_OPTS} --cassandra-dir=$CASSANDRA_DIR ${DTEST_ARGS} ${SPLIT_TESTS} 2>&1 | tee -a ${WORKSPACE}/test_stdout.txt
 
 # tar up any ccm logs for easy retrieval
 tar -cJf ccm_logs.tar.xz ${TMPDIR}/*/test/*/logs/*
