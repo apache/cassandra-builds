@@ -9,4 +9,4 @@ git clone --depth 1 --single-branch --branch=$BRANCH https://github.com/$REPO/ca
 cd cassandra
 echo git clone --depth 1 --single-branch --branch=$DTEST_BRANCH $DTEST_REPO
 git clone --depth 1 --single-branch --branch=$DTEST_BRANCH $DTEST_REPO
-../cassandra-builds/build-scripts/cassandra-dtest-pytest.sh $1
+../cassandra-builds/build-scripts/cassandra-dtest-pytest.sh "$@"

@@ -7,6 +7,7 @@ BUILDSREPO=$5
 BUILDSBRANCH=$6
 DOCKER_IMAGE=$7
 TARGET=$8
+SPLIT_CHUNK=$9
 cat > env.list <<EOF
 REPO=$1
 BRANCH=$2
@@ -14,8 +15,8 @@ DTEST_REPO=$3
 DTEST_BRANCH=$4
 EOF
 
-echo "jenkinscommand.sh: running: git clone --single-branch --depth 1 --branch $BUILDSBRANCH $BUILDSREPO; sh ./cassandra-builds/docker/jenkins/dtest.sh $TARGET"
-ID=$(docker run --env-file env.list -dt $DOCKER_IMAGE dumb-init bash -ilc "git clone --single-branch --depth 1 --branch $BUILDSBRANCH $BUILDSREPO; sh ./cassandra-builds/docker/jenkins/dtest.sh $TARGET")
+echo "jenkinscommand.sh: running: git clone --single-branch --depth 1 --branch $BUILDSBRANCH $BUILDSREPO; sh ./cassandra-builds/docker/jenkins/dtest.sh $TARGET $SPLIT_CHUNK"
+ID=$(docker run --env-file env.list -dt $DOCKER_IMAGE dumb-init bash -ilc "git clone --single-branch --depth 1 --branch $BUILDSBRANCH $BUILDSREPO; sh ./cassandra-builds/docker/jenkins/dtest.sh $TARGET $SPLIT_CHUNK")
 
 # use docker attach instead of docker wait to get output
 docker attach --no-stdin $ID
