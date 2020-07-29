@@ -260,6 +260,6 @@ echo ' 7) send announcement email: draft in $mail_file'
 echo ' 8) update #cassandra topic on slack'
 echo ' 9) tweet from @cassandra'
 echo ' 10) release version in JIRA'
-echo ' 11) remove old version (eg: `svn co https://dist.apache.org/repos/dist/release/cassandra/ cassandra-dist; svn rm <previous_version> debian/pool/main/c/cassandra/<previous_version>*`)'
+echo ' 11) remove old version (eg: `svn rm https://dist.apache.org/repos/dist/release/cassandra/<previous_version>`)'
 echo ' 12) increment build.xml base.version for the next release'
-
+echo ' 13) follow instructions in email you will receive from the \"Apache Reporter Service\" to update the project\'s list of releases in reporter.apache.org'
