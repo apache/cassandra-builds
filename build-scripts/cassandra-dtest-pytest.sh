@@ -85,8 +85,8 @@ fi
 
 SPLIT_TESTS=""
 if [ "x${DTEST_SPLIT_CHUNK}" != "x" ] ; then
-    ./run_dtests.py --cassandra-dir=$CASSANDRA_DIR ${DTEST_ARGS} --dtest-print-tests-only --dtest-print-tests-output=${WORKSPACE}/test_list.txt 2>&1 | tee -a ${WORKSPACE}/test_stdout.txt
-    SPLIT_TESTS=$(split -n l/${DTEST_SPLIT_CHUNK} ${WORKSPACE}/test_list.txt)
+    ./run_dtests.py --cassandra-dir=$CASSANDRA_DIR ${DTEST_ARGS} --dtest-print-tests-only --dtest-print-tests-output=${WORKSPACE}/test_list.txt 2>&1 > ${WORKSPACE}/test_stdout.txt
+    SPLIT_TESTS=$(split -n r/${DTEST_SPLIT_CHUNK} ${WORKSPACE}/test_list.txt)
 fi
 
 PYTEST_OPTS="-vv --log-level="INFO" --junit-xml=nosetests.xml --junit-prefix=${DTEST_TARGET} -s"
