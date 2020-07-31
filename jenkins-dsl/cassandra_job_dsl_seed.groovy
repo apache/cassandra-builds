@@ -62,6 +62,12 @@ if(binding.hasVariable("CASSANDRA_DOCKER_IMAGE")) {
     dtestDockerImage = "${CASSANDRA_DOCKER_IMAGE}"
 }
 
+// expected longest job runtime
+def maxJobHours = '18'
+if(binding.hasVariable("MAX_JOB_HOURS")) {
+    maxJobHours = "${MAX_JOB_HOURS}"
+}
+
 ////////////////////////////////////////////////////////////
 //
 // Job Templates
@@ -136,14 +142,14 @@ matrixJob('Cassandra-template-artifacts') {
             }
         }
         postBuildTask {
-            task('.', '''
+            task('.', """
                 echo "Cleaning project…"; git clean -xdff ;
-                echo "Pruning docker…" ; docker system prune -f --filter "until=48h"  ;
-                echo "Reporting disk usage…"; df -h ; du -hs ../* ;
+                echo "Pruning docker…" ; docker system prune -f --filter "until=${maxJobHours}h"  ;
+                echo "Reporting disk usage…"; df -h ; du -hs ../* ; du -hs ../../* ;
                 echo "Cleaning tmp…";
                 find . -type d -name tmp -delete 2>/dev/null ;
                 find /tmp -type f -atime +2 -user jenkins -and -not -exec fuser -s {} ';' -and -delete 2>/dev/null
-                ''')
+            """)
         }
     }
 }
@@ -202,15 +208,15 @@ job('Cassandra-template-test') {
             }
         }
         postBuildTask {
-            task('.', '''
+            task('.', """
                 echo "Finding job process orphans…"; if pgrep -af "${JOB_BASE_NAME}"; then pkill -9 -f "${JOB_BASE_NAME}"; fi;
                 echo "Cleaning project…"; git clean -xdff ;
-                echo "Pruning docker…" ; docker system prune -f --filter "until=48h"  ;
-                echo "Reporting disk usage…"; df -h ; du -hs ../* ;
+                echo "Pruning docker…" ; docker system prune -f --filter "until=${maxJobHours}h"  ;
+                echo "Reporting disk usage…"; df -h ; du -hs ../* ; du -hs ../../* ;
                 echo "Cleaning tmp…";
                 find . -type d -name tmp -delete 2>/dev/null ;
                 find /tmp -type f -atime +2 -user jenkins -and -not -exec fuser -s {} ';' -and -delete 2>/dev/null
-            ''')
+            """)
         }
     }
 }
@@ -266,14 +272,14 @@ job('Cassandra-template-dtest') {
             }
         }
         postBuildTask {
-            task('.', '''
+            task('.', """
                 echo "Cleaning project…"; git clean -xdff ;
-                echo "Pruning docker…" ; if pgrep -af jenkinscommand.sh; then docker system prune -f --filter 'until=48h'; else docker system prune -f --volumes ; fi;
-                echo "Reporting disk usage…"; df -h ; du -hs ../* ;
+                echo "Pruning docker…" ; if pgrep -af jenkinscommand.sh; then docker system prune -f --filter 'until=${maxJobHours}h'; else docker system prune -f --volumes ; fi;
+                echo "Reporting disk usage…"; df -h ; du -hs ../* ; du -hs ../../* ;
                 echo "Cleaning tmp…";
                 find . -type d -name tmp -delete 2>/dev/null ;
                 find /tmp -type f -atime +2 -user jenkins -and -not -exec fuser -s {} ';' -and -delete 2>/dev/null
-            ''')
+            """)
         }
     }
 }
@@ -325,14 +331,14 @@ matrixJob('Cassandra-template-dtest-matrix') {
             }
         }
         postBuildTask {
-            task('.', '''
+            task('.', """
                 echo "Cleaning project…"; git clean -xdff ;
-                echo "Pruning docker…" ; if pgrep -af jenkinscommand.sh; then docker system prune -f --filter 'until=48h'; else docker system prune -f --volumes ; fi;
-                echo "Reporting disk usage…"; df -h ; du -hs ../* ;
+                echo "Pruning docker…" ; if pgrep -af jenkinscommand.sh; then docker system prune -f --filter 'until=${maxJobHours}h'; else docker system prune -f --volumes ; fi;
+                echo "Reporting disk usage…"; df -h ; du -hs ../* ; du -hs ../../* ;
                 echo "Cleaning tmp…";
                 find . -type d -name tmp -delete 2>/dev/null ;
                 find /tmp -type f -atime +2 -user jenkins -and -not -exec fuser -s {} ';' -and -delete 2>/dev/null
-            ''')
+            """)
         }
     }
 }
@@ -396,15 +402,15 @@ matrixJob('Cassandra-template-cqlsh-tests') {
             }
         }
         postBuildTask {
-            task('.', '''
+            task('.', """
                 echo "Finding job process orphans…"; if pgrep -af "${JOB_BASE_NAME}"; then pkill -9 -f "${JOB_BASE_NAME}"; fi;
                 echo "Cleaning project…"; git clean -xdff ;
-                echo "Pruning docker…" ; docker system prune -f --filter "until=48h"  ;
-                echo "Reporting disk usage…"; df -h ; du -hs ../* ;
+                echo "Pruning docker…" ; docker system prune -f --filter "until=${maxJobHours}h"  ;
+                echo "Reporting disk usage…"; df -h ; du -hs ../* ; du -hs ../../* ;
                 echo "Cleaning tmp…";
                 find . -type d -name tmp -delete 2>/dev/null ;
                 find /tmp -type f -atime +2 -user jenkins -and -not -exec fuser -s {} ';' -and -delete 2>/dev/null
-            ''')
+            """)
         }
     }
 }
@@ -625,14 +631,14 @@ matrixJob('Cassandra-devbranch-artifacts') {
     }
     publishers {
         postBuildTask {
-            task('.', '''
+            task('.', """
                 echo "Cleaning project…"; git clean -xdff ;
-                echo "Pruning docker…" ; docker system prune -f --filter "until=48h"  ;
-                echo "Reporting disk usage…"; df -h ; du -hs ../* ;
+                echo "Pruning docker…" ; docker system prune -f --filter "until=${maxJobHours}h"  ;
+                echo "Reporting disk usage…"; df -h ; du -hs ../* ; du -hs ../../* ;
                 echo "Cleaning tmp…";
                 find . -type d -name tmp -delete 2>/dev/null ;
                 find /tmp -type -f -atime +3 -user jenkins -and -not -exec fuser -s {} ';' -and -delete 2>/dev/null
-                ''')
+            """)
         }
     }
 }
@@ -696,15 +702,15 @@ testTargets.each {
                 allowEmptyResults()
             }
             postBuildTask {
-                task('.', '''
+                task('.', """
                     echo "Finding job process orphans…"; if pgrep -af "${JOB_BASE_NAME}"; then pkill -9 -f "${JOB_BASE_NAME}"; fi;
                     echo "Cleaning project…"; git clean -xdff ;
-                    echo "Pruning docker…" ; docker system prune -f --filter "until=48h"  ;
-                    echo "Reporting disk usage…"; df -h ; du -hs ../* ;
+                    echo "Pruning docker…" ; docker system prune -f --filter "until=${maxJobHours}h"  ;
+                    echo "Reporting disk usage…"; df -h ; du -hs ../* ; du -hs ../../* ;
                     echo "Cleaning tmp…";
                     find . -type d -name tmp -delete 2>/dev/null ;
                     find /tmp -type f -atime +2 -user jenkins -and -not -exec fuser -s {} ';' -and -delete 2>/dev/null
-                ''')
+                """)
             }
         }
     }
@@ -774,14 +780,14 @@ dtestTargets.each {
             }
             archiveJunit('nosetests.xml')
             postBuildTask {
-                task('.', '''
+                task('.', """
                     echo "Cleaning project…" ; git clean -xdff ;
-                    echo "Pruning docker…" ; if pgrep -af jenkinscommand.sh; then system prune -f --filter 'until=48h'; else docker system prune -f --volumes ; fi;
-                    echo "Reporting disk usage…"; df -h ; du -hs ../* ;
+                    echo "Pruning docker…" ; if pgrep -af jenkinscommand.sh; then system prune -f --filter "until=${maxJobHours}h"; else docker system prune -f --volumes ; fi;
+                    echo "Reporting disk usage…"; df -h ; du -hs ../* ; du -hs ../../* ;
                     echo "Cleaning tmp…";
                     find . -type d -name tmp -delete 2>/dev/null ;
                     find /tmp -type f -atime +2 -user jenkins -and -not -exec fuser -s {} ';' -and -delete 2>/dev/null
-                ''')
+                """)
             }
         }
     }
@@ -849,15 +855,15 @@ matrixJob('Cassandra-devbranch-cqlsh-tests') {
         }
         archiveJunit('**/cqlshlib.xml,**/nosetests.xml')
         postBuildTask {
-            task('.', '''
+            task('.', """
                 echo "Finding job process orphans…"; if pgrep -af "${JOB_BASE_NAME}"; then pkill -9 -f "${JOB_BASE_NAME}"; fi;
                 echo "Cleaning project…"; git clean -xdff ;
-                echo "Pruning docker…" ; docker system prune -f --filter "until=48h" ;
-                echo "Reporting disk usage…"; df -h ; du -hs ../* ;
+                echo "Pruning docker…" ; docker system prune -f --filter "until=${maxJobHours}h" ;
+                echo "Reporting disk usage…"; df -h ; du -hs ../* ; du -hs ../../* ;
                 echo "Cleaning tmp…";
                 find . -type d -name tmp -delete 2>/dev/null ;
                 find /tmp -type f -atime +2 -user jenkins -and -not -exec fuser -s {} ';' -and -delete 2>/dev/null
-            ''')
+            """)
         }
     }
 }
