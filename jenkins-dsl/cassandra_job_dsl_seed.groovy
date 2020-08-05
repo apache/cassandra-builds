@@ -70,8 +70,12 @@ if(binding.hasVariable("MAX_JOB_HOURS")) {
 
 // how many splits are dtest jobs matrixed into
 def dtestSplits = 64
+def dtestLargeSplits = 8
 if(binding.hasVariable("DTEST_SPLITS")) {
     dtestSplits = "${DTEST_SPLITS}"
+}
+if(binding.hasVariable("DTEST_LARGE_SPLITS")) {
+    dtestLargeSplits = "${DTEST_LARGE_SPLITS}"
 }
 
 ////////////////////////////////////////////////////////////
@@ -438,7 +442,11 @@ cassandraBranches.each {
                 using('Cassandra-template-dtest-matrix')
                 axes {
                     List<String> values = new ArrayList<String>()
-                    (1..dtestSplits).each { values << it.toString() }
+                    if (targetName == 'dtest-large') {
+                        (1..dtestLargeSplits).each { values << it.toString() }
+                    } else {
+                        (1..dtestSplits).each { values << it.toString() }
+                    }
                     text('split', values)
                     label('label', slaveLabel)
                 }
