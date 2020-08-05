@@ -443,10 +443,11 @@ cassandraBranches.each {
                 axes {
                     List<String> values = new ArrayList<String>()
                     if (targetName == 'dtest-large') {
-                        (1..dtestLargeSplits).each { values << it.toString() }
+                        splits = dtestLargeSplits
                     } else {
-                        (1..dtestSplits).each { values << it.toString() }
+                        splits = dtestSplits
                     }
+                    (1..splits).each { values << it.toString() }
                     text('split', values)
                     label('label', slaveLabel)
                 }
@@ -454,7 +455,7 @@ cassandraBranches.each {
                     node / scm / branches / 'hudson.plugins.git.BranchSpec' / name(branchName)
                 }
                 steps {
-                    shell("sh ./cassandra-builds/docker/jenkins/jenkinscommand.sh apache ${branchName} https://github.com/apache/cassandra-dtest.git master ${buildsRepo} ${buildsBranch} ${dtestDockerImage} ${targetName} \${split}/${dtestSplits}")
+                    shell("sh ./cassandra-builds/docker/jenkins/jenkinscommand.sh apache ${branchName} https://github.com/apache/cassandra-dtest.git master ${buildsRepo} ${buildsBranch} ${dtestDockerImage} ${targetName} \${split}/${splits}")
                 }
             }
         }
@@ -692,7 +693,12 @@ dtestTargets.each {
         }
         axes {
             List<String> values = new ArrayList<String>()
-            (1..dtestSplits).each { values << it.toString() }
+            if (targetName == 'dtest-large') {
+                splits = dtestLargeSplits
+            } else {
+                splits = dtestSplits
+            }
+            (1..splits).each { values << it.toString() }
             text('split', values)
             label('label', slaveLabel)
         }
@@ -714,7 +720,7 @@ dtestTargets.each {
         steps {
             buildDescription('', buildDescStr)
             shell("git clean -xdff ; git clone --depth 1 --single-branch -b ${buildsBranch} ${buildsRepo}")
-            shell("sh ./cassandra-builds/docker/jenkins/jenkinscommand.sh \$REPO \$BRANCH \$DTEST_REPO \$DTEST_BRANCH ${buildsRepo} ${buildsBranch} \$DOCKER_IMAGE ${targetName} \${split}/${dtestSplits}")
+            shell("sh ./cassandra-builds/docker/jenkins/jenkinscommand.sh \$REPO \$BRANCH \$DTEST_REPO \$DTEST_BRANCH ${buildsRepo} ${buildsBranch} \$DOCKER_IMAGE ${targetName} \${split}/${splits}")
         }
         publishers {
             archiveArtifacts {
