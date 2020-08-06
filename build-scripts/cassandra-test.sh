@@ -11,12 +11,24 @@ _list_tests() {
   find "test/$classlistprefix" -name '*Test.java' | sed "s;^test/$classlistprefix/;;g"
 }
 
-_list_distributed_tests_no_upgrade() {
-  _list_tests "distributed" | grep -v "upgrade"
-}
-
 _timeout_for() {
   grep "name=\"$1\"" build.xml | awk -F'"' '{print $4}'
+}
+
+_build_all_dtest_jars() {
+    cd $TMP_DIR
+    git clone --depth 1 --no-single-branch https://gitbox.apache.org/repos/asf/cassandra.git cassandra-dtest-jars
+    cd cassandra-dtest-jars
+    for branch in cassandra-2.2 cassandra-3.0 cassandra-3.11 trunk; do
+        git checkout $branch
+        ant realclean
+        ant jar dtest-jar
+        cp build/dtest*.jar ../../build/
+    done
+    cd ../..
+    rm -fR ${TMP_DIR}/cassandra-dtest-jars
+    ant dtest-jar
+    ls -l build/dtest*.jar
 }
 
 _main() {
@@ -44,30 +56,35 @@ _main() {
       ;;
   esac
 
+  export TMP_DIR="$(pwd)/tmp"
+  mkdir -p ${TMP_DIR}
   ant clean jar
-  mkdir -p tmp
 
   case $target in
     "stress-test" | "fqltool-test")
       ant $target -Dtmp.dir="$(pwd)/tmp" || echo "failed $target"
       ;;
     "test")
-      ant testclasslist -Dtest.classlistfile=<( _list_tests "unit" ) -Dtmp.dir="$(pwd)/tmp" || echo "failed $target"
+      ant testclasslist -Dtest.classlistfile=<( _list_tests "unit" ) -Dtmp.dir="${TMP_DIR}" || echo "failed $target"
       ;;
     "test-cdc")
-      ant testclasslist-cdc -Dtest.classlistfile=<( _list_tests "unit" ) -Dtmp.dir="$(pwd)/tmp" || echo "failed $target"
+      ant testclasslist-cdc -Dtest.classlistfile=<( _list_tests "unit" ) -Dtmp.dir="${TMP_DIR}" || echo "failed $target"
       ;;
     "test-compression")
-      ant testclasslist-compression -Dtest.classlistfile=<( _list_tests "unit" ) -Dtmp.dir="$(pwd)/tmp" || echo "failed $target"
+      ant testclasslist-compression -Dtest.classlistfile=<( _list_tests "unit" ) -Dtmp.dir="${TMP_DIR}" || echo "failed $target"
       ;;
     "test-burn")
-      ant testclasslist -Dtest.classlistprefix=burn -Dtest.timeout=$(_timeout_for "test.burn.timeout") -Dtest.classlistfile=<( _list_tests "burn" ) -Dtmp.dir="$(pwd)/tmp" || echo "failed $target"
+      ant testclasslist -Dtest.classlistprefix=burn -Dtest.timeout=$(_timeout_for "test.burn.timeout") -Dtest.classlistfile=<( _list_tests "burn" ) -Dtmp.dir="${TMP_DIR}" || echo "failed $target"
       ;;
     "long-test")
-      ant testclasslist -Dtest.classlistprefix=long -Dtest.timeout=$(_timeout_for "test.long.timeout") -Dtest.classlistfile=<( _list_tests "long" ) -Dtmp.dir="$(pwd)/tmp" || echo "failed $target"
+      ant testclasslist -Dtest.classlistprefix=long -Dtest.timeout=$(_timeout_for "test.long.timeout") -Dtest.classlistfile=<( _list_tests "long" ) -Dtmp.dir="${TMP_DIR}" || echo "failed $target"
       ;;
     "jvm-dtest")
-      ant testclasslist -Dtest.classlistprefix=distributed -Dtest.timeout=$(_timeout_for "test.distributed.timeout") -Dtest.classlistfile=<( _list_distributed_tests_no_upgrade ) -Dtmp.dir="$(pwd)/tmp" || echo "failed $target"
+      ant testclasslist -Dtest.classlistprefix=distributed -Dtest.timeout=$(_timeout_for "test.distributed.timeout") -Dtest.classlistfile=<( _list_tests "distributed" | grep -v "upgrade" ) -Dtmp.dir="${TMP_DIR}" || echo "failed $target"
+      ;;
+    "jvm-dtest-upgrade")
+      _build_all_dtest_jars
+      ant testclasslist -Dtest.classlistprefix=distributed -Dtest.timeout=$(_timeout_for "test.distributed.timeout") -Dtest.classlistfile=<( _list_tests "distributed" | grep "upgrade" ) -Dtmp.dir="${TMP_DIR}" || echo "failed $target"
       ;;
     *)
       echo "unregconised \"$target\""
