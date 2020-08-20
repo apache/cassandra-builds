@@ -28,12 +28,10 @@ pipeline {
           parallel {
             stage('stress') {
               steps {
-                  warnError('Tests unstable') {
-                      script {
-                        stress = build job: "${env.JOB_NAME}-stress-test", parameters: [string(name: 'REPO', value: params.REPO), string(name: 'BRANCH', value: params.BRANCH)], propagate: false
-                        if (stress.result != 'SUCCESS') unstable('stress test failures')
-                      }
-                  }
+                script {
+                  stress = build job: "${env.JOB_NAME}-stress-test", parameters: [string(name: 'REPO', value: params.REPO), string(name: 'BRANCH', value: params.BRANCH)], propagate: false
+                  if (stress.result != 'SUCCESS') unstable('stress test failures')
+                }
               }
               post {
                 always {
@@ -47,12 +45,10 @@ pipeline {
             }
             stage('fqltool') {
               steps {
-                  warnError('Tests unstable') {
-                      script {
-                        fqltool = build job: "${env.JOB_NAME}-fqltool-test", parameters: [string(name: 'REPO', value: params.REPO), string(name: 'BRANCH', value: params.BRANCH)], propagate: false
-                        if (fqltool.result != 'SUCCESS') unstable('fqltool test failures')
-                      }
-                  }
+                script {
+                  fqltool = build job: "${env.JOB_NAME}-fqltool-test", parameters: [string(name: 'REPO', value: params.REPO), string(name: 'BRANCH', value: params.BRANCH)], propagate: false
+                  if (fqltool.result != 'SUCCESS') unstable('fqltool test failures')
+                }
               }
               post {
                 always {
@@ -64,14 +60,12 @@ pipeline {
                 }
               }
             }
-            stage('JVM DTests') {
+            stage('jvm-dtest') {
               steps {
-                  warnError('Tests unstable') {
-                      script {
-                        jvm_dtest = build job: "${env.JOB_NAME}-jvm-dtest", parameters: [string(name: 'REPO', value: params.REPO), string(name: 'BRANCH', value: params.BRANCH)], propagate: false
-                        if (jvm_dtest.result != 'SUCCESS') unstable('jvm-dtest failures')
-                      }
-                  }
+                script {
+                  jvm_dtest = build job: "${env.JOB_NAME}-jvm-dtest", parameters: [string(name: 'REPO', value: params.REPO), string(name: 'BRANCH', value: params.BRANCH)], propagate: false
+                  if (jvm_dtest.result != 'SUCCESS') unstable('jvm-dtest failures')
+                }
               }
               post {
                 always {
@@ -83,15 +77,30 @@ pipeline {
                 }
               }
             }
-            stage('units') {
-                steps {
-                  warnError('Tests unstable') {
-                      script {
-                        test = build job: "${env.JOB_NAME}-test", parameters: [string(name: 'REPO', value: params.REPO), string(name: 'BRANCH', value: params.BRANCH)], propagate: false
-                        if (test.result != 'SUCCESS') unstable('unit test failures')
-                      }
-                  }
+            stage('jvm-dtest-upgrade') {
+              steps {
+                script {
+                  jvm_dtest_upgrade = build job: "${env.JOB_NAME}-jvm-dtest-upgrade", parameters: [string(name: 'REPO', value: params.REPO), string(name: 'BRANCH', value: params.BRANCH)], propagate: false
+                  if (jvm_dtest_upgrade.result != 'SUCCESS') unstable('jvm-dtest-upgrade failures')
                 }
+              }
+              post {
+                always {
+                    warnError('missing test xml files') {
+                        script {
+                            copyTestResults('jvm-dtest-upgrade', jvm_dtest_upgrade.getNumber())
+                        }
+                    }
+                }
+              }
+            }
+            stage('units') {
+              steps {
+                script {
+                  test = build job: "${env.JOB_NAME}-test", parameters: [string(name: 'REPO', value: params.REPO), string(name: 'BRANCH', value: params.BRANCH)], propagate: false
+                  if (test.result != 'SUCCESS') unstable('unit test failures')
+                }
+              }
               post {
                 always {
                     warnError('missing test xml files') {
@@ -104,12 +113,10 @@ pipeline {
             }
             stage('long units') {
               steps {
-                  warnError('Tests unstable') {
-                      script {
-                        long_test = build job: "${env.JOB_NAME}-long-test", parameters: [string(name: 'REPO', value: params.REPO), string(name: 'BRANCH', value: params.BRANCH)], propagate: false
-                        if (long_test.result != 'SUCCESS') unstable('long unit test failures')
-                      }
-                  }
+                script {
+                  long_test = build job: "${env.JOB_NAME}-long-test", parameters: [string(name: 'REPO', value: params.REPO), string(name: 'BRANCH', value: params.BRANCH)], propagate: false
+                  if (long_test.result != 'SUCCESS') unstable('long unit test failures')
+                }
               }
               post {
                 always {
@@ -123,12 +130,10 @@ pipeline {
             }
             stage('burn') {
               steps {
-                  warnError('Tests unstable') {
-                      script {
-                        burn = build job: "${env.JOB_NAME}-test-burn", parameters: [string(name: 'REPO', value: params.REPO), string(name: 'BRANCH', value: params.BRANCH)], propagate: false
-                        if (burn.result != 'SUCCESS') unstable('burn test failures')
-                      }
-                  }
+                script {
+                  burn = build job: "${env.JOB_NAME}-test-burn", parameters: [string(name: 'REPO', value: params.REPO), string(name: 'BRANCH', value: params.BRANCH)], propagate: false
+                  if (burn.result != 'SUCCESS') unstable('burn test failures')
+                }
               }
               post {
                 always {
@@ -142,12 +147,10 @@ pipeline {
             }
             stage('cdc') {
               steps {
-                  warnError('Tests unstable') {
-                      script {
-                        cdc = build job: "${env.JOB_NAME}-test-cdc", parameters: [string(name: 'REPO', value: params.REPO), string(name: 'BRANCH', value: params.BRANCH)], propagate: false
-                        if (cdc.result != 'SUCCESS') unstable('cdc failures')
-                      }
-                  }
+                script {
+                  cdc = build job: "${env.JOB_NAME}-test-cdc", parameters: [string(name: 'REPO', value: params.REPO), string(name: 'BRANCH', value: params.BRANCH)], propagate: false
+                  if (cdc.result != 'SUCCESS') unstable('cdc failures')
+                }
               }
               post {
                 always {
@@ -161,12 +164,10 @@ pipeline {
             }
             stage('compression') {
               steps {
-                  warnError('Tests unstable') {
-                      script {
-                        compression = build job: "${env.JOB_NAME}-test-compression", parameters: [string(name: 'REPO', value: params.REPO), string(name: 'BRANCH', value: params.BRANCH)], propagate: false
-                        if (compression.result != 'SUCCESS') unstable('compression failures')
-                      }
-                  }
+                script {
+                  compression = build job: "${env.JOB_NAME}-test-compression", parameters: [string(name: 'REPO', value: params.REPO), string(name: 'BRANCH', value: params.BRANCH)], propagate: false
+                  if (compression.result != 'SUCCESS') unstable('compression failures')
+                }
               }
               post {
                 always {
@@ -180,12 +181,10 @@ pipeline {
             }
             stage('cqlsh') {
               steps {
-                  warnError('Tests unstable') {
-                      script {
-                        cqlsh = build job: "${env.JOB_NAME}-cqlsh-tests", parameters: [string(name: 'REPO', value: params.REPO), string(name: 'BRANCH', value: params.BRANCH), string(name: 'DTEST_REPO', value: params.DTEST_REPO), string(name: 'DTEST_BRANCH', value: params.DTEST_BRANCH)], propagate: false
-                        if (cqlsh.result != 'SUCCESS') unstable('cqlsh failures')
-                      }
-                  }
+                script {
+                  cqlsh = build job: "${env.JOB_NAME}-cqlsh-tests", parameters: [string(name: 'REPO', value: params.REPO), string(name: 'BRANCH', value: params.BRANCH), string(name: 'DTEST_REPO', value: params.DTEST_REPO), string(name: 'DTEST_BRANCH', value: params.DTEST_BRANCH)], propagate: false
+                  if (cqlsh.result != 'SUCCESS') unstable('cqlsh failures')
+                }
               }
               post {
                 always {
@@ -203,12 +202,10 @@ pipeline {
           parallel {
             stage('dtest') {
               steps {
-                  warnError('Tests unstable') {
-                      script {
-                        dtest = build job: "${env.JOB_NAME}-dtest", parameters: [string(name: 'REPO', value: params.REPO), string(name: 'BRANCH', value: params.BRANCH), string(name: 'DTEST_REPO', value: params.DTEST_REPO), string(name: 'DTEST_BRANCH', value: params.DTEST_BRANCH), string(name: 'DOCKER_IMAGE', value: params.DOCKER_IMAGE)], propagate: false
-                        if (dtest.result != 'SUCCESS') unstable('dtest failures')
-                      }
-                  }
+                script {
+                  dtest = build job: "${env.JOB_NAME}-dtest", parameters: [string(name: 'REPO', value: params.REPO), string(name: 'BRANCH', value: params.BRANCH), string(name: 'DTEST_REPO', value: params.DTEST_REPO), string(name: 'DTEST_BRANCH', value: params.DTEST_BRANCH), string(name: 'DOCKER_IMAGE', value: params.DOCKER_IMAGE)], propagate: false
+                  if (dtest.result != 'SUCCESS') unstable('dtest failures')
+                }
               }
               post {
                 always {
