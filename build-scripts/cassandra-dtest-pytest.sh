@@ -68,13 +68,13 @@ cd cassandra-dtest/
 mkdir -p ${TMPDIR}
 set +e # disable immediate exit from this point
 if [ "${DTEST_TARGET}" = "dtest" ]; then
-    DTEST_ARGS="--use-vnodes --num-tokens=${NUM_TOKENS} --skip-resource-intensive-tests"
+    DTEST_ARGS="--use-vnodes --num-tokens=${NUM_TOKENS} --skip-resource-intensive-tests --keep-failed-test-dir"
 elif [ "${DTEST_TARGET}" = "dtest-novnode" ]; then
-    DTEST_ARGS="--skip-resource-intensive-tests"
+    DTEST_ARGS="--skip-resource-intensive-tests --keep-failed-test-dir"
 elif [ "${DTEST_TARGET}" = "dtest-offheap" ]; then
-    DTEST_ARGS="--use-vnodes --num-tokens=${NUM_TOKENS} --use-off-heap-memtables --skip-resource-intensive-tests"
+    DTEST_ARGS="--use-vnodes --num-tokens=${NUM_TOKENS} --use-off-heap-memtables --skip-resource-intensive-tests --keep-failed-test-dir"
 elif [ "${DTEST_TARGET}" = "dtest-large" ]; then
-    DTEST_ARGS="--use-vnodes --num-tokens=${NUM_TOKENS} --only-resource-intensive-tests"
+    DTEST_ARGS="--use-vnodes --num-tokens=${NUM_TOKENS} --only-resource-intensive-tests --keep-failed-test-dir"
 elif [ "${DTEST_TARGET}" = "dtest-upgrade" ]; then
     DTEST_ARGS="--execute-upgrade-tests-only "
     export RUN_STATIC_UPGRADE_MATRIX=true
