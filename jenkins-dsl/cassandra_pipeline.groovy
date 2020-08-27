@@ -31,6 +31,7 @@ pipeline {
                 script {
                   stress = build job: "${env.JOB_NAME}-stress-test", parameters: [string(name: 'REPO', value: params.REPO), string(name: 'BRANCH', value: params.BRANCH)], propagate: false
                   if (stress.result != 'SUCCESS') unstable('stress test failures')
+                  if (stress.result == 'FAILURE')  currentBuild.result='FAILURE'
                 }
               }
               post {
@@ -48,6 +49,7 @@ pipeline {
                 script {
                   fqltool = build job: "${env.JOB_NAME}-fqltool-test", parameters: [string(name: 'REPO', value: params.REPO), string(name: 'BRANCH', value: params.BRANCH)], propagate: false
                   if (fqltool.result != 'SUCCESS') unstable('fqltool test failures')
+                  if (fqltool.result == 'FAILURE')  currentBuild.result='FAILURE'
                 }
               }
               post {
@@ -65,6 +67,7 @@ pipeline {
                 script {
                   jvm_dtest = build job: "${env.JOB_NAME}-jvm-dtest", parameters: [string(name: 'REPO', value: params.REPO), string(name: 'BRANCH', value: params.BRANCH)], propagate: false
                   if (jvm_dtest.result != 'SUCCESS') unstable('jvm-dtest failures')
+                  if (jvm_dtest.result == 'FAILURE')  currentBuild.result='FAILURE'
                 }
               }
               post {
@@ -82,6 +85,7 @@ pipeline {
                 script {
                   jvm_dtest_upgrade = build job: "${env.JOB_NAME}-jvm-dtest-upgrade", parameters: [string(name: 'REPO', value: params.REPO), string(name: 'BRANCH', value: params.BRANCH)], propagate: false
                   if (jvm_dtest_upgrade.result != 'SUCCESS') unstable('jvm-dtest-upgrade failures')
+                  if (jvm_dtest_upgrade.result == 'FAILURE') currentBuild.result='FAILURE'
                 }
               }
               post {
@@ -99,6 +103,7 @@ pipeline {
                 script {
                   test = build job: "${env.JOB_NAME}-test", parameters: [string(name: 'REPO', value: params.REPO), string(name: 'BRANCH', value: params.BRANCH)], propagate: false
                   if (test.result != 'SUCCESS') unstable('unit test failures')
+                  if (test.result == 'FAILURE')  currentBuild.result='FAILURE'
                 }
               }
               post {
@@ -116,6 +121,7 @@ pipeline {
                 script {
                   long_test = build job: "${env.JOB_NAME}-long-test", parameters: [string(name: 'REPO', value: params.REPO), string(name: 'BRANCH', value: params.BRANCH)], propagate: false
                   if (long_test.result != 'SUCCESS') unstable('long unit test failures')
+                  if (long_test.result == 'FAILURE') currentBuild.result='FAILURE'
                 }
               }
               post {
@@ -133,6 +139,7 @@ pipeline {
                 script {
                   burn = build job: "${env.JOB_NAME}-test-burn", parameters: [string(name: 'REPO', value: params.REPO), string(name: 'BRANCH', value: params.BRANCH)], propagate: false
                   if (burn.result != 'SUCCESS') unstable('burn test failures')
+                  if (burn.result == 'FAILURE')  currentBuild.result='FAILURE'
                 }
               }
               post {
@@ -150,6 +157,7 @@ pipeline {
                 script {
                   cdc = build job: "${env.JOB_NAME}-test-cdc", parameters: [string(name: 'REPO', value: params.REPO), string(name: 'BRANCH', value: params.BRANCH)], propagate: false
                   if (cdc.result != 'SUCCESS') unstable('cdc failures')
+                  if (cdc.result == 'FAILURE')  currentBuild.result='FAILURE'
                 }
               }
               post {
@@ -167,6 +175,7 @@ pipeline {
                 script {
                   compression = build job: "${env.JOB_NAME}-test-compression", parameters: [string(name: 'REPO', value: params.REPO), string(name: 'BRANCH', value: params.BRANCH)], propagate: false
                   if (compression.result != 'SUCCESS') unstable('compression failures')
+                  if (compression.result == 'FAILURE')  currentBuild.result='FAILURE'
                 }
               }
               post {
@@ -184,6 +193,7 @@ pipeline {
                 script {
                   cqlsh = build job: "${env.JOB_NAME}-cqlsh-tests", parameters: [string(name: 'REPO', value: params.REPO), string(name: 'BRANCH', value: params.BRANCH), string(name: 'DTEST_REPO', value: params.DTEST_REPO), string(name: 'DTEST_BRANCH', value: params.DTEST_BRANCH)], propagate: false
                   if (cqlsh.result != 'SUCCESS') unstable('cqlsh failures')
+                  if (cqlsh.result == 'FAILURE') currentBuild.result='FAILURE'
                 }
               }
               post {
@@ -205,6 +215,7 @@ pipeline {
                 script {
                   dtest = build job: "${env.JOB_NAME}-dtest", parameters: [string(name: 'REPO', value: params.REPO), string(name: 'BRANCH', value: params.BRANCH), string(name: 'DTEST_REPO', value: params.DTEST_REPO), string(name: 'DTEST_BRANCH', value: params.DTEST_BRANCH), string(name: 'DOCKER_IMAGE', value: params.DOCKER_IMAGE)], propagate: false
                   if (dtest.result != 'SUCCESS') unstable('dtest failures')
+                  if (dtest.result == 'FAILURE') currentBuild.result='FAILURE'
                 }
               }
               post {
