@@ -1,6 +1,6 @@
 #!/bin/sh
 if [ "$#" -lt 7 ]; then
-   echo "Usage: jenkinscommand.sh GITHUB_USER BRANCH DTEST_REPO_URL DTEST_BRANCH BUILDS_REPO_URL BUILDS_BRANCH DOCKER_IMAGE [target]"
+   echo "Usage: jenkinscommand.sh REPO BRANCH DTEST_REPO_URL DTEST_BRANCH BUILDS_REPO_URL BUILDS_BRANCH DOCKER_IMAGE [target]"
    exit 1
 fi
 BUILDSREPO=$5
@@ -21,7 +21,6 @@ ID=$(docker run --env-file env.list -dt $DOCKER_IMAGE dumb-init bash -ilc "git c
 # use docker attach instead of docker wait to get output
 docker attach --no-stdin $ID
 status="$?"
-echo "$ID done (${status}), copying files"
 
 if [ "$status" -ne 0 ] ; then
     echo "$ID failed (${status}), debug…"
@@ -36,6 +35,8 @@ if [ "$status" -ne 0 ] ; then
     dmesg
 else
     echo "$ID done (${status}), copying files"
+    # dtest.sh meta
+    docker cp "$ID:/home/cassandra/cassandra/${TARGET}-$(echo $SPLIT_CHUNK | sed 's/\//-/')-cassandra.head" .
     # pytest results
     docker cp $ID:/home/cassandra/cassandra/cassandra-dtest/nosetests.xml .
     # pytest logs

@@ -2,6 +2,8 @@
 //
 // Common Vars and Branch List
 //
+//  Help on syntax see https://jenkinsci.github.io/job-dsl-plugin/
+//
 //  To update the variable via the Jenkins UI, use the EnvInject plugin
 //   example: https://github.com/apache/cassandra-builds/pull/19#issuecomment-610822772
 //
@@ -122,13 +124,25 @@ matrixJob('Cassandra-template-artifacts') {
     }
     steps {
         buildDescription('', buildDescStr)
-        shell("git clean -xdff ; git clone --depth 1 --single-branch -b ${buildsBranch} ${buildsRepo}")
+        shell("""
+                git clean -xdff ;
+                git clone --depth 1 --single-branch -b ${buildsBranch} ${buildsRepo} ;
+                echo "cassandra-builds at: `git -C cassandra-builds log -1 --pretty=format:'%h %an %ad %s'`" ;
+              """)
     }
     publishers {
-        archiveArtifacts('build/apache-cassandra-*.tar.gz, build/apache-cassandra-*.jar, build/apache-cassandra-*.pom, build/cassandra*.deb, build/cassandra*.rpm, build/**/eclipse_compiler_checks.txt')
-        archiveJavadoc {
-            javadocDir 'build/javadoc'
-            keepAll false
+        publishOverSsh {
+            server('Nightlies') {
+                transferSet {
+                    sourceFiles("build/apache-cassandra-*.tar.gz, build/apache-cassandra-*.jar, build/apache-cassandra-*.pom, build/cassandra*.deb, build/cassandra*.rpm")
+                    remoteDirectory("cassandra/\${JOB_NAME}/\${BUILD_NUMBER}/")
+                }
+                transferSet {
+                    sourceFiles("build/javadoc/**/*")
+                    remoteDirectory("cassandra/\${JOB_NAME}/")
+                }
+            }
+            failOnError(false)
         }
         extendedEmail {
             recipientList('builds@cassandra.apache.org')
@@ -204,11 +218,16 @@ job('Cassandra-template-test') {
     }
     steps {
         buildDescription('', buildDescStr)
-        shell("git clean -xdff ; git clone --depth 1 --single-branch -b ${buildsBranch} ${buildsRepo}")
+        shell("""
+                git clean -xdff ;
+                git clone --depth 1 --single-branch -b ${buildsBranch} ${buildsRepo} ;
+                echo "cassandra-builds at: `git -C cassandra-builds log -1 --pretty=format:'%h %an %ad %s'`" ;
+                echo "\${JOB_BASE_NAME}: `git log -1 --pretty=format:'%h %an %ad %s'`" > \${JOB_BASE_NAME}.head ;
+              """)
     }
     publishers {
         archiveArtifacts {
-            pattern('build/test/**/TEST-*.xml,build/**/eclipse_compiler_checks.txt')
+            pattern('build/test/**/TEST-*.xml, **/*.head')
             allowEmpty()
             fingerprint()
         }
@@ -217,9 +236,18 @@ job('Cassandra-template-test') {
                 publishTestStabilityData()
             }
         }
+        publishOverSsh {
+            server('Nightlies') {
+                transferSet {
+                    sourceFiles("build/test/logs/**")
+                    remoteDirectory("cassandra/\${JOB_NAME}/\${BUILD_NUMBER}/")
+                }
+            }
+            failOnError(false)
+        }
         postBuildTask {
             task('.', """
-                echo "Finding job process orphans…"; if pgrep -af "${JOB_BASE_NAME}"; then pkill -9 -f "${JOB_BASE_NAME}"; fi;
+                echo "Finding job process orphans…"; if pgrep -af "\${JOB_BASE_NAME}"; then pkill -9 -f "\${JOB_BASE_NAME}"; fi;
                 echo "Cleaning project…"; git clean -xdff ;
                 echo "Pruning docker…" ; docker system prune -f --filter "until=${maxJobHours}h"  ;
                 echo "Reporting disk usage…"; df -h ; du -hs ../* ; du -hs ../../* ;
@@ -266,11 +294,29 @@ matrixJob('Cassandra-template-dtest-matrix') {
     }
     steps {
         buildDescription('', buildDescStr)
-        shell("git clean -xdff ; git clone --depth 1 --single-branch -b ${buildsBranch} ${buildsRepo} ; git clone --depth 1 --single-branch ${dtestRepo}")
+        shell("""
+                git clean -xdff ;
+                git clone --depth 1 --single-branch -b ${buildsBranch} ${buildsRepo} ;
+                echo "cassandra-builds at: `git -C cassandra-builds log -1 --pretty=format:'%h %an %ad %s'`" ;
+                echo "\${JOB_BASE_NAME}: `git log -1 --pretty=format:'%h %an %ad %s'`" > \${JOB_BASE_NAME}.head ;
+              """)
     }
     publishers {
+        publishOverSsh {
+            server('Nightlies') {
+                transferSet {
+                    sourceFiles("**/nosetests.xml,**/test_stdout.txt,**/ccm_logs.tar.xz")
+                    remoteDirectory("cassandra/\${JOB_NAME}/\${BUILD_NUMBER}/")
+                }
+                transferSet {
+                    sourceFiles("build/javadoc/**/*")
+                    remoteDirectory("cassandra/\${JOB_NAME}/")
+                }
+            }
+            failOnError(false)
+        }
         archiveArtifacts {
-            pattern('**/test_stdout.txt,**/nosetests.xml,**/ccm_logs.tar.xz')
+            pattern('**/nosetests.xml, **/*.head')
             allowEmpty()
             fingerprint()
         }
@@ -337,11 +383,14 @@ matrixJob('Cassandra-template-cqlsh-tests') {
     }
     steps {
         buildDescription('', buildDescStr)
-        shell("git clean -xdff ; git clone --depth 1 --single-branch ${dtestRepo}")
+        shell("""
+                git clean -xdff ;
+                echo "\${JOB_BASE_NAME}: `git log -1 --pretty=format:'%h %an %ad %s'`" > \${JOB_BASE_NAME}.head ;
+              """)
     }
     publishers {
         archiveArtifacts {
-            pattern('**/cqlshlib.xml,**/nosetests.xml')
+            pattern('**/cqlshlib.xml,**/nosetests.xml, **/*.head')
             allowEmpty()
             fingerprint()
         }
@@ -352,7 +401,7 @@ matrixJob('Cassandra-template-cqlsh-tests') {
         }
         postBuildTask {
             task('.', """
-                echo "Finding job process orphans…"; if pgrep -af "${JOB_BASE_NAME}"; then pkill -9 -f "${JOB_BASE_NAME}"; fi;
+                echo "Finding job process orphans…"; if pgrep -af "\${JOB_BASE_NAME}"; then pkill -9 -f "\${JOB_BASE_NAME}"; fi;
                 echo "Cleaning project…"; git clean -xdff ;
                 echo "Pruning docker…" ; docker system prune -f --filter "until=${maxJobHours}h"  ;
                 echo "Reporting disk usage…"; df -h ; du -hs ../* ; du -hs ../../* ;
@@ -564,10 +613,27 @@ matrixJob('Cassandra-devbranch-artifacts') {
     }
     steps {
         buildDescription('', buildDescStr)
-        shell("git clean -xdff ; git clone --depth 1 --single-branch -b ${buildsBranch} ${buildsRepo}")
+        shell("""
+                git clean -xdff ;
+                git clone --depth 1 --single-branch -b ${buildsBranch} ${buildsRepo} ;
+                echo "cassandra-builds at: `git -C cassandra-builds log -1 --pretty=format:'%h %an %ad %s'`" ;
+              """)
         shell('./cassandra-builds/build-scripts/cassandra-artifacts.sh')
     }
     publishers {
+        publishOverSsh {
+            server('Nightlies') {
+                transferSet {
+                    sourceFiles("build/apache-cassandra-*.tar.gz, build/apache-cassandra-*.jar, build/apache-cassandra-*.pom, build/cassandra*.deb, build/cassandra*.rpm")
+                    remoteDirectory("cassandra/\${JOB_NAME}/\${BUILD_NUMBER}/")
+                }
+                transferSet {
+                    sourceFiles("build/javadoc/**/*")
+                    remoteDirectory("cassandra/\${JOB_NAME}/")
+                }
+            }
+            failOnError(false)
+        }
         postBuildTask {
             task('.', """
                 echo "Cleaning project…"; git clean -xdff ;
@@ -627,12 +693,26 @@ testTargets.each {
         }
         steps {
             buildDescription('', buildDescStr)
-            shell("git clean -xdff ; git clone --depth 1 --single-branch -b ${buildsBranch} ${buildsRepo}")
+            shell("""
+                    git clean -xdff ;
+                    git clone --depth 1 --single-branch -b ${buildsBranch} ${buildsRepo} ;
+                    echo "cassandra-builds at: `git -C cassandra-builds log -1 --pretty=format:'%h %an %ad %s'`" ;
+                    echo "Cassandra-devbranch-${targetName}: `git log -1 --pretty=format:'%h %an %ad %s'`" > Cassandra-devbranch-${targetName}.head ;
+                  """)
             shell("./cassandra-builds/build-scripts/cassandra-test.sh ${targetName}")
         }
         publishers {
+            publishOverSsh {
+                server('Nightlies') {
+                    transferSet {
+                        sourceFiles("build/test/logs/**")
+                        remoteDirectory("cassandra/\${JOB_NAME}/\${BUILD_NUMBER}/")
+                    }
+                }
+                failOnError(false)
+            }
             archiveArtifacts {
-                pattern('build/test/**/TEST-*.xml,build/**/eclipse_compiler_checks.txt')
+                pattern('build/test/**/TEST-*.xml, **/*.head')
                 allowEmpty()
                 fingerprint()
             }
@@ -641,7 +721,7 @@ testTargets.each {
             }
             postBuildTask {
                 task('.', """
-                    echo "Finding job process orphans…"; if pgrep -af "${JOB_BASE_NAME}"; then pkill -9 -f "${JOB_BASE_NAME}"; fi;
+                    echo "Finding job process orphans…"; if pgrep -af "\${JOB_BASE_NAME}"; then pkill -9 -f "\${JOB_BASE_NAME}"; fi;
                     echo "Cleaning project…"; git clean -xdff ;
                     echo "Pruning docker…" ; docker system prune -f --filter "until=${maxJobHours}h"  ;
                     echo "Reporting disk usage…"; df -h ; du -hs ../* ; du -hs ../../* ;
@@ -719,12 +799,26 @@ dtestTargets.each {
         }
         steps {
             buildDescription('', buildDescStr)
-            shell("git clean -xdff ; git clone --depth 1 --single-branch -b ${buildsBranch} ${buildsRepo}")
+            shell("""
+                    git clean -xdff ;
+                    git clone --depth 1 --single-branch -b ${buildsBranch} ${buildsRepo} ;
+                    echo "cassandra-builds at: `git -C cassandra-builds log -1 --pretty=format:'%h %an %ad %s'`" ;
+                    echo "Cassandra-devbranch-${targetName}: `git log -1 --pretty=format:'%h %an %ad %s'`" > Cassandra-devbranch-${targetName}.head ;
+                  """)
             shell("sh ./cassandra-builds/docker/jenkins/jenkinscommand.sh \$REPO \$BRANCH \$DTEST_REPO \$DTEST_BRANCH ${buildsRepo} ${buildsBranch} \$DOCKER_IMAGE ${targetName} \${split}/${splits}")
         }
         publishers {
+            publishOverSsh {
+                server('Nightlies') {
+                    transferSet {
+                        sourceFiles("**/test_stdout.txt,**/ccm_logs.tar.xz")
+                        remoteDirectory("cassandra/\${JOB_NAME}/\${BUILD_NUMBER}/")
+                    }
+                }
+                failOnError(false)
+            }
             archiveArtifacts {
-                pattern('**/test_stdout.txt,**/nosetests.xml,**/ccm_logs.tar.xz')
+                pattern('**/nosetests.xml, **/*.head')
                 allowEmpty()
                 fingerprint()
             }
@@ -794,19 +888,22 @@ matrixJob('Cassandra-devbranch-cqlsh-tests') {
     }
     steps {
         buildDescription('', buildDescStr)
-        shell("git clean -xdff")
+        shell("""
+                git clean -xdff ;
+                echo "Cassandra-devbranch-cqlsh-tests: `git log -1 --pretty=format:'%h %an %ad %s'`" > Cassandra-devbranch-cqlsh-tests.head ;
+              """)
         shell('./pylib/cassandra-cqlsh-tests.sh $WORKSPACE')
     }
     publishers {
         archiveArtifacts {
-            pattern('**/cqlshlib.xml,**/nosetests.xml')
+            pattern('**/cqlshlib.xml,**/nosetests.xml, **/*.head')
             allowEmpty()
             fingerprint()
         }
         archiveJunit('**/cqlshlib.xml,**/nosetests.xml')
         postBuildTask {
             task('.', """
-                echo "Finding job process orphans…"; if pgrep -af "${JOB_BASE_NAME}"; then pkill -9 -f "${JOB_BASE_NAME}"; fi;
+                echo "Finding job process orphans…"; if pgrep -af "\${JOB_BASE_NAME}"; then pkill -9 -f "\${JOB_BASE_NAME}"; fi;
                 echo "Cleaning project…"; git clean -xdff ;
                 echo "Pruning docker…" ; docker system prune -f --filter "until=${maxJobHours}h" ;
                 echo "Reporting disk usage…"; df -h ; du -hs ../* ; du -hs ../../* ;
@@ -845,5 +942,61 @@ pipelineJob('Cassandra-devbranch') {
             // Cassandra-devbranch still needs custom Jenkinsfile because of the parameters passed into the build jobs.
             script(readFileFromWorkspace('Cassandra-Job-DSL', 'jenkins-dsl/cassandra_pipeline.groovy'))
         }
+    }
+}
+
+////////////////////////////////////////////////////////////
+//
+// Jobs for Other Cassandra Projects
+//
+////////////////////////////////////////////////////////////
+
+job('cassandra-website') {
+    description(jobDescription)
+    label('git-websites')
+    compressBuildLog()
+    logRotator {
+        numToKeep(10)
+        artifactNumToKeep(10)
+    }
+    wrappers {
+        timeout {
+            noActivity(300)
+        }
+        timestamps()
+    }
+    properties {
+        githubProjectUrl('https://github.com/apache/cassandra-website/')
+        priority(1)
+    }
+    scm {
+        git {
+            remote {
+                url('https://gitbox.apache.org/repos/asf/cassandra-website.git')
+                credentials('jenkins (master pub key)')
+            }
+            branch('master')
+            extensions {
+                cleanAfterCheckout()
+            }
+        }
+    }
+    triggers {
+        scm('H/5 * * * *')
+    }
+    steps {
+        buildDescription('', buildDescStr)
+        // the chmod below is a hack for INFRA-20814
+        // for debugging it can be useful to add a `git show --stat HEAD` before the push
+        shell("""
+                git checkout asf-staging ;
+                git reset --hard origin/master ;
+                docker-compose build --build-arg UID=`id -u` --build-arg GID=`id -g` cassandra-website ;
+                chmod -R 777 src content ;
+                docker-compose run cassandra-website ;
+                git add content/ src/doc/ ;
+                git commit -a -m "generate docs for `git rev-parse --short HEAD`" ;
+                git push -f origin asf-staging ;
+              """)
     }
 }
