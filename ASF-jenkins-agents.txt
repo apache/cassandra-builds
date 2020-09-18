@@ -23,7 +23,9 @@ Edit sudoers to allow INFRA to sudo without password, or provide them with the p
 For example, set:  %sudo   ALL=(ALL:ALL) NOPASSWD:ALL
   $ sudo visudo
 
-Ensure the additional (500GB) data volume is mounted (and added to `/etc/fstab` at `/home/jenkins`
+Ensure the additional (500GB) data volume is mounted (and added to `/etc/fstab` at `/home/jenkins`.
+Ensure the root volume is 100GB+.
+Ensure `hostname` is configured to the server's public ip.
 
 Add jenkins user:
   $ sudo groupadd -g 910 jenkins
@@ -53,7 +55,6 @@ Install and Configure Puppet:
         EOF
 
 
-Ensure `hostname` is configured to the server's public ip.
 
 
 ----
