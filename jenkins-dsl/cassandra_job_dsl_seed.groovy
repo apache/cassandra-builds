@@ -948,6 +948,7 @@ job('cassandra-website') {
         artifactNumToKeep(10)
     }
     wrappers {
+        preBuildCleanup()
         timeout {
             noActivity(300)
         }
