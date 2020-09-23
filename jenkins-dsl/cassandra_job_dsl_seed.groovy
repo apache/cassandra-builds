@@ -137,10 +137,6 @@ matrixJob('Cassandra-template-artifacts') {
                     sourceFiles("build/apache-cassandra-*.tar.gz, build/apache-cassandra-*.jar, build/apache-cassandra-*.pom, build/cassandra*.deb, build/cassandra*.rpm")
                     remoteDirectory("cassandra/\${JOB_NAME}/\${BUILD_NUMBER}/")
                 }
-                transferSet {
-                    sourceFiles("build/javadoc/**/*")
-                    remoteDirectory("cassandra/\${JOB_NAME}/")
-                }
             }
             failOnError(false)
         }
@@ -307,10 +303,6 @@ matrixJob('Cassandra-template-dtest-matrix') {
                 transferSet {
                     sourceFiles("**/nosetests.xml,**/test_stdout.txt,**/ccm_logs.tar.xz")
                     remoteDirectory("cassandra/\${JOB_NAME}/\${BUILD_NUMBER}/")
-                }
-                transferSet {
-                    sourceFiles("build/javadoc/**/*")
-                    remoteDirectory("cassandra/\${JOB_NAME}/")
                 }
             }
             failOnError(false)
@@ -627,10 +619,6 @@ matrixJob('Cassandra-devbranch-artifacts') {
                     sourceFiles("build/apache-cassandra-*.tar.gz, build/apache-cassandra-*.jar, build/apache-cassandra-*.pom, build/cassandra*.deb, build/cassandra*.rpm")
                     remoteDirectory("cassandra/\${JOB_NAME}/\${BUILD_NUMBER}/")
                 }
-                transferSet {
-                    sourceFiles("build/javadoc/**/*")
-                    remoteDirectory("cassandra/\${JOB_NAME}/")
-                }
             }
             failOnError(false)
         }
@@ -697,7 +685,7 @@ testTargets.each {
                     git clean -xdff ;
                     git clone --depth 1 --single-branch -b ${buildsBranch} ${buildsRepo} ;
                     echo "cassandra-builds at: `git -C cassandra-builds log -1 --pretty=format:'%h %an %ad %s'`" ;
-                    echo "Cassandra-devbranch-${targetName}: `git log -1 --pretty=format:'%h %an %ad %s'`" > Cassandra-devbranch-${targetName}.head ;
+                    echo "Cassandra-devbranch-${targetName} cassandra: `git log -1 --pretty=format:'%h %an %ad %s'`" > Cassandra-devbranch-${targetName}.head ;
                   """)
             shell("./cassandra-builds/build-scripts/cassandra-test.sh ${targetName}")
         }
@@ -803,7 +791,7 @@ dtestTargets.each {
                     git clean -xdff ;
                     git clone --depth 1 --single-branch -b ${buildsBranch} ${buildsRepo} ;
                     echo "cassandra-builds at: `git -C cassandra-builds log -1 --pretty=format:'%h %an %ad %s'`" ;
-                    echo "Cassandra-devbranch-${targetName}: `git log -1 --pretty=format:'%h %an %ad %s'`" > Cassandra-devbranch-${targetName}.head ;
+                    echo "Cassandra-devbranch-${targetName} cassandra: `git log -1 --pretty=format:'%h %an %ad %s'`" > Cassandra-devbranch-${targetName}.head ;
                   """)
             shell("sh ./cassandra-builds/docker/jenkins/jenkinscommand.sh \$REPO \$BRANCH \$DTEST_REPO \$DTEST_BRANCH ${buildsRepo} ${buildsBranch} \$DOCKER_IMAGE ${targetName} \${split}/${splits}")
         }
@@ -826,7 +814,7 @@ dtestTargets.each {
             postBuildTask {
                 task('.', """
                     echo "Cleaning project…" ; git clean -xdff ;
-                    echo "Pruning docker…" ; if pgrep -af jenkinscommand.sh; then system prune -f --filter "until=${maxJobHours}h"; else docker system prune -f --volumes ; fi;
+                    echo "Pruning docker…" ; if pgrep -af jenkinscommand.sh; then docker system prune -f --filter "until=${maxJobHours}h"; else docker system prune -f --volumes ; fi;
                     echo "Reporting disk usage…"; df -h ; du -hs ../* ; du -hs ../../* ;
                     echo "Cleaning tmp…";
                     find . -type d -name tmp -delete 2>/dev/null ;
@@ -973,10 +961,12 @@ job('cassandra-website') {
         git {
             remote {
                 url('https://gitbox.apache.org/repos/asf/cassandra-website.git')
-                credentials('jenkins (master pub key)')
+                credentials('9b041bd0-aea9-4498-a576-9eeb771411dd') // "jenkins"
             }
-            branch('master')
+            branch('*/master')
             extensions {
+                wipeOutWorkspace()
+                cleanBeforeCheckout()
                 cleanAfterCheckout()
             }
         }
