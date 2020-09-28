@@ -301,7 +301,7 @@ matrixJob('Cassandra-template-dtest-matrix') {
         publishOverSsh {
             server('Nightlies') {
                 transferSet {
-                    sourceFiles("**/nosetests.xml,**/test_stdout.txt,**/ccm_logs.tar.xz")
+                    sourceFiles("**/nosetests.xml,**/test_stdout.txt.xz,**/ccm_logs.tar.xz")
                     remoteDirectory("cassandra/\${JOB_NAME}/\${BUILD_NUMBER}/")
                 }
             }
@@ -462,7 +462,10 @@ cassandraBranches.each {
                     node / scm / branches / 'hudson.plugins.git.BranchSpec' / name(branchName)
                 }
                 steps {
-                    shell("./cassandra-builds/build-scripts/cassandra-test.sh ${targetName}")
+                    shell("""
+                            ./cassandra-builds/build-scripts/cassandra-test.sh ${targetName} ;
+                             xz build/test/logs/*.log
+                          """)
                 }
             }
         }
@@ -496,7 +499,10 @@ cassandraBranches.each {
                     node / scm / branches / 'hudson.plugins.git.BranchSpec' / name(branchName)
                 }
                 steps {
-                    shell("sh ./cassandra-builds/docker/jenkins/jenkinscommand.sh apache ${branchName} https://github.com/apache/cassandra-dtest.git master ${buildsRepo} ${buildsBranch} ${dtestDockerImage} ${targetName} \${split}/${splits}")
+                    shell("""
+                        sh ./cassandra-builds/docker/jenkins/jenkinscommand.sh apache ${branchName} https://github.com/apache/cassandra-dtest.git master ${buildsRepo} ${buildsBranch} ${dtestDockerImage} ${targetName} \${split}/${splits} ;
+                        xz test_stdout.txt
+                        """)
                 }
             }
         }
@@ -687,7 +693,10 @@ testTargets.each {
                     echo "cassandra-builds at: `git -C cassandra-builds log -1 --pretty=format:'%h %an %ad %s'`" ;
                     echo "Cassandra-devbranch-${targetName} cassandra: `git log -1 --pretty=format:'%h %an %ad %s'`" > Cassandra-devbranch-${targetName}.head ;
                   """)
-            shell("./cassandra-builds/build-scripts/cassandra-test.sh ${targetName}")
+            shell("""
+                    ./cassandra-builds/build-scripts/cassandra-test.sh ${targetName} ;
+                    xz build/test/logs/*.log
+                  """)
         }
         publishers {
             publishOverSsh {
@@ -793,13 +802,16 @@ dtestTargets.each {
                     echo "cassandra-builds at: `git -C cassandra-builds log -1 --pretty=format:'%h %an %ad %s'`" ;
                     echo "Cassandra-devbranch-${targetName} cassandra: `git log -1 --pretty=format:'%h %an %ad %s'`" > Cassandra-devbranch-${targetName}.head ;
                   """)
-            shell("sh ./cassandra-builds/docker/jenkins/jenkinscommand.sh \$REPO \$BRANCH \$DTEST_REPO \$DTEST_BRANCH ${buildsRepo} ${buildsBranch} \$DOCKER_IMAGE ${targetName} \${split}/${splits}")
+            shell("""
+                sh ./cassandra-builds/docker/jenkins/jenkinscommand.sh \$REPO \$BRANCH \$DTEST_REPO \$DTEST_BRANCH ${buildsRepo} ${buildsBranch} \$DOCKER_IMAGE ${targetName} \${split}/${splits} ;
+                xz test_stdout.txt
+                  """)
         }
         publishers {
             publishOverSsh {
                 server('Nightlies') {
                     transferSet {
-                        sourceFiles("**/test_stdout.txt,**/ccm_logs.tar.xz")
+                        sourceFiles("**/test_stdout.txt.xz,**/ccm_logs.tar.xz")
                         remoteDirectory("cassandra/\${JOB_NAME}/\${BUILD_NUMBER}/")
                     }
                 }
