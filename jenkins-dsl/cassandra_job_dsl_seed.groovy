@@ -464,7 +464,7 @@ cassandraBranches.each {
                 steps {
                     shell("""
                             ./cassandra-builds/build-scripts/cassandra-test.sh ${targetName} ;
-                             xz build/test/logs/*.log
+                             find build/test/logs -type f -name "*.log" | xargs xz -qq
                           """)
                 }
             }
@@ -695,7 +695,7 @@ testTargets.each {
                   """)
             shell("""
                     ./cassandra-builds/build-scripts/cassandra-test.sh ${targetName} ;
-                    xz build/test/logs/*.log
+                    find build/test/logs -type f -name "*.log" | xargs xz -qq
                   """)
         }
         publishers {
