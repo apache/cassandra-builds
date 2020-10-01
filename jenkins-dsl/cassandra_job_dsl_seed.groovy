@@ -318,9 +318,10 @@ matrixJob('Cassandra-template-dtest-matrix') {
             }
         }
         postBuildTask {
+            // the pgrep needs to catch any other build/process that is using docker
             task('.', """
                 echo "Cleaning project…"; git clean -xdff ;
-                echo "Pruning docker…" ; if pgrep -af jenkinscommand.sh; then docker system prune -f --filter 'until=${maxJobHours}h'; else docker system prune -f --volumes ; fi;
+                echo "Pruning docker…" ; if pgrep -af "cassandra-artifacts.sh|jenkinscommand.sh"; then docker system prune -f --filter 'until=${maxJobHours}h'; else docker system prune -f --volumes ; fi;
                 echo "Reporting disk usage…"; df -h ; du -hs ../* ; du -hs ../../* ;
                 echo "Cleaning tmp…";
                 find . -type d -name tmp -delete 2>/dev/null ;
@@ -824,9 +825,10 @@ dtestTargets.each {
             }
             archiveJunit('nosetests.xml')
             postBuildTask {
+                // the pgrep needs to catch any other build/process that is using docker
                 task('.', """
                     echo "Cleaning project…" ; git clean -xdff ;
-                    echo "Pruning docker…" ; if pgrep -af jenkinscommand.sh; then docker system prune -f --filter "until=${maxJobHours}h"; else docker system prune -f --volumes ; fi;
+                    echo "Pruning docker…" ; if pgrep -af "cassandra-artifacts.sh|jenkinscommand.sh"; then docker system prune -f --filter "until=${maxJobHours}h"; else docker system prune -f --volumes ; fi;
                     echo "Reporting disk usage…"; df -h ; du -hs ../* ; du -hs ../../* ;
                     echo "Cleaning tmp…";
                     find . -type d -name tmp -delete 2>/dev/null ;
