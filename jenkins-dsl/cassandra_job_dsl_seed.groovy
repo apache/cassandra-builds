@@ -165,7 +165,7 @@ matrixJob('Cassandra-template-artifacts') {
             task('.', """
                 echo "Cleaning project…"; git clean -xdff ;
                 echo "Pruning docker…" ; docker system prune -f --filter "until=${maxJobHours}h"  ;
-                echo "Reporting disk usage…"; df -h ; du -hs ../* ; du -hs ../../* ;
+                echo "Reporting disk usage…"; df -h ;
                 echo "Cleaning tmp…";
                 find . -type d -name tmp -delete 2>/dev/null ;
                 find /tmp -type f -atime +2 -user jenkins -and -not -exec fuser -s {} ';' -and -delete 2>/dev/null
@@ -322,7 +322,7 @@ matrixJob('Cassandra-template-dtest-matrix') {
             task('.', """
                 echo "Cleaning project…"; git clean -xdff ;
                 echo "Pruning docker…" ; if pgrep -af "cassandra-artifacts.sh|jenkinscommand.sh"; then docker system prune -f --filter 'until=${maxJobHours}h'; else docker system prune -f --volumes ; fi;
-                echo "Reporting disk usage…"; df -h ; du -hs ../* ; du -hs ../../* ;
+                echo "Reporting disk usage…"; df -h ;
                 echo "Cleaning tmp…";
                 find . -type d -name tmp -delete 2>/dev/null ;
                 find /tmp -type f -atime +2 -user jenkins -and -not -exec fuser -s {} ';' -and -delete 2>/dev/null
@@ -397,7 +397,7 @@ matrixJob('Cassandra-template-cqlsh-tests') {
                 echo "Finding job process orphans…"; if pgrep -af "\${JOB_BASE_NAME}"; then pkill -9 -f "\${JOB_BASE_NAME}"; fi;
                 echo "Cleaning project…"; git clean -xdff ;
                 echo "Pruning docker…" ; docker system prune -f --filter "until=${maxJobHours}h"  ;
-                echo "Reporting disk usage…"; df -h ; du -hs ../* ; du -hs ../../* ;
+                echo "Reporting disk usage…"; df -h ;
                 echo "Cleaning tmp…";
                 find . -type d -name tmp -delete 2>/dev/null ;
                 find /tmp -type f -atime +2 -user jenkins -and -not -exec fuser -s {} ';' -and -delete 2>/dev/null
@@ -633,7 +633,7 @@ matrixJob('Cassandra-devbranch-artifacts') {
             task('.', """
                 echo "Cleaning project…"; git clean -xdff ;
                 echo "Pruning docker…" ; docker system prune -f --filter "until=${maxJobHours}h"  ;
-                echo "Reporting disk usage…"; df -h ; du -hs ../* ; du -hs ../../* ;
+                echo "Reporting disk usage…"; df -h ;
                 echo "Cleaning tmp…";
                 find . -type d -name tmp -delete 2>/dev/null ;
                 find /tmp -type -f -atime +3 -user jenkins -and -not -exec fuser -s {} ';' -and -delete 2>/dev/null
@@ -829,7 +829,7 @@ dtestTargets.each {
                 task('.', """
                     echo "Cleaning project…" ; git clean -xdff ;
                     echo "Pruning docker…" ; if pgrep -af "cassandra-artifacts.sh|jenkinscommand.sh"; then docker system prune -f --filter "until=${maxJobHours}h"; else docker system prune -f --volumes ; fi;
-                    echo "Reporting disk usage…"; df -h ; du -hs ../* ; du -hs ../../* ;
+                    echo "Reporting disk usage…"; df -h ;
                     echo "Cleaning tmp…";
                     find . -type d -name tmp -delete 2>/dev/null ;
                     find /tmp -type f -atime +2 -user jenkins -and -not -exec fuser -s {} ';' -and -delete 2>/dev/null
@@ -908,7 +908,7 @@ matrixJob('Cassandra-devbranch-cqlsh-tests') {
                 echo "Finding job process orphans…"; if pgrep -af "\${JOB_BASE_NAME}"; then pkill -9 -f "\${JOB_BASE_NAME}"; fi;
                 echo "Cleaning project…"; git clean -xdff ;
                 echo "Pruning docker…" ; docker system prune -f --filter "until=${maxJobHours}h" ;
-                echo "Reporting disk usage…"; df -h ; du -hs ../* ; du -hs ../../* ;
+                echo "Reporting disk usage…"; df -h ;
                 echo "Cleaning tmp…";
                 find . -type d -name tmp -delete 2>/dev/null ;
                 find /tmp -type f -atime +2 -user jenkins -and -not -exec fuser -s {} ';' -and -delete 2>/dev/null
