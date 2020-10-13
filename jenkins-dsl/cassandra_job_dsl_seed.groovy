@@ -978,7 +978,7 @@ job('cassandra-website') {
                 url('https://gitbox.apache.org/repos/asf/cassandra-website.git')
                 credentials('9b041bd0-aea9-4498-a576-9eeb771411dd') // "jenkins"
             }
-            branch('*/master')
+            branch('*/trunk')
             extensions {
                 wipeOutWorkspace()
                 cleanBeforeCheckout()
@@ -995,7 +995,7 @@ job('cassandra-website') {
         // for debugging it can be useful to add a `git show --stat HEAD` before the push
         shell("""
                 git checkout asf-staging ;
-                git reset --hard origin/master ;
+                git reset --hard origin/trunk ;
                 docker-compose build --build-arg UID=`id -u` --build-arg GID=`id -g` cassandra-website ;
                 chmod -R 777 src content ;
                 docker-compose run cassandra-website ;
