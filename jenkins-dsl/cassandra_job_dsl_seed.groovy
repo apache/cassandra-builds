@@ -109,7 +109,10 @@ matrixJob('Cassandra-template-artifacts') {
     }
     properties {
         githubProjectUrl(githubRepo)
-        priorityJobProperty { priority(1) }
+        priorityJobProperty {
+            useJobPriority(true)
+            priority(1)
+        }
     }
     scm {
         git {
@@ -199,7 +202,10 @@ job('Cassandra-template-test') {
     }
     properties {
         githubProjectUrl(githubRepo)
-        priorityJobProperty { priority(3) }
+        priorityJobProperty {
+            useJobPriority(true)
+            priority(3)
+        }
     }
     scm {
         git {
@@ -275,7 +281,10 @@ matrixJob('Cassandra-template-dtest-matrix') {
     }
     properties {
         githubProjectUrl(githubRepo)
-        priority(7)
+        priorityJobProperty {
+            useJobPriority(true)
+            priority(7)
+        }
     }
     scm {
         git {
@@ -361,7 +370,10 @@ matrixJob('Cassandra-template-cqlsh-tests') {
     childCustomWorkspace('.')
     properties {
         githubProjectUrl(githubRepo)
-        priorityJobProperty { priority(3) }
+        priorityJobProperty {
+            useJobPriority(true)
+            priority(3)
+        }
     }
     scm {
         git {
@@ -540,7 +552,10 @@ cassandraBranches.each {
         }
         properties {
             githubProjectUrl(githubRepo)
-            priorityJobProperty { priority(1) }
+            priorityJobProperty {        
+                useJobPriority(true)
+                priority(1)
+            }
         }
         definition {
             cpsScm {
@@ -597,7 +612,10 @@ matrixJob('Cassandra-devbranch-artifacts') {
     }
     properties {
         githubProjectUrl(githubRepo)
-        priorityJobProperty { priority(1) }
+        priorityJobProperty {
+            useJobPriority(true)
+            priority(1)
+        }
     }
     scm {
         git {
@@ -673,7 +691,10 @@ testTargets.each {
         }
         properties {
             githubProjectUrl(githubRepo)
-            priorityJobProperty { priority(3) }
+            priorityJobProperty {
+                useJobPriority(true)
+                priority(3)
+            }
         }
         scm {
             git {
@@ -782,7 +803,10 @@ dtestTargets.each {
         }
         properties {
             githubProjectUrl(githubRepo)
-            priority(6)
+            priorityJobProperty {
+                useJobPriority(true)
+                priority(6)
+            }
         }
         scm {
             git {
@@ -875,7 +899,10 @@ matrixJob('Cassandra-devbranch-cqlsh-tests') {
     childCustomWorkspace('.')
     properties {
         githubProjectUrl(githubRepo)
-        priorityJobProperty { priority(3) }
+        priorityJobProperty {
+            useJobPriority(true)
+            priority(3)
+        }
     }
     scm {
         git {
@@ -937,7 +964,10 @@ pipelineJob('Cassandra-devbranch') {
     }
     properties {
         githubProjectUrl(githubRepo)
-        priorityJobProperty { priority(1) }
+        priorityJobProperty {
+            useJobPriority(true)
+            priority(1)
+        }
     }
     definition {
         cps {
@@ -970,7 +1000,10 @@ job('cassandra-website') {
     }
     properties {
         githubProjectUrl('https://github.com/apache/cassandra-website/')
-        priorityJobProperty { priority(1) }
+        priorityJobProperty {
+            useJobPriority(true)
+            priority(1)
+        }
     }
     scm {
         git {
