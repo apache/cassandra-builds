@@ -2,7 +2,7 @@
 //
 // Common Vars and Branch List
 //
-//  Help on syntax see https://jenkinsci.github.io/job-dsl-plugin/
+//  Help on syntax see https://ci-cassandra.apache.org/plugin/job-dsl/api-viewer/index.html
 //
 //  To update the variable via the Jenkins UI, use the EnvInject plugin
 //   example: https://github.com/apache/cassandra-builds/pull/19#issuecomment-610822772
@@ -109,7 +109,7 @@ matrixJob('Cassandra-template-artifacts') {
     }
     properties {
         githubProjectUrl(githubRepo)
-        priority(1)
+        priorityJobProperty { priority(1) }
     }
     scm {
         git {
@@ -199,7 +199,7 @@ job('Cassandra-template-test') {
     }
     properties {
         githubProjectUrl(githubRepo)
-        priority(3)
+        priorityJobProperty { priority(3) }
     }
     scm {
         git {
@@ -361,7 +361,7 @@ matrixJob('Cassandra-template-cqlsh-tests') {
     childCustomWorkspace('.')
     properties {
         githubProjectUrl(githubRepo)
-        priority(3)
+        priorityJobProperty { priority(3) }
     }
     scm {
         git {
@@ -540,7 +540,7 @@ cassandraBranches.each {
         }
         properties {
             githubProjectUrl(githubRepo)
-            priority(1)
+            priorityJobProperty { priority(1) }
         }
         definition {
             cpsScm {
@@ -597,7 +597,7 @@ matrixJob('Cassandra-devbranch-artifacts') {
     }
     properties {
         githubProjectUrl(githubRepo)
-        priority(1)
+        priorityJobProperty { priority(1) }
     }
     scm {
         git {
@@ -673,7 +673,7 @@ testTargets.each {
         }
         properties {
             githubProjectUrl(githubRepo)
-            priority(3)
+            priorityJobProperty { priority(3) }
         }
         scm {
             git {
@@ -875,7 +875,7 @@ matrixJob('Cassandra-devbranch-cqlsh-tests') {
     childCustomWorkspace('.')
     properties {
         githubProjectUrl(githubRepo)
-        priority(3)
+        priorityJobProperty { priority(3) }
     }
     scm {
         git {
@@ -937,7 +937,7 @@ pipelineJob('Cassandra-devbranch') {
     }
     properties {
         githubProjectUrl(githubRepo)
-        priority(1)
+        priorityJobProperty { priority(1) }
     }
     definition {
         cps {
@@ -970,7 +970,7 @@ job('cassandra-website') {
     }
     properties {
         githubProjectUrl('https://github.com/apache/cassandra-website/')
-        priority(1)
+        priorityJobProperty { priority(1) }
     }
     scm {
         git {
