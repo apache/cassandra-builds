@@ -10,7 +10,7 @@
 ////////////////////////////////////////////////////////////
 
 def jobDescription = '<img src="http://cassandra.apache.org/img/cassandra_logo.png" /><br/>Apache Cassandra DSL-generated job - DSL git repo: <a href="https://gitbox.apache.org/repos/asf?p=cassandra-builds.git">cassandra-builds</a>'
-def jdkLabel = 'JDK 1.8 (latest)'
+def jdkLabel = 'jdk_1.8_latest'
 if(binding.hasVariable("CASSANDRA_JDK_LABEL")) {
     jdkLabel = "${CASSANDRA_JDK_LABEL}"
 }
@@ -439,9 +439,9 @@ cassandraBranches.each {
         using('Cassandra-template-artifacts')
         axes {
             if (branchName == 'trunk') {
-                jdk('JDK 1.8 (latest)','JDK 11 (latest)')
+                jdk('jdk_1.8_latest','jdk_11_latest')
             } else {
-                jdk('JDK 1.8 (latest)')
+                jdk('jdk_1.8_latest')
             }
             label('label', slaveLabel)
         }
@@ -592,7 +592,7 @@ matrixJob('Cassandra-devbranch-artifacts') {
     description(jobDescription)
     concurrentBuild()
     axes {
-        jdk('JDK 1.8 (latest)','JDK 11 (latest)')
+        jdk('jdk_1.8_latest','jdk_11_latest')
         label('label', slaveLabel)
     }
     compressBuildLog()
