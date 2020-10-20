@@ -180,12 +180,10 @@ matrixJob('Cassandra-template-artifacts') {
 /**
  * Ant test template
  */
-job('Cassandra-template-test') {
+matrixJob('Cassandra-template-test') {
     disabled(true)
     description(jobDescription)
     concurrentBuild()
-    jdk(jdkLabel)
-    label(slaveLabel)
     compressBuildLog()
     logRotator {
         numToKeep(10)
@@ -468,9 +466,17 @@ cassandraBranches.each {
             println("Skipping ${targetName} on branch ${branchName}")
 
         } else {
-            job("${jobNamePrefix}-${targetName}") {
+            matrixJob("${jobNamePrefix}-${targetName}") {
                 disabled(false)
                 using('Cassandra-template-test')
+                axes {
+                    if (branchName == 'trunk') {
+                        jdk(jdkLabel,'jdk_11_latest')
+                    } else {
+                        jdk(jdkLabel)
+                    }
+                    label('label', slaveLabel)
+                }
                 configure { node ->
                     node / scm / branches / 'hudson.plugins.git.BranchSpec' / name(branchName)
                 }
@@ -592,7 +598,7 @@ matrixJob('Cassandra-devbranch-artifacts') {
     description(jobDescription)
     concurrentBuild()
     axes {
-        jdk('jdk_1.8_latest','jdk_11_latest')
+        jdk(jdkLabel,'jdk_11_latest')
         label('label', slaveLabel)
     }
     compressBuildLog()
@@ -666,11 +672,13 @@ matrixJob('Cassandra-devbranch-artifacts') {
 testTargets.each {
     def targetName = it
 
-    job("Cassandra-devbranch-${targetName}") {
+    matrixJob("Cassandra-devbranch-${targetName}") {
         description(jobDescription)
         concurrentBuild()
-        jdk(jdkLabel)
-        label(slaveLabel)
+        axes {
+            jdk(jdkLabel,'jdk_11_latest')
+            label('label', slaveLabel)
+        }
         compressBuildLog()
         logRotator {
             numToKeep(10)
@@ -766,12 +774,6 @@ dtestTargets.each {
         description(jobDescription)
         concurrentBuild()
         compressBuildLog()
-        jdk(jdkLabel)
-        if (targetName == 'dtest-large') {
-            label(largeSlaveLabel)
-        } else {
-            label(slaveLabel)
-        }
         compressBuildLog()
         logRotator {
             numToKeep(10)
@@ -799,8 +801,12 @@ dtestTargets.each {
             }
             (1..splits).each { values << it.toString() }
             text('split', values)
-            label('label', slaveLabel)
-        }
+            if (targetName == 'dtest-large') {
+                label(largeSlaveLabel)
+            } else {
+                label(slaveLabel)
+            }
+         }
         properties {
             githubProjectUrl(githubRepo)
             priorityJobProperty {
