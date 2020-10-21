@@ -40,6 +40,9 @@ _main() {
     if ! grep -q CASSANDRA_USE_JDK11 build.xml ; then
         echo "Skipping ${target}. JDK11 not supported against ${version}"
         exit 0
+    elif [[ "${target}" == "jvm-dtest-upgrade" ]] ; then
+        echo "Skipping JDK11 execution. Mixed JDK compilation required for ${target}"
+        exit 0
     fi
   fi
 
