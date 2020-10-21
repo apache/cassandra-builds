@@ -470,7 +470,8 @@ cassandraBranches.each {
                 disabled(false)
                 using('Cassandra-template-test')
                 axes {
-                    if (branchName == 'trunk') {
+                    // jvm-dtest-upgrade would require mixed JDK compilations to support JDK11+
+                    if (branchName == 'trunk' && targetName != 'jvm-dtest-upgrade') {
                         jdk(jdkLabel,'jdk_11_latest')
                     } else {
                         jdk(jdkLabel)
