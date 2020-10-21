@@ -55,7 +55,7 @@ if(binding.hasVariable("CASSANDRA_ANT_TEST_TARGETS")) {
 }
 
 // Dtest test targets
-def dtestTargets = ['dtest', 'dtest-novnode', 'dtest-offheap', 'dtest-large', 'dtest-upgrade']
+def dtestTargets = ['dtest', 'dtest-novnode', 'dtest-offheap', 'dtest-large', 'dtest-large-novnode', 'dtest-upgrade']
 if(binding.hasVariable("CASSANDRA_DTEST_TEST_TARGETS")) {
     dtestTargets = "${CASSANDRA_DTEST_TEST_TARGETS}".split(",")
 }
@@ -543,7 +543,7 @@ cassandraBranches.each {
                 using('Cassandra-template-dtest-matrix')
                 axes {
                     List<String> values = new ArrayList<String>()
-                    if (targetName == 'dtest-large') {
+                    if (targetName == 'dtest-large' || targetName == 'dtest-large-novnode') {
                         splits = dtestLargeSplits
                     } else {
                         splits = dtestSplits
@@ -852,14 +852,14 @@ dtestTargets.each {
         }
         axes {
             List<String> values = new ArrayList<String>()
-            if (targetName == 'dtest-large') {
+            if (targetName == 'dtest-large' || targetName == 'dtest-large-novnode') {
                 splits = dtestLargeSplits
             } else {
                 splits = dtestSplits
             }
             (1..splits).each { values << it.toString() }
             text('split', values)
-            if (targetName == 'dtest-large') {
+            if (targetName == 'dtest-large' || targetName == 'dtest-large-novnode') {
                 label('label', largeSlaveLabel)
             } else {
                 label('label', slaveLabel)
