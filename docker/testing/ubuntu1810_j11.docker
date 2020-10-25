@@ -43,7 +43,7 @@ RUN export DEBIAN_FRONTEND=noninteractive && \
 
 # as we only need the requirements.txt file from the dtest repo, let's just get it from GitHub as a raw asset
 # so we can avoid needing to clone the entire repo just to get this file
-ADD https://raw.githubusercontent.com/apache/cassandra-dtest/master/requirements.txt /opt
+ADD https://raw.githubusercontent.com/apache/cassandra-dtest/trunk/requirements.txt /opt
 RUN chmod 0644 /opt/requirements.txt
 
 # now setup python via virtualenv with all of the python dependencies we need according to requirements.txt

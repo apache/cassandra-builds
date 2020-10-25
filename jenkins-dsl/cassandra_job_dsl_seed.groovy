@@ -520,7 +520,7 @@ cassandraBranches.each {
                 }
                 steps {
                     shell("""
-                        sh ./cassandra-builds/docker/jenkins/jenkinscommand.sh apache ${branchName} https://github.com/apache/cassandra-dtest.git master ${buildsRepo} ${buildsBranch} ${dtestDockerImage} ${targetName} \${split}/${splits} ;
+                        sh ./cassandra-builds/docker/jenkins/jenkinscommand.sh apache ${branchName} https://github.com/apache/cassandra-dtest.git trunk ${buildsRepo} ${buildsBranch} ${dtestDockerImage} ${targetName} \${split}/${splits} ;
                         xz test_stdout.txt
                         """)
                 }
@@ -790,7 +790,7 @@ dtestTargets.each {
             stringParam('REPO', 'apache', 'The github user/org to clone cassandra repo from')
             stringParam('BRANCH', 'trunk', 'The branch of cassandra to checkout')
             stringParam('DTEST_REPO', "${dtestRepo}", 'The cassandra-dtest repo URL')
-            stringParam('DTEST_BRANCH', 'master', 'The branch of cassandra-dtest to checkout')
+            stringParam('DTEST_BRANCH', 'trunk', 'The branch of cassandra-dtest to checkout')
             stringParam('DOCKER_IMAGE', "${dtestDockerImage}", 'Docker image for running dtests')
         }
         axes {
@@ -895,7 +895,7 @@ matrixJob('Cassandra-devbranch-cqlsh-tests') {
         stringParam('REPO', 'apache', 'The github user/org to clone cassandra repo from')
         stringParam('BRANCH', 'trunk', 'The branch of cassandra to checkout')
         stringParam('DTEST_REPO', "${dtestRepo}", 'The cassandra-dtest repo URL')
-        stringParam('DTEST_BRANCH', 'master', 'The branch of cassandra-dtest to checkout')
+        stringParam('DTEST_BRANCH', 'trunk', 'The branch of cassandra-dtest to checkout')
     }
     axes {
         text('cython', 'yes', 'no')
@@ -966,7 +966,7 @@ pipelineJob('Cassandra-devbranch') {
         stringParam('REPO', 'apache', 'The github user/org to clone cassandra repo from')
         stringParam('BRANCH', 'trunk', 'The branch of cassandra to checkout')
         stringParam('DTEST_REPO', "${dtestRepo}", 'The cassandra-dtest repo URL')
-        stringParam('DTEST_BRANCH', 'master', 'The branch of cassandra-dtest to checkout')
+        stringParam('DTEST_BRANCH', 'trunk', 'The branch of cassandra-dtest to checkout')
         stringParam('DOCKER_IMAGE', "${dtestDockerImage}", 'Docker image for running dtests')
     }
     properties {
