@@ -803,9 +803,9 @@ dtestTargets.each {
             (1..splits).each { values << it.toString() }
             text('split', values)
             if (targetName == 'dtest-large') {
-                label(largeSlaveLabel)
+                label('label', largeSlaveLabel)
             } else {
-                label(slaveLabel)
+                label('label', slaveLabel)
             }
          }
         properties {
