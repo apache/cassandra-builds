@@ -9,7 +9,7 @@
 //
 ////////////////////////////////////////////////////////////
 
-def jobDescription = '<img src="http://cassandra.apache.org/img/cassandra_logo.png" /><br/>Apache Cassandra DSL-generated job - DSL git repo: <a href="https://gitbox.apache.org/repos/asf?p=cassandra-builds.git">cassandra-builds</a>'
+def jobDescription = '<img src="http://cassandra.apache.org/img/cassandra_logo.png" /><br/>Apache Cassandra DSL-generated job - DSL git repo: <a href="https://github.com/apache/cassandra-builds">cassandra-builds</a>'
 def jdkLabel = 'jdk_1.8_latest'
 if(binding.hasVariable("CASSANDRA_JDK_LABEL")) {
     jdkLabel = "${CASSANDRA_JDK_LABEL}"
@@ -23,14 +23,14 @@ def largeSlaveLabel = 'cassandra-large'
 if(binding.hasVariable("CASSANDRA_LARGE_SLAVE_LABEL")) {
     largeSlaveLabel = "${CASSANDRA_LARGE_SLAVE_LABEL}"
 }
-def mainRepo = "https://gitbox.apache.org/repos/asf/cassandra.git"
+def mainRepo = "https://github.com/apache/cassandra.git"
 def githubRepo = "https://github.com/apache/cassandra"
 if(binding.hasVariable("CASSANDRA_GIT_URL")) {
     mainRepo = "${CASSANDRA_GIT_URL}"
     // just presume custom repos are github, not critical if they are not
     githubRepo = "${mainRepo}".minus(".git")
 }
-def buildsRepo = "https://gitbox.apache.org/repos/asf/cassandra-builds.git"
+def buildsRepo = "https://github.com/apache/cassandra-builds.git"
 if(binding.hasVariable("CASSANDRA_BUILDS_GIT_URL")) {
     buildsRepo = "${CASSANDRA_BUILDS_GIT_URL}"
 }
@@ -38,7 +38,7 @@ def buildsBranch = "trunk"
 if(binding.hasVariable("CASSANDRA_BUILDS_BRANCH")) {
     buildsBranch = "${CASSANDRA_BUILDS_BRANCH}"
 }
-def dtestRepo = "https://gitbox.apache.org/repos/asf/cassandra-dtest.git"
+def dtestRepo = "https://github.com/apache/cassandra-dtest.git"
 if(binding.hasVariable("CASSANDRA_DTEST_GIT_URL")) {
     dtestRepo = "${CASSANDRA_DTEST_GIT_URL}"
 }
@@ -65,9 +65,9 @@ if(binding.hasVariable("CASSANDRA_DOCKER_IMAGE")) {
 }
 
 // expected longest job runtime
-def maxJobHours = '18'
+def maxJobHours = 18
 if(binding.hasVariable("MAX_JOB_HOURS")) {
-    maxJobHours = "${MAX_JOB_HOURS}"
+    maxJobHours = ${MAX_JOB_HOURS}
 }
 
 // how many splits are dtest jobs matrixed into
@@ -122,6 +122,13 @@ matrixJob('Cassandra-template-artifacts') {
             branch('*/null')
             extensions {
                 cleanAfterCheckout()
+                cloneOption {
+                    shallow(false)
+                    reference('.')
+                    honorRefspec(true)
+                    noTags(true)
+                    timeout(maxJobHours * 60)
+                }
             }
         }
     }
@@ -213,6 +220,13 @@ matrixJob('Cassandra-template-test') {
             branch('*/null')
             extensions {
                 cleanAfterCheckout()
+                cloneOption {
+                    shallow(false)
+                    reference('.')
+                    honorRefspec(true)
+                    noTags(true)
+                    timeout(maxJobHours * 60)
+                }
             }
         }
     }
@@ -250,7 +264,7 @@ matrixJob('Cassandra-template-test') {
                 echo "Finding job process orphans…"; if pgrep -af "\${JOB_BASE_NAME}"; then pkill -9 -f "\${JOB_BASE_NAME}"; fi;
                 echo "Cleaning project…"; git clean -xdff ;
                 echo "Pruning docker…" ; docker system prune -f --filter "until=${maxJobHours}h"  ;
-                echo "Reporting disk usage…"; df -h ; du -hs ../* ; du -hs ../../* ;
+                echo "Reporting disk usage…"; du -xm / 2>/dev/null | sort -rn | head -n 30 ; df -h ;
                 echo "Cleaning tmp…";
                 find . -type d -name tmp -delete 2>/dev/null ;
                 find /tmp -type f -atime +2 -user jenkins -and -not -exec fuser -s {} ';' -and -delete 2>/dev/null
@@ -292,6 +306,13 @@ matrixJob('Cassandra-template-dtest-matrix') {
             branch('*/null')
             extensions {
                 cleanAfterCheckout()
+                cloneOption {
+                    shallow(false)
+                    reference('.')
+                    honorRefspec(true)
+                    noTags(true)
+                    timeout(maxJobHours * 60)
+                }
             }
         }
     }
@@ -381,6 +402,13 @@ matrixJob('Cassandra-template-cqlsh-tests') {
             branch('*/null')
             extensions {
                 cleanAfterCheckout()
+                cloneOption {
+                    shallow(false)
+                    reference('.')
+                    honorRefspec(true)
+                    noTags(true)
+                    timeout(maxJobHours * 60)
+                }
             }
         }
     }
@@ -552,7 +580,6 @@ cassandraBranches.each {
      */
     pipelineJob("${jobNamePrefix}") {
         description(jobDescription)
-        compressBuildLog()
         logRotator {
             numToKeep(30)
             artifactNumToKeep(10)
@@ -574,6 +601,13 @@ cassandraBranches.each {
                         branch("${branchName}")
                         extensions {
                             cleanAfterCheckout()
+                            cloneOption {
+                                shallow(false)
+                                reference('.')
+                                honorRefspec(true)
+                                noTags(true)
+                                timeout(maxJobHours * 60)
+                            }
                         }
                     }
                 }
@@ -632,6 +666,13 @@ matrixJob('Cassandra-devbranch-artifacts') {
             branch('${BRANCH}')
             extensions {
                 cleanAfterCheckout()
+                cloneOption {
+                    shallow(false)
+                    reference('.')
+                    honorRefspec(true)
+                    noTags(true)
+                    timeout(maxJobHours * 60)
+                }
             }
         }
     }
@@ -713,6 +754,13 @@ testTargets.each {
                 branch('${BRANCH}')
                 extensions {
                     cleanAfterCheckout()
+                    cloneOption {
+                        shallow(false)
+                        reference('.')
+                        honorRefspec(true)
+                        noTags(true)
+                        timeout(maxJobHours * 60)
+                    }
                 }
             }
         }
@@ -752,7 +800,7 @@ testTargets.each {
                     echo "Finding job process orphans…"; if pgrep -af "\${JOB_BASE_NAME}"; then pkill -9 -f "\${JOB_BASE_NAME}"; fi;
                     echo "Cleaning project…"; git clean -xdff ;
                     echo "Pruning docker…" ; docker system prune -f --filter "until=${maxJobHours}h"  ;
-                    echo "Reporting disk usage…"; df -h ; du -hs ../* ; du -hs ../../* ;
+                    echo "Reporting disk usage…"; du -xm / 2>/dev/null | sort -rn | head -n 30 ; df -h ;
                     echo "Cleaning tmp…";
                     find . -type d -name tmp -delete 2>/dev/null ;
                     find /tmp -type f -atime +2 -user jenkins -and -not -exec fuser -s {} ';' -and -delete 2>/dev/null
@@ -823,6 +871,13 @@ dtestTargets.each {
                 branch('${BRANCH}')
                 extensions {
                     cleanAfterCheckout()
+                    cloneOption {
+                        shallow(false)
+                        reference('.')
+                        honorRefspec(true)
+                        noTags(true)
+                        timeout(maxJobHours * 60)
+                    }
                 }
             }
         }
@@ -919,6 +974,13 @@ matrixJob('Cassandra-devbranch-cqlsh-tests') {
             branch('${BRANCH}')
             extensions {
                 cleanAfterCheckout()
+                cloneOption {
+                    shallow(false)
+                    reference('.')
+                    honorRefspec(true)
+                    noTags(true)
+                    timeout(maxJobHours * 60)
+                }
             }
         }
     }
@@ -957,9 +1019,8 @@ matrixJob('Cassandra-devbranch-cqlsh-tests') {
  */
 pipelineJob('Cassandra-devbranch') {
     description(jobDescription)
-    compressBuildLog()
     logRotator {
-        numToKeep(30)
+        numToKeep(90)
         artifactNumToKeep(10)
     }
     parameters {
