@@ -228,7 +228,43 @@ pipeline {
                 }
               }
             }
+          stage('dtest-large') {
+            steps {
+              script {
+                dtest_large = build job: "${env.JOB_NAME}-dtest-large", parameters: [string(name: 'REPO', value: params.REPO), string(name: 'BRANCH', value: params.BRANCH), string(name: 'DTEST_REPO', value: params.DTEST_REPO), string(name: 'DTEST_BRANCH', value: params.DTEST_BRANCH), string(name: 'DOCKER_IMAGE', value: params.DOCKER_IMAGE)], propagate: false
+                if (dtest_large.result != 'SUCCESS') unstable('dtest-large failures')
+                if (dtest_large.result == 'FAILURE') currentBuild.result='FAILURE'
+              }
+            }
+            post {
+              always {
+                warnError('missing test xml files') {
+                    script {
+                        copyTestResults('dtest-large', dtest_large.getNumber())
+                    }
+                }
+              }
+            }
           }
+          stage('dtest-novnode') {
+            steps {
+              script {
+                dtest_novnode = build job: "${env.JOB_NAME}-dtest-novnode", parameters: [string(name: 'REPO', value: params.REPO), string(name: 'BRANCH', value: params.BRANCH), string(name: 'DTEST_REPO', value: params.DTEST_REPO), string(name: 'DTEST_BRANCH', value: params.DTEST_BRANCH), string(name: 'DOCKER_IMAGE', value: params.DOCKER_IMAGE)], propagate: false
+                if (dtest_novnode.result != 'SUCCESS') unstable('dtest-novnode failures')
+                if (dtest_novnode.result == 'FAILURE') currentBuild.result='FAILURE'
+              }
+            }
+            post {
+              always {
+                warnError('missing test xml files') {
+                    script {
+                        copyTestResults('dtest-novnode', dtest_novnode.getNumber())
+                    }
+                }
+              }
+            }
+          }
+        }
       }
       stage('Summary') {
         steps {
