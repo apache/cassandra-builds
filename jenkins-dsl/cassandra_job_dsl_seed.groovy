@@ -420,6 +420,15 @@ matrixJob('Cassandra-template-cqlsh-tests') {
               """)
     }
     publishers {
+        publishOverSsh {
+            server('Nightlies') {
+                transferSet {
+                    sourceFiles("**/cqlshlib.xml,**/nosetests.xml, **/*.head")
+                    remoteDirectory("cassandra/\${JOB_NAME}/\${BUILD_NUMBER}/")
+                }
+            }
+            failOnError(false)
+        }
         archiveArtifacts {
             pattern('**/cqlshlib.xml,**/nosetests.xml, **/*.head')
             allowEmpty()
@@ -638,7 +647,7 @@ matrixJob('Cassandra-devbranch-artifacts') {
     }
     compressBuildLog()
     logRotator {
-        numToKeep(10)
+        numToKeep(90)
         artifactNumToKeep(10)
     }
     wrappers {
@@ -690,7 +699,7 @@ matrixJob('Cassandra-devbranch-artifacts') {
             server('Nightlies') {
                 transferSet {
                     sourceFiles("build/apache-cassandra-*.tar.gz, build/apache-cassandra-*.jar, build/apache-cassandra-*.pom, build/cassandra*.deb, build/cassandra*.rpm")
-                    remoteDirectory("cassandra/\${JOB_NAME}/\${BUILD_NUMBER}/")
+                    remoteDirectory("cassandra/devbranch/Cassandra-devbranch-artifacts/\${BUILD_NUMBER}/\${JOB_NAME}/")
                 }
             }
             failOnError(false)
@@ -723,7 +732,7 @@ testTargets.each {
         }
         compressBuildLog()
         logRotator {
-            numToKeep(10)
+            numToKeep(90)
             artifactNumToKeep(10)
         }
         wrappers {
@@ -782,7 +791,7 @@ testTargets.each {
                 server('Nightlies') {
                     transferSet {
                         sourceFiles("build/test/logs/**")
-                        remoteDirectory("cassandra/\${JOB_NAME}/\${BUILD_NUMBER}/")
+                        remoteDirectory("cassandra/devbranch/Cassandra-devbranch-${targetName}/\${BUILD_NUMBER}/\${JOB_NAME}/")
                     }
                 }
                 failOnError(false)
@@ -825,7 +834,7 @@ dtestTargets.each {
         compressBuildLog()
         compressBuildLog()
         logRotator {
-            numToKeep(10)
+            numToKeep(90)
             artifactNumToKeep(10)
         }
         wrappers {
@@ -899,7 +908,7 @@ dtestTargets.each {
                 server('Nightlies') {
                     transferSet {
                         sourceFiles("**/test_stdout.txt.xz,**/ccm_logs.tar.xz")
-                        remoteDirectory("cassandra/\${JOB_NAME}/\${BUILD_NUMBER}/")
+                        remoteDirectory("cassandra/devbranch/Cassandra-devbranch-${targetName}/\${BUILD_NUMBER}/\${JOB_NAME}/")
                     }
                 }
                 failOnError(false)
@@ -934,7 +943,7 @@ matrixJob('Cassandra-devbranch-cqlsh-tests') {
     concurrentBuild()
     compressBuildLog()
     logRotator {
-        numToKeep(10)
+        numToKeep(90)
         artifactNumToKeep(10)
     }
     wrappers {
@@ -993,6 +1002,15 @@ matrixJob('Cassandra-devbranch-cqlsh-tests') {
         shell('./pylib/cassandra-cqlsh-tests.sh $WORKSPACE')
     }
     publishers {
+        publishOverSsh {
+            server('Nightlies') {
+                transferSet {
+                    sourceFiles("**/test_stdout.txt.xz,**/ccm_logs.tar.xz")
+                    remoteDirectory("cassandra/devbranch/Cassandra-devbranch-cqlsh-tests/\${BUILD_NUMBER}/\${JOB_NAME}/")
+                }
+            }
+            failOnError(false)
+        }
         archiveArtifacts {
             pattern('**/cqlshlib.xml,**/nosetests.xml, **/*.head')
             allowEmpty()

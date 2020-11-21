@@ -286,7 +286,7 @@ pipeline {
         post {
             always {
                 archiveArtifacts artifacts: 'cassandra-test-report.txt.xz', fingerprint: true
-                sshPublisher(publishers: [sshPublisherDesc(configName: 'Nightlies', transfers: [sshTransfer(remoteDirectory: 'cassandra/${JOB_NAME}/${BUILD_NUMBER}/', sourceFiles: 'cassandra-test-report.txt.xz, TESTS-TestSuites.xml.xz')])])
+                sshPublisher(publishers: [sshPublisherDesc(configName: 'Nightlies', transfers: [sshTransfer(remoteDirectory: 'cassandra/devbranch/${JOB_NAME}/${BUILD_NUMBER}/', sourceFiles: 'cassandra-test-report.txt.xz, TESTS-TestSuites.xml.xz')])])
             }
         }
       }
