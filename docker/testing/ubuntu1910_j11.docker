@@ -11,7 +11,7 @@
 # limitations under the License.
 
 FROM ubuntu:19.10
-MAINTAINER Eduard Tudenhoefner <etudenhoefner@gmail.com>
+MAINTAINER Sam Tunnicliffe <sam@beobal.com>
 
 # install our python dependencies and some other stuff we need
 # libev4 libev-dev are for the python driver / libssl-dev is for python3.6

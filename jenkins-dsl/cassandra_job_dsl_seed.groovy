@@ -59,7 +59,7 @@ def dtestTargets = ['dtest', 'dtest-novnode', 'dtest-offheap', 'dtest-large', 'd
 if(binding.hasVariable("CASSANDRA_DTEST_TEST_TARGETS")) {
     dtestTargets = "${CASSANDRA_DTEST_TEST_TARGETS}".split(",")
 }
-def dtestDockerImage = 'nastra/cassandra-testing-ubuntu1910-java11'
+def dtestDockerImage = 'beobal/cassandra-testing-ubuntu1910-java11'
 if(binding.hasVariable("CASSANDRA_DOCKER_IMAGE")) {
     dtestDockerImage = "${CASSANDRA_DOCKER_IMAGE}"
 }
