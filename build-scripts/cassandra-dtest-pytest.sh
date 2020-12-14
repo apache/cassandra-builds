@@ -76,8 +76,7 @@ elif [ "${DTEST_TARGET}" = "dtest-offheap" ]; then
 elif [ "${DTEST_TARGET}" = "dtest-large" ]; then
     DTEST_ARGS="--use-vnodes --num-tokens=${NUM_TOKENS} --only-resource-intensive-tests --keep-failed-test-dir"
 elif [ "${DTEST_TARGET}" = "dtest-upgrade" ]; then
-    DTEST_ARGS="--execute-upgrade-tests-only "
-    export RUN_STATIC_UPGRADE_MATRIX=true
+    DTEST_ARGS="--execute-upgrade-tests-only --upgrade-target-version-only --upgrade-version-selection all"
 else
     echo "Unknown dtest target: ${DTEST_TARGET}"
     exit 1
