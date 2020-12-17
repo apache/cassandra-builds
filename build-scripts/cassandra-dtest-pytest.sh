@@ -18,7 +18,7 @@ export CASS_DRIVER_NO_CYTHON=true
 export CCM_MAX_HEAP_SIZE="1024M"
 export CCM_HEAP_NEWSIZE="512M"
 export CCM_CONFIG_DIR=${WORKSPACE}/.ccm
-export NUM_TOKENS="32"
+export NUM_TOKENS="16"
 export CASSANDRA_DIR=${WORKSPACE}
 #Have Cassandra skip all fsyncs to improve test performance and reliability
 export CASSANDRA_SKIP_SYNC=true
