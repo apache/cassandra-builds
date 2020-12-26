@@ -74,6 +74,9 @@ _main() {
       ant fqltool-build-test
       ant $target -Dtmp.dir="$(pwd)/tmp" || echo "failed $target"
       ;;
+    "microbench")
+      ant $target -Dtmp.dir="$(pwd)/tmp" -Dmaven.test.failure.ignore=true
+      ;;
     "test")
       ant testclasslist -Dtest.classlistfile=<( _list_tests "unit" ) -Dtmp.dir="${TMP_DIR}" || echo "failed $target"
       ;;

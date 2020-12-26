@@ -49,7 +49,7 @@ if(binding.hasVariable("CASSANDRA_BRANCHES")) {
     cassandraBranches = "${CASSANDRA_BRANCHES}".split(",")
 }
 // Ant test targets
-def testTargets = ['test', 'test-burn', 'test-cdc', 'test-compression', 'stress-test', 'fqltool-test', 'long-test', 'jvm-dtest', 'jvm-dtest-upgrade']
+def testTargets = ['test', 'test-burn', 'test-cdc', 'test-compression', 'stress-test', 'fqltool-test', 'long-test', 'jvm-dtest', 'jvm-dtest-upgrade', 'microbench']
 if(binding.hasVariable("CASSANDRA_ANT_TEST_TARGETS")) {
     testTargets = "${CASSANDRA_ANT_TEST_TARGETS}".split(",")
 }
@@ -233,7 +233,7 @@ matrixJob('Cassandra-template-test') {
     steps {
         buildDescription('', buildDescStr)
         shell("""
-                git clean -xdff ;
+                git clean -xdff -e build/test/jmh-result.json ;
                 git clone --depth 1 --single-branch -b ${buildsBranch} ${buildsRepo} ;
                 echo "cassandra-builds at: `git -C cassandra-builds log -1 --pretty=format:'%h %an %ad %s'`" ;
                 echo "\${JOB_BASE_NAME}: `git log -1 --pretty=format:'%h %an %ad %s'`" > \${JOB_BASE_NAME}.head ;
@@ -253,7 +253,7 @@ matrixJob('Cassandra-template-test') {
         publishOverSsh {
             server('Nightlies') {
                 transferSet {
-                    sourceFiles("build/test/logs/**")
+                    sourceFiles("build/test/logs/**,build/test/jmh-result.json")
                     remoteDirectory("cassandra/\${JOB_NAME}/\${BUILD_NUMBER}/")
                 }
             }
@@ -262,7 +262,7 @@ matrixJob('Cassandra-template-test') {
         postBuildTask {
             task('.', """
                 echo "Finding job process orphans…"; if pgrep -af "\${JOB_BASE_NAME}"; then pkill -9 -f "\${JOB_BASE_NAME}"; fi;
-                echo "Cleaning project…"; git clean -xdff ;
+                echo "Cleaning project…"; git clean -xdff -e build/test/jmh-result.json ;
                 echo "Pruning docker…" ; docker system prune --all --force --filter "until=${maxJobHours}h"  ;
                 echo "Reporting disk usage…"; du -xm / 2>/dev/null | sort -rn | head -n 30 ; df -h ;
                 echo "Cleaning tmp…";
@@ -524,6 +524,16 @@ cassandraBranches.each {
                              find build/test/logs -type f -name "*.log" | xargs xz -qq
                           """)
                 }
+                if (targetName == 'microbench') {
+                    publishers {
+                        jmhReport {
+                            resultPath('build/test/jmh-result.json')
+                        }
+                        archiveJunit('build/test/**/TEST-*.xml') {
+                            allowEmptyResults(true)
+                        }
+                    }
+                }
             }
         }
     }
@@ -776,7 +786,7 @@ testTargets.each {
         steps {
             buildDescription('', buildDescStr)
             shell("""
-                    git clean -xdff ;
+                    git clean -xdff ${targetName == 'microbench' ? '-e build/test/jmh-result.json' : ''};
                     git clone --depth 1 --single-branch -b ${buildsBranch} ${buildsRepo} ;
                     echo "cassandra-builds at: `git -C cassandra-builds log -1 --pretty=format:'%h %an %ad %s'`" ;
                     echo "Cassandra-devbranch-${targetName} cassandra: `git log -1 --pretty=format:'%h %an %ad %s'`" > Cassandra-devbranch-${targetName}.head ;
@@ -790,7 +800,7 @@ testTargets.each {
             publishOverSsh {
                 server('Nightlies') {
                     transferSet {
-                        sourceFiles("build/test/logs/**")
+                        sourceFiles("build/test/logs/**,build/test/jmh-result.json")
                         remoteDirectory("cassandra/devbranch/Cassandra-devbranch-${targetName}/\${BUILD_NUMBER}/\${JOB_NAME}/")
                     }
                 }
@@ -807,7 +817,7 @@ testTargets.each {
             postBuildTask {
                 task('.', """
                     echo "Finding job process orphans…"; if pgrep -af "\${JOB_BASE_NAME}"; then pkill -9 -f "\${JOB_BASE_NAME}"; fi;
-                    echo "Cleaning project…"; git clean -xdff ;
+                    echo "Cleaning project…"; git clean -xdff ${targetName == 'microbench' ? '-e build/test/jmh-result.json' : ''};
                     echo "Pruning docker…" ; docker system prune --all --force --filter "until=${maxJobHours}h"  ;
                     echo "Reporting disk usage…"; du -xm / 2>/dev/null | sort -rn | head -n 30 ; df -h ;
                     echo "Cleaning tmp…";
