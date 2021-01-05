@@ -11,8 +11,8 @@
 # limitations under the License.
 
 # base things off the testing image without dependencies warmed up
-FROM aweisberg/cassandra-testing-ubuntu18-java11
-MAINTAINER Stefan Podkowinski <s.podkowinski@gmail.com>
+FROM apache/cassandra-testing-ubuntu2004-java11
+MAINTAINER Apache Cassandra <dev@cassandra.apache.org>
 
 USER cassandra
 ENV HOME /home/cassandra
@@ -29,7 +29,7 @@ RUN /bin/bash -c "git clone ${CASSANDRA_GIT_URL} ~/cassandra && \
     rm -fr ~/cassandra"
 
 # Initialize the CCM git repo as well as this also can fail to clone
-RUN /bin/bash -c "source ~/env/bin/activate && \
+RUN /bin/bash -c "source ~/env3.6/bin/activate && \
     ccm create -n 1 -v git:trunk test && ccm remove test && \
     ccm create -n 1 -v git:cassandra-3.11 test && ccm remove test && \
     ccm create -n 1 -v git:cassandra-3.0 test && ccm remove test && \

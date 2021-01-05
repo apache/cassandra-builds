@@ -11,8 +11,8 @@
 # limitations under the License.
 
 # base things off the testing image without dependencies warmed up
-FROM beobal/cassandra-testing-ubuntu1910-java11
-MAINTAINER Sam Tunnicliffe <sam@beobal.com>
+FROM apache/cassandra-testing-ubuntu1910-java11
+MAINTAINER Apache Cassandra <dev@cassandra.apache.org>
 
 USER cassandra
 ENV HOME /home/cassandra

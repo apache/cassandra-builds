@@ -10,20 +10,31 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# base things off the latest LTS Ubuntu Release (18.04)
-FROM ubuntu:18.10
-MAINTAINER Stefan Podkowinski <s.podkowinski@gmail.com>
+FROM ubuntu:20.04
+MAINTAINER Apache Cassandra <dev@cassandra.apache.org>
 
 # install our python dependencies and some other stuff we need
-# libev4 libev-dev are for the python driver
+# libev4 libev-dev are for the python driver / libssl-dev is for python3.6
 
 RUN export DEBIAN_FRONTEND=noninteractive && \
     apt-get update && \
     apt-get install -y --no-install-recommends software-properties-common apt-utils vim
 
 RUN export DEBIAN_FRONTEND=noninteractive && \
+    add-apt-repository -y ppa:deadsnakes/ppa && \
     apt-get update && \
-    apt-get install -y git-core python2.7 python3.6 python3.6-venv python3.6-dev python3-pip net-tools libev4 libev-dev wget gcc
+    apt-get install -y git-core python2.7 python3-pip \
+        python3.6 python3.6-venv python3.6-dev \
+        python3.7 python3.7-venv python3.7-dev \
+        python3.8 python3.8-venv python3.8-dev \
+        net-tools libev4 libev-dev wget gcc libssl-dev
+
+RUN update-alternatives --install /usr/bin/python python /usr/bin/python3.6 2
+RUN update-alternatives --install /usr/bin/python python /usr/bin/python3.7 3
+RUN update-alternatives --install /usr/bin/python python /usr/bin/python3.8 4
+RUN python3.6 -m pip install --upgrade pip
+RUN python3.7 -m pip install --upgrade pip
+RUN python3.8 -m pip install --upgrade pip
 
 # solves warning: "jemalloc shared library could not be preloaded to speed up memory allocations"
 RUN export DEBIAN_FRONTEND=noninteractive && \
@@ -86,10 +97,18 @@ ENV ANT_HOME=/usr/share/ant \
     JAVA11_HOME=/usr/lib/jvm/java-11-openjdk-amd64
 
 # run pip commands and setup virtualenv (note we do this after we switch to cassandra user so we
-# setup the virtualenv for the cassandra user and not the root user by accident)
-RUN virtualenv --python=python3.6 --no-site-packages env
-RUN chmod +x env/bin/activate
-RUN /bin/bash -c "source ~/env/bin/activate && pip3 install Cython && pip3 install -r /opt/requirements.txt && pip3 freeze --user"
+# setup the virtualenv for the cassandra user and not the root user by accident) for Python 3.6/3.7/3.8
+RUN virtualenv --python=python3.6 env3.6
+RUN chmod +x env3.6/bin/activate
+RUN /bin/bash -c "source ~/env3.6/bin/activate && pip3 install --upgrade pip && pip3 install Cython && pip3 install -r /opt/requirements.txt && pip3 freeze --user"
+
+RUN virtualenv --python=python3.7 env3.7
+RUN chmod +x env3.7/bin/activate
+RUN /bin/bash -c "source ~/env3.7/bin/activate && pip3 install --upgrade pip && pip3 install Cython && pip3 install -r /opt/requirements.txt && pip3 freeze --user"
+
+RUN virtualenv --python=python3.8 env3.8
+RUN chmod +x env3.8/bin/activate
+RUN /bin/bash -c "source ~/env3.8/bin/activate && pip3 install --upgrade pip && pip3 install Cython && pip3 install -r /opt/requirements.txt && pip3 freeze --user"
 
 # we need to make SSH less strict to prevent various dtests from failing when they attempt to
 # git clone a given commit/tag/etc
