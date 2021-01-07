@@ -33,7 +33,7 @@ RUN yum -y install python2-pip
 
 # install ssl enabled urllib for retrieving python packages
 # this will produce some ssl related warnings, which will be resolved once the package has been installed
-RUN pip install urllib3[secure]
+RUN pip install 'idna<3' urllib3[secure]
 
 # upgrade to modern pip version
 RUN pip install --upgrade pip
