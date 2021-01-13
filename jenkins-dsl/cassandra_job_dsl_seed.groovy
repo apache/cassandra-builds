@@ -241,7 +241,7 @@ matrixJob('Cassandra-template-test') {
     }
     publishers {
         archiveArtifacts {
-            pattern('build/test/**/TEST-*.xml, **/*.head')
+            pattern('**/*.head')
             allowEmpty()
             fingerprint()
         }
@@ -797,7 +797,7 @@ testTargets.each {
                 failOnError(false)
             }
             archiveArtifacts {
-                pattern('build/test/**/TEST-*.xml, **/*.head')
+                pattern('**/*.head')
                 allowEmpty()
                 fingerprint()
             }
