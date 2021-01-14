@@ -17,8 +17,8 @@ java_version=$2
 [ "x${sha}" != "x" ] || { echo >&2 "Missing argument <branch|tag|sha>"; exit 1; }
 
 # variables, with defaults
-[ "x${deb_dir}" != "x" ] || deb_dir="."
-[ "x${cassandra_builds_dir}" != "x" ] || cassandra_builds_dir="."
+[ "x${deb_dir}" != "x" ] || deb_dir="`pwd`"
+[ "x${cassandra_builds_dir}" != "x" ] || cassandra_builds_dir="`pwd`"
 [ "x${CASSANDRA_GIT_URL}" != "x" ] || CASSANDRA_GIT_URL="https://gitbox.apache.org/repos/asf/cassandra.git"
 [ "x${java_version}" != "x" ] || java_version="8"
 

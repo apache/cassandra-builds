@@ -256,7 +256,7 @@ then
     echo "Origin: Apache Cassandra Packages" > $tmp_dir/distributions
     echo "Label: Apache Cassandra Packages" >> $tmp_dir/distributions
     echo "Codename: $debian_series" >> $tmp_dir/distributions
-    echo "Architectures: i386 amd64 source" >> $tmp_dir/distributions
+    echo "Architectures: i386 amd64 arm64 source" >> $tmp_dir/distributions
     echo "Components: main" >> $tmp_dir/distributions
     echo "Description: Apache Cassandra APT Repository" >> $tmp_dir/distributions
     echo "SignWith: $gpg_key" >> $tmp_dir/distributions
