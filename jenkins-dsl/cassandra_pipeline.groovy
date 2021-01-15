@@ -209,25 +209,25 @@ pipeline {
           }
       }
       stage('Distributed Test') {
-          parallel {
-            stage('dtest') {
-              steps {
-                script {
-                  dtest = build job: "${env.JOB_NAME}-dtest", parameters: [string(name: 'REPO', value: params.REPO), string(name: 'BRANCH', value: params.BRANCH), string(name: 'DTEST_REPO', value: params.DTEST_REPO), string(name: 'DTEST_BRANCH', value: params.DTEST_BRANCH), string(name: 'DOCKER_IMAGE', value: params.DOCKER_IMAGE)], propagate: false
-                  if (dtest.result != 'SUCCESS') unstable('dtest failures')
-                  if (dtest.result == 'FAILURE') currentBuild.result='FAILURE'
-                }
-              }
-              post {
-                always {
-                    warnError('missing test xml files') {
-                        script {
-                            copyTestResults('dtest', dtest.getNumber())
-                        }
-                    }
-                }
+        parallel {
+          stage('dtest') {
+            steps {
+              script {
+                dtest = build job: "${env.JOB_NAME}-dtest", parameters: [string(name: 'REPO', value: params.REPO), string(name: 'BRANCH', value: params.BRANCH), string(name: 'DTEST_REPO', value: params.DTEST_REPO), string(name: 'DTEST_BRANCH', value: params.DTEST_BRANCH), string(name: 'DOCKER_IMAGE', value: params.DOCKER_IMAGE)], propagate: false
+                if (dtest.result != 'SUCCESS') unstable('dtest failures')
+                if (dtest.result == 'FAILURE') currentBuild.result='FAILURE'
               }
             }
+            post {
+              always {
+                  warnError('missing test xml files') {
+                      script {
+                          copyTestResults('dtest', dtest.getNumber())
+                      }
+                  }
+              }
+            }
+          }
           stage('dtest-large') {
             steps {
               script {
@@ -261,6 +261,42 @@ pipeline {
                         copyTestResults('dtest-novnode', dtest_novnode.getNumber())
                     }
                 }
+              }
+            }
+          }
+          stage('dtest-large-novnode') {
+            steps {
+              script {
+                dtest_large_novnode = build job: "${env.JOB_NAME}-dtest-large-novnode", parameters: [string(name: 'REPO', value: params.REPO), string(name: 'BRANCH', value: params.BRANCH), string(name: 'DTEST_REPO', value: params.DTEST_REPO), string(name: 'DTEST_BRANCH', value: params.DTEST_BRANCH), string(name: 'DOCKER_IMAGE', value: params.DOCKER_IMAGE)], propagate: false
+                if (dtest_large_novnode.result != 'SUCCESS') unstable('dtest-large-novnode failures')
+                if (dtest_large_novnode.result == 'FAILURE') currentBuild.result='FAILURE'
+              }
+            }
+            post {
+              always {
+                warnError('missing test xml files') {
+                    script {
+                        copyTestResults('dtest-large-novnode', dtest_large_novnode.getNumber())
+                    }
+                }
+              }
+            }
+          }
+          stage('dtest-upgrade') {
+            steps {
+              script {
+                dtest_upgrade = build job: "${env.JOB_NAME}-dtest-upgrade", parameters: [string(name: 'REPO', value: params.REPO), string(name: 'BRANCH', value: params.BRANCH), string(name: 'DTEST_REPO', value: params.DTEST_REPO), string(name: 'DTEST_BRANCH', value: params.DTEST_BRANCH), string(name: 'DOCKER_IMAGE', value: params.DOCKER_IMAGE)], propagate: false
+                if (dtest_upgrade.result != 'SUCCESS') unstable('dtest-upgrade failures')
+                if (dtest_upgrade.result == 'FAILURE') currentBuild.result='FAILURE'
+              }
+            }
+            post {
+              always {
+                  warnError('missing test xml files') {
+                      script {
+                          copyTestResults('dtest-upgrade', dtest_upgrade.getNumber())
+                      }
+                  }
               }
             }
           }
