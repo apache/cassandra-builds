@@ -64,7 +64,14 @@ _main() {
   ant clean jar
 
   case $target in
-    "stress-test" | "fqltool-test")
+    "stress-test")
+      # hard fail on test compilation, put dont fail the test run as unstable test reports are processed
+      ant stress-build-test
+      ant $target -Dtmp.dir="$(pwd)/tmp" || echo "failed $target"
+      ;;
+    "fqltool-test")
+      # hard fail on test compilation, put dont fail the test run so unstable test reports are processed
+      ant fqltool-build-test
       ant $target -Dtmp.dir="$(pwd)/tmp" || echo "failed $target"
       ;;
     "test")
