@@ -236,7 +236,7 @@ matrixJob('Cassandra-template-test') {
                 git clean -xdff -e build/test/jmh-result.json ;
                 git clone --depth 1 --single-branch -b ${buildsBranch} ${buildsRepo} ;
                 echo "cassandra-builds at: `git -C cassandra-builds log -1 --pretty=format:'%h %an %ad %s'`" ;
-                echo "\${JOB_BASE_NAME}: `git log -1 --pretty=format:'%h %an %ad %s'`" > \${JOB_BASE_NAME}.head ;
+                echo "\${JOB_BASE_NAME}: `git log -1 --pretty=format:'%h %an %ad %s'`" > \${JOB_BASE_NAME}.head
               """)
     }
     publishers {
@@ -253,7 +253,7 @@ matrixJob('Cassandra-template-test') {
         publishOverSsh {
             server('Nightlies') {
                 transferSet {
-                    sourceFiles("build/test/logs/**,build/test/jmh-result.json")
+                    sourceFiles("TESTS-TestSuites.xml.xz,build/test/logs/**,build/test/jmh-result.json")
                     remoteDirectory("cassandra/\${JOB_NAME}/\${BUILD_NUMBER}/")
                 }
             }
@@ -336,7 +336,7 @@ matrixJob('Cassandra-template-dtest-matrix') {
             failOnError(false)
         }
         archiveArtifacts {
-            pattern('**/nosetests.xml, **/*.head')
+            pattern('**/nosetests.xml,**/*.head')
             allowEmpty()
             fingerprint()
         }
@@ -423,18 +423,18 @@ matrixJob('Cassandra-template-cqlsh-tests') {
         publishOverSsh {
             server('Nightlies') {
                 transferSet {
-                    sourceFiles("**/cqlshlib.xml,**/nosetests.xml, **/*.head")
+                    sourceFiles("**/cqlshlib.xml,**/*.head")
                     remoteDirectory("cassandra/\${JOB_NAME}/\${BUILD_NUMBER}/")
                 }
             }
             failOnError(false)
         }
         archiveArtifacts {
-            pattern('**/cqlshlib.xml,**/nosetests.xml, **/*.head')
+            pattern('**/cqlshlib.xml,**/*.head')
             allowEmpty()
             fingerprint()
         }
-        archiveJunit('**/cqlshlib.xml,**/nosetests.xml') {
+        archiveJunit('**/cqlshlib.xml') {
             testDataPublishers {
                 publishTestStabilityData()
             }
@@ -521,7 +521,9 @@ cassandraBranches.each {
                 steps {
                     shell("""
                             ./cassandra-builds/build-scripts/cassandra-test.sh ${targetName} ;
-                             find build/test/logs -type f -name "*.log" | xargs xz -qq
+                             find build/test/logs -type f -name "*.log" | xargs xz -qq ;
+                            ./cassandra-builds/build-scripts/cassandra-test-report.sh ;
+                             xz TESTS-TestSuites.xml
                           """)
                 }
                 if (targetName == 'microbench') {
@@ -789,18 +791,20 @@ testTargets.each {
                     git clean -xdff ${targetName == 'microbench' ? '-e build/test/jmh-result.json' : ''};
                     git clone --depth 1 --single-branch -b ${buildsBranch} ${buildsRepo} ;
                     echo "cassandra-builds at: `git -C cassandra-builds log -1 --pretty=format:'%h %an %ad %s'`" ;
-                    echo "Cassandra-devbranch-${targetName} cassandra: `git log -1 --pretty=format:'%h %an %ad %s'`" > Cassandra-devbranch-${targetName}.head ;
+                    echo "Cassandra-devbranch-${targetName} cassandra: `git log -1 --pretty=format:'%h %an %ad %s'`" > Cassandra-devbranch-${targetName}.head
                   """)
             shell("""
                     ./cassandra-builds/build-scripts/cassandra-test.sh ${targetName} ;
-                    find build/test/logs -type f -name "*.log" | xargs xz -qq
+                    find build/test/logs -type f -name "*.log" | xargs xz -qq ;
+                    ./cassandra-builds/build-scripts/cassandra-test-report.sh ;
+                    xz TESTS-TestSuites.xml
                   """)
         }
         publishers {
             publishOverSsh {
                 server('Nightlies') {
                     transferSet {
-                        sourceFiles("build/test/logs/**,build/test/jmh-result.json")
+                        sourceFiles("TESTS-TestSuites.xml.xz,build/test/logs/**,build/test/jmh-result.json")
                         remoteDirectory("cassandra/devbranch/Cassandra-devbranch-${targetName}/\${BUILD_NUMBER}/\${JOB_NAME}/")
                     }
                 }
@@ -917,14 +921,14 @@ dtestTargets.each {
             publishOverSsh {
                 server('Nightlies') {
                     transferSet {
-                        sourceFiles("**/test_stdout.txt.xz,**/ccm_logs.tar.xz")
+                        sourceFiles("**/nosetests.xml,**/test_stdout.txt.xz,**/ccm_logs.tar.xz")
                         remoteDirectory("cassandra/devbranch/Cassandra-devbranch-${targetName}/\${BUILD_NUMBER}/\${JOB_NAME}/")
                     }
                 }
                 failOnError(false)
             }
             archiveArtifacts {
-                pattern('**/nosetests.xml, **/*.head')
+                pattern('**/nosetests.xml,**/*.head')
                 allowEmpty()
                 fingerprint()
             }
@@ -1022,11 +1026,11 @@ matrixJob('Cassandra-devbranch-cqlsh-tests') {
             failOnError(false)
         }
         archiveArtifacts {
-            pattern('**/cqlshlib.xml,**/nosetests.xml, **/*.head')
+            pattern('**/cqlshlib.xml,**/*.head')
             allowEmpty()
             fingerprint()
         }
-        archiveJunit('**/cqlshlib.xml,**/nosetests.xml')
+        archiveJunit('**/cqlshlib.xml')
         postBuildTask {
             task('.', """
                 echo "Finding job process orphans…"; if pgrep -af "\${JOB_BASE_NAME}"; then pkill -9 -f "\${JOB_BASE_NAME}"; fi;
