@@ -36,7 +36,8 @@ RUN yum -y install python2-pip
 RUN pip install 'idna<3' urllib3[secure]
 
 # upgrade to modern pip version
-RUN pip install --upgrade pip
+RUN pip install --upgrade 'pip<21'
+RUN pip install 'setuptools<45'
 
 # install Sphinx to generate docs
 RUN pip install \
