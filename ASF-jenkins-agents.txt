@@ -27,24 +27,36 @@ Ensure the additional (500GB) data volume is mounted (and added to `/etc/fstab` 
 Ensure the root volume is 100GB+.
 Ensure `hostname` is configured to the server's public ip.
 
+Two users need to be added, each with a different public key authorized. The jenkins user is for the CloudBees master, and the asf999 user is for ASF Infra maintenance.
+
 Add jenkins user:
   $ sudo groupadd -g 910 jenkins
   $ sudo useradd -m -u 910 -g 910 -s /bin/bash jenkins
 
-Add ssh pub key from puppet deployment repo:
-  https://github.com/apache/infrastructure-puppet/blob/deployment/data/ubuntu/1404.yaml#L295
+Authorize ssh pub key for jenkins user:
+  # more info, see https://github.com/apache/infrastructure-puppet/blob/deployment/data/ubuntu/1404.yaml#L295
   $ sudo mkdir /home/jenkins/.ssh
   $ sudo sh -c "echo 'ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAIEAtxkcKDiPh1OaVzaVdc80daKq2sRy8aAgt8u2uEcLClzMrnv/g19db7XVggfT4+HPCqcbFbO3mtVnUnWWtuSEpDjqriWnEcSj2G1P53zsdKEu9qCGLmEFMgwcq8b5plv78PRdAQn09WCBI1QrNMypjxgCKhNNn45WqV4AD8Jp7/8=' > /home/jenkins/.ssh/authorized_keys"
   $ sudo chown -R jenkins:jenkins /home/jenkins/.ssh
   $ sudo chmod 700 /home/jenkins/.ssh
   $ sudo chmod 600 /home/jenkins/.ssh/authorized_keys
 
+Add asf999 user:
+  $ sudo groupadd -g 999 asf999
+  $ sudo useradd -m -u 999 -g 999 -s /bin/bash asf999
+
+Authorize ssh pub key for asf999 user:
+  # more info, see https://github.com/apache/infrastructure-puppet/blob/deployment/data/common.yaml#L55
+  $ sudo mkdir /home/asf999/.ssh
+  $ sudo sh -c "echo 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDKU0OarYDnMtEyneHtOAA/mpeJbXLCVA2yy8wl2fGQ/kzdRhBDCCjusV0D83cwKckJEGVInbYruLwq7Rk4e1k0hwHoVR28ps4B0IrsFlkQrfkS0plGq5VlbUU1lu9hdR+2o992NzK3BGJa6Bde493FaEnJf+s4dQM9kkb9keYXLdh9lC99xlxYg7P5gSlv+0tCAo3LisKM1vVfjLaXIv94KwRNjcrLH0rjrQt0UnkGTjoP+WonILz9CsFfJDncofFp4gyyioYDTqgyGbVauGAdfctrqc+c1x4sz+Hk2ocFjGZEGzHZ8E/ZRXpaa9QNeyc4vKAm9CSWyonLNr3+KyJfQP82w5IZIF8rMBjl3/m0zPUgXSitc6ebrLUFhrESyoFF0RfeqEYUzjf52uRVlPVSiSATmvccdHel/G6lUZrQScYUPOZT++C7TZNPzRNy/MzeLjF0jcrDYjCXEj1r9TkQtByoHKc0Cikokcmn15SPX9nBWScN0kQ9DCnQ1DRx0C2L/KJwiV8i/ziel8RFqg8n71v1H8Ve40F/m+03dZAUGzlE1wu+lXu/ZXjBgIu8vOmz3LK+k4UskiMiiktYq1N9RG+4l30JR/OlLIRhlKiernmWUFyGC4npbquaTKUsB6G6RKOC1WnLpuM5U1jIKVeOejoptJilaHvO0RiZxNP/ZQ==' > /home/asf999/.ssh/authorized_keys"
+  $ sudo chown -R asf999:asf999 /home/asf999/.ssh
+  $ sudo chmod 700 /home/asf999/.ssh
+  $ sudo chmod 600 /home/asf999/.ssh/authorized_keys
+
 Install and Configure Puppet:
-    1. I added an 'asf999' user which has a pub key file containing keys from the Infra Team. (It has our standard uid/gid of 910)
-        (See also: https://github.com/apache/infrastructure-puppet/blob/deployment/data/common.yaml#L55 )
+    1. Ensure the 'asf999' user is added, according to the steps above.
     2. The asf999 user has sudo no passwd (configured in visudo)
-    3. Installed Puppet 6  (Not Puppet 5 that Bionic would normally install)
-         and configured the puppet.conf file ready for use
+    3. Installed Puppet 6  (Not Puppet 5 that Bionic would normally install) and configured the puppet.conf file ready for use
       3a. wget https://apt.puppetlabs.com/puppet-release-bionic.deb
       3b. dpkg -i puppet-release-bionic.deb
       3c. apt-get update
