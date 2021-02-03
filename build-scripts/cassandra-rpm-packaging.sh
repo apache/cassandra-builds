@@ -30,7 +30,7 @@ command -v docker >/dev/null 2>&1 || { echo >&2 "docker needs to be installed"; 
 [ -f "${cassandra_builds_dir}/docker/build-rpms.sh" ] || { echo >&2 "docker/build-rpms.sh must exist"; exit 1; }
 
 # remove any previous older built images
-docker image prune -f --filter label=org.cassandra.buildenv=centos --filter "until=4h"
+docker image prune --all --force --filter label=org.cassandra.buildenv=centos --filter "until=4h"
 
 pushd $cassandra_builds_dir
 

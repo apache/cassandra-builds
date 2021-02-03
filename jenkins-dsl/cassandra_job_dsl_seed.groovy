@@ -174,7 +174,7 @@ matrixJob('Cassandra-template-artifacts') {
         postBuildTask {
             task('.', """
                 echo "Cleaning project…"; git clean -xdff ;
-                echo "Pruning docker…" ; docker system prune -f --filter "until=${maxJobHours}h"  ;
+                echo "Pruning docker…" ; docker system prune --all --force --filter "until=${maxJobHours}h"  ;
                 echo "Reporting disk usage…"; df -h ;
                 echo "Cleaning tmp…";
                 find . -type d -name tmp -delete 2>/dev/null ;
@@ -263,7 +263,7 @@ matrixJob('Cassandra-template-test') {
             task('.', """
                 echo "Finding job process orphans…"; if pgrep -af "\${JOB_BASE_NAME}"; then pkill -9 -f "\${JOB_BASE_NAME}"; fi;
                 echo "Cleaning project…"; git clean -xdff ;
-                echo "Pruning docker…" ; docker system prune -f --filter "until=${maxJobHours}h"  ;
+                echo "Pruning docker…" ; docker system prune --all --force --filter "until=${maxJobHours}h"  ;
                 echo "Reporting disk usage…"; du -xm / 2>/dev/null | sort -rn | head -n 30 ; df -h ;
                 echo "Cleaning tmp…";
                 find . -type d -name tmp -delete 2>/dev/null ;
@@ -349,7 +349,7 @@ matrixJob('Cassandra-template-dtest-matrix') {
             // the pgrep needs to catch any other build/process that is using docker
             task('.', """
                 echo "Cleaning project…"; git clean -xdff ;
-                echo "Pruning docker…" ; if pgrep -af "cassandra-artifacts.sh|jenkinscommand.sh"; then docker system prune -f --filter 'until=${maxJobHours}h'; else docker system prune -f --volumes ; fi;
+                echo "Pruning docker…" ; if pgrep -af "cassandra-artifacts.sh|jenkinscommand.sh"; then docker system prune --all --force --filter 'until=${maxJobHours}h'; else docker system prune --all --force --volumes ; fi;
                 echo "Reporting disk usage…"; df -h ;
                 echo "Cleaning tmp…";
                 find . -type d -name tmp -delete 2>/dev/null ;
@@ -443,7 +443,7 @@ matrixJob('Cassandra-template-cqlsh-tests') {
             task('.', """
                 echo "Finding job process orphans…"; if pgrep -af "\${JOB_BASE_NAME}"; then pkill -9 -f "\${JOB_BASE_NAME}"; fi;
                 echo "Cleaning project…"; git clean -xdff ;
-                echo "Pruning docker…" ; docker system prune -f --filter "until=${maxJobHours}h"  ;
+                echo "Pruning docker…" ; docker system prune --all --force --filter "until=${maxJobHours}h"  ;
                 echo "Reporting disk usage…"; df -h ;
                 echo "Cleaning tmp…";
                 find . -type d -name tmp -delete 2>/dev/null ;
@@ -707,7 +707,7 @@ matrixJob('Cassandra-devbranch-artifacts') {
         postBuildTask {
             task('.', """
                 echo "Cleaning project…"; git clean -xdff ;
-                echo "Pruning docker…" ; docker system prune -f --filter "until=${maxJobHours}h"  ;
+                echo "Pruning docker…" ; docker system prune --all --force --filter "until=${maxJobHours}h"  ;
                 echo "Reporting disk usage…"; df -h ;
                 echo "Cleaning tmp…";
                 find . -type d -name tmp -delete 2>/dev/null ;
@@ -808,7 +808,7 @@ testTargets.each {
                 task('.', """
                     echo "Finding job process orphans…"; if pgrep -af "\${JOB_BASE_NAME}"; then pkill -9 -f "\${JOB_BASE_NAME}"; fi;
                     echo "Cleaning project…"; git clean -xdff ;
-                    echo "Pruning docker…" ; docker system prune -f --filter "until=${maxJobHours}h"  ;
+                    echo "Pruning docker…" ; docker system prune --all --force --filter "until=${maxJobHours}h"  ;
                     echo "Reporting disk usage…"; du -xm / 2>/dev/null | sort -rn | head -n 30 ; df -h ;
                     echo "Cleaning tmp…";
                     find . -type d -name tmp -delete 2>/dev/null ;
@@ -923,7 +923,7 @@ dtestTargets.each {
                 // the pgrep needs to catch any other build/process that is using docker
                 task('.', """
                     echo "Cleaning project…" ; git clean -xdff ;
-                    echo "Pruning docker…" ; if pgrep -af "cassandra-artifacts.sh|jenkinscommand.sh"; then docker system prune -f --filter "until=${maxJobHours}h"; else docker system prune -f --volumes ; fi;
+                    echo "Pruning docker…" ; if pgrep -af "cassandra-artifacts.sh|jenkinscommand.sh"; then docker system prune --all --force --filter "until=${maxJobHours}h"; else docker system prune --all --force --volumes ; fi;
                     echo "Reporting disk usage…"; df -h ;
                     echo "Cleaning tmp…";
                     find . -type d -name tmp -delete 2>/dev/null ;
@@ -1021,7 +1021,7 @@ matrixJob('Cassandra-devbranch-cqlsh-tests') {
             task('.', """
                 echo "Finding job process orphans…"; if pgrep -af "\${JOB_BASE_NAME}"; then pkill -9 -f "\${JOB_BASE_NAME}"; fi;
                 echo "Cleaning project…"; git clean -xdff ;
-                echo "Pruning docker…" ; docker system prune -f --filter "until=${maxJobHours}h" ;
+                echo "Pruning docker…" ; docker system prune --all --force --filter "until=${maxJobHours}h" ;
                 echo "Reporting disk usage…"; df -h ;
                 echo "Cleaning tmp…";
                 find . -type d -name tmp -delete 2>/dev/null ;
