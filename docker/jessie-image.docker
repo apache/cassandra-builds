@@ -25,7 +25,7 @@ RUN apt-get -y -t jessie-backports install \
    python-sphinx \
    python-sphinx-rtd-theme
 
-RUN update-java-alternatives --set java-1.8.0-openjdk-amd64
+RUN update-java-alternatives --set java-1.8.0-openjdk-$(dpkg --print-architecture)
 
 # create and change to build user
 RUN adduser --disabled-login --gecos build build && gpasswd -a build sudo
