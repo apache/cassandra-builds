@@ -100,6 +100,7 @@ matrixJob('Cassandra-template-artifacts') {
     logRotator {
         numToKeep(10)
         artifactNumToKeep(5)
+        artifactDaysToKeep(1)
     }
     wrappers {
         timeout {
@@ -195,6 +196,7 @@ matrixJob('Cassandra-template-test') {
     logRotator {
         numToKeep(10)
         artifactNumToKeep(5)
+        artifactDaysToKeep(1)
     }
     wrappers {
         timeout {
@@ -284,6 +286,7 @@ matrixJob('Cassandra-template-dtest-matrix') {
     logRotator {
         numToKeep(10)
         artifactNumToKeep(5)
+        artifactDaysToKeep(1)
     }
     wrappers {
         timeout {
@@ -370,6 +373,7 @@ matrixJob('Cassandra-template-cqlsh-tests') {
     logRotator {
         numToKeep(10)
         artifactNumToKeep(5)
+        artifactDaysToKeep(1)
     }
     wrappers {
         timeout {
@@ -661,6 +665,7 @@ matrixJob('Cassandra-devbranch-artifacts') {
     logRotator {
         numToKeep(90)
         artifactNumToKeep(5)
+        artifactDaysToKeep(1)
     }
     wrappers {
         timeout {
@@ -746,6 +751,7 @@ testTargets.each {
         logRotator {
             numToKeep(90)
             artifactNumToKeep(5)
+            artifactDaysToKeep(1)
         }
         wrappers {
             timeout {
@@ -850,6 +856,7 @@ dtestTargets.each {
         logRotator {
             numToKeep(90)
             artifactNumToKeep(5)
+            artifactDaysToKeep(1)
         }
         wrappers {
             timeout {
@@ -959,6 +966,7 @@ matrixJob('Cassandra-devbranch-cqlsh-tests') {
     logRotator {
         numToKeep(90)
         artifactNumToKeep(5)
+        artifactDaysToKeep(1)
     }
     wrappers {
         timeout {
