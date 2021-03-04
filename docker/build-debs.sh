@@ -105,7 +105,7 @@ if [ $buildxml_version != $git_version ]; then
 fi
 
 if [ $JAVA_VERSION = "11" ]; then
-   sudo update-java-alternatives --set java-1.11.0-openjdk-amd64
+   sudo update-java-alternatives --set java-1.11.0-openjdk-$(dpkg --print-architecture)
    export CASSANDRA_USE_JDK11=true
    echo "Cassandra will be built with Java 11"
 else

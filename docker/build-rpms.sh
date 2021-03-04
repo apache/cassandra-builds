@@ -87,7 +87,10 @@ if [ $JAVA_VERSION = "11" ]; then
    echo "Cassandra will be built with Java 11"
 else
    echo "Cassandra will be built with Java 8"
+   sudo alternatives --set java $(alternatives --display java | grep 'family java-1.8.0-openjdk' | cut -d' ' -f1)
+   sudo alternatives --set javac $(alternatives --display javac | grep 'family java-1.8.0-openjdk' | cut -d' ' -f1)
 fi
+export JAVA_HOME=$(readlink -f /usr/bin/javac | sed "s:/bin/javac::")
 
 java -version
 javac -version
@@ -101,5 +104,6 @@ cp ./build/apache-cassandra-*-src.tar.gz ${RPM_BUILD_DIR}/SOURCES/
 # if CASSANDRA_VERSION is -alphaN, -betaN, -rcN, then rpmbuild fails on the '-' char; replace with '~'
 CASSANDRA_VERSION=${CASSANDRA_VERSION/-/\~}
 
+command -v python >/dev/null 2>&1 || sudo ln -s /usr/bin/python3 /usr/bin/python
 rpmbuild --define="version ${CASSANDRA_VERSION}" --define="revision ${CASSANDRA_REVISION}" -ba ./redhat/cassandra.spec
 cp $RPM_BUILD_DIR/SRPMS/*.rpm $RPM_BUILD_DIR/RPMS/noarch/*.rpm $RPM_DIST_DIR
