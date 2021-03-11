@@ -18,10 +18,14 @@ def slaveLabel = 'cassandra'
 if(binding.hasVariable("CASSANDRA_SLAVE_LABEL")) {
     slaveLabel = "${CASSANDRA_SLAVE_LABEL}"
 }
+def dtestSlaveLabel = 'cassandra-dtest'
+if(binding.hasVariable("CASSANDRA_DTEST_SLAVE_LABEL")) {
+    dtestSlaveLabel = "${CASSANDRA_DTEST_SLAVE_LABEL}"
+}
 // The dtest-large target needs to run on >=32G slaves
-def largeSlaveLabel = 'cassandra-large'
-if(binding.hasVariable("CASSANDRA_LARGE_SLAVE_LABEL")) {
-    largeSlaveLabel = "${CASSANDRA_LARGE_SLAVE_LABEL}"
+def dtestLargeSlaveLabel = 'cassandra-dtest-large'
+if(binding.hasVariable("CASSANDRA_DTEST_LARGE_SLAVE_LABEL")) {
+    dtestLargeSlaveLabel = "${CASSANDRA_LARGE_SLAVE_LABEL}"
 }
 def mainRepo = "https://github.com/apache/cassandra.git"
 def githubRepo = "https://github.com/apache/cassandra"
@@ -566,7 +570,11 @@ cassandraBranches.each {
                     }
                     (1..splits).each { values << it.toString() }
                     text('split', values)
-                    label('label', slaveLabel)
+                    if (targetName == 'dtest-large' || targetName == 'dtest-large-novnode') {
+                        label('label', dtestLargeSlaveLabel)
+                    } else {
+                        label('label', dtestSlaveLabel)
+                    }
                 }
                 configure { node ->
                     node / scm / branches / 'hudson.plugins.git.BranchSpec' / name(branchName)
@@ -881,9 +889,9 @@ dtestTargets.each {
             (1..splits).each { values << it.toString() }
             text('split', values)
             if (targetName == 'dtest-large' || targetName == 'dtest-large-novnode') {
-                label('label', largeSlaveLabel)
+                label('label', dtestLargeSlaveLabel)
             } else {
-                label('label', slaveLabel)
+                label('label', dtestSlaveLabel)
             }
          }
         properties {
