@@ -93,11 +93,11 @@ _main() {
       ant testclasslist -Dtest.classlistprefix=long -Dtest.timeout=$(_timeout_for "test.long.timeout") -Dtest.classlistfile=<( _list_tests "long" ) -Dtmp.dir="${TMP_DIR}" || echo "failed $target"
       ;;
     "jvm-dtest")
-      ant testclasslist -Dtest.classlistprefix=distributed -Dtest.timeout=$(_timeout_for "test.distributed.timeout") -Dtest.classlistfile=<( _list_tests "distributed" | grep -v "upgrade" ) -Dtmp.dir="${TMP_DIR}" || echo "failed $target"
+      ant testclasslist -Dtest.classlistprefix=distributed -Dtest.timeout=$(_timeout_for "test.distributed.timeout") -Dtest.classlistfile=<( _list_tests "distributed" | grep -v "upgrade" ) -Dtmp.dir="${TMP_DIR}" -Dtest.runners=1 || echo "failed $target"
       ;;
     "jvm-dtest-upgrade")
       _build_all_dtest_jars
-      ant testclasslist -Dtest.classlistprefix=distributed -Dtest.timeout=$(_timeout_for "test.distributed.timeout") -Dtest.classlistfile=<( _list_tests "distributed" | grep "upgrade" ) -Dtmp.dir="${TMP_DIR}" || echo "failed $target"
+      ant testclasslist -Dtest.classlistprefix=distributed -Dtest.timeout=$(_timeout_for "test.distributed.timeout") -Dtest.classlistfile=<( _list_tests "distributed" | grep "upgrade" ) -Dtmp.dir="${TMP_DIR}" -Dtest.runners=1 || echo "failed $target"
       ;;
     *)
       echo "unregconised \"$target\""
