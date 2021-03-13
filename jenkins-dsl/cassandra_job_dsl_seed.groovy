@@ -14,19 +14,19 @@ def jdkLabel = 'jdk_1.8_latest'
 if(binding.hasVariable("CASSANDRA_JDK_LABEL")) {
     jdkLabel = "${CASSANDRA_JDK_LABEL}"
 }
+
+// architectures. blank is amd64
+def archs = ['', '-arm64']
+arm64_enabled = true
+arm64_test_label_enabled = false
+def use_arm64_test_label() { return arm64_enabled && arm64_test_label_enabled }
+
 def slaveLabel = 'cassandra'
-if(binding.hasVariable("CASSANDRA_SLAVE_LABEL")) {
-    slaveLabel = "${CASSANDRA_SLAVE_LABEL}"
-}
-def dtestSlaveLabel = 'cassandra-dtest'
-if(binding.hasVariable("CASSANDRA_DTEST_SLAVE_LABEL")) {
-    dtestSlaveLabel = "${CASSANDRA_DTEST_SLAVE_LABEL}"
-}
-// The dtest-large target needs to run on >=32G slaves
-def dtestLargeSlaveLabel = 'cassandra-dtest-large'
-if(binding.hasVariable("CASSANDRA_DTEST_LARGE_SLAVE_LABEL")) {
-    dtestLargeSlaveLabel = "${CASSANDRA_LARGE_SLAVE_LABEL}"
-}
+slaveDtestLabel = 'cassandra-dtest'
+slaveDtestLargeLabel = 'cassandra-dtest-large'
+slaveArm64Label = 'cassandra-arm64'
+slaveArm64DtestLabel = 'cassandra-arm64-dtest'
+slaveArm64DtestLargeLabel = 'cassandra-arm64-dtest-large'
 def mainRepo = "https://github.com/apache/cassandra.git"
 def githubRepo = "https://github.com/apache/cassandra"
 if(binding.hasVariable("CASSANDRA_GIT_URL")) {
@@ -391,7 +391,11 @@ matrixJob('Cassandra-template-cqlsh-tests') {
     axes {
         text('cython', 'yes', 'no')
         jdk(jdkLabel)
-        label('label', slaveLabel)
+        if (use_arm64_test_label()) {
+            label('label', slaveLabel, slaveArm64Label)
+        } else {
+            label('label', slaveLabel)
+        }
     }
     // this should prevent long path expansion from the axis definitions
     childCustomWorkspace('.')
@@ -486,7 +490,11 @@ cassandraBranches.each {
             } else {
                 jdk('jdk_1.8_latest')
             }
-            label('label', slaveLabel)
+            if (arm64_enabled) {
+                label('label', slaveLabel, slaveArm64Label)
+            } else {
+                label('label', slaveLabel)
+            }
         }
         configure { node ->
             node / scm / branches / 'hudson.plugins.git.BranchSpec' / name(branchName)
@@ -521,7 +529,11 @@ cassandraBranches.each {
                     } else {
                         jdk(jdkLabel)
                     }
-                    label('label', slaveLabel)
+                    if (use_arm64_test_label()) {
+                        label('label', slaveLabel, slaveArm64Label)
+                    } else {
+                        label('label', slaveLabel)
+                    }
                 }
                 configure { node ->
                     node / scm / branches / 'hudson.plugins.git.BranchSpec' / name(branchName)
@@ -551,39 +563,58 @@ cassandraBranches.each {
     /**
      * Main branch dtest variation jobs
      */
-    dtestTargets.each {
-        def targetName = it
+    archs.each {
+        def arch = it
+        dtestTargets.each {
+            def targetName = it
+            def targetArchName = targetName + arch
 
-        // Skip dtest-offheap on cassandra-3.0 branch
-        if ((targetName == 'dtest-offheap') && (branchName == 'cassandra-3.0')) {
-            println("Skipping ${targetName} on branch ${branchName}")
-        } else {
-            matrixJob("${jobNamePrefix}-${targetName}") {
-                disabled(false)
-                using('Cassandra-template-dtest-matrix')
-                axes {
-                    List<String> values = new ArrayList<String>()
-                    if (targetName == 'dtest-large' || targetName == 'dtest-large-novnode') {
-                        splits = dtestLargeSplits
-                    } else {
-                        splits = dtestSplits
+            // Skip dtest-offheap on cassandra-3.0 branch
+            if ((targetName == 'dtest-offheap') && (branchName == 'cassandra-3.0')) {
+                println("Skipping ${targetArchName} on branch ${branchName}")
+            } else {
+                matrixJob("${jobNamePrefix}-${targetArchName}") {
+                    disabled(false)
+                    using('Cassandra-template-dtest-matrix')
+                    axes {
+                        List<String> values = new ArrayList<String>()
+                        if (targetName == 'dtest-large' || targetName == 'dtest-large-novnode') {
+                            splits = dtestLargeSplits
+                        } else {
+                            splits = dtestSplits
+                        }
+                        (1..splits).each { values << it.toString() }
+                        text('split', values)
+                        if (targetName == 'dtest-large' || targetName == 'dtest-large-novnode') {
+                            if (arch == "-arm64") {
+                                label('label', slaveArm64DtestLargeLabel)
+                            } else {
+                                label('label', slaveDtestLargeLabel)
+                            }
+                        } else {
+                            if (arch == "-arm64") {
+                                label('label', slaveArm64DtestLabel)
+                            } else {
+                                label('label', slaveDtestLabel)
+                            }
+                        }
                     }
-                    (1..splits).each { values << it.toString() }
-                    text('split', values)
-                    if (targetName == 'dtest-large' || targetName == 'dtest-large-novnode') {
-                        label('label', dtestLargeSlaveLabel)
-                    } else {
-                        label('label', dtestSlaveLabel)
+                    configure { node ->
+                        node / scm / branches / 'hudson.plugins.git.BranchSpec' / name(branchName)
                     }
-                }
-                configure { node ->
-                    node / scm / branches / 'hudson.plugins.git.BranchSpec' / name(branchName)
-                }
-                steps {
-                    shell("""
-                        sh ./cassandra-builds/docker/jenkins/jenkinscommand.sh apache ${branchName} https://github.com/apache/cassandra-dtest.git trunk ${buildsRepo} ${buildsBranch} ${dtestDockerImage} ${targetName} \${split}/${splits} ;
-                        xz test_stdout.txt
-                        """)
+                    steps {
+                        if (arch == "-arm64") {
+                            shell("""
+                                    # docker image has to be built on arm64 (they are not currently published to dockerhub)
+                                    cd cassandra-builds/docker/testing ;
+                                    docker build -t \$DOCKER_IMAGE:latest -f ubuntu2004_j11.docker .
+                                  """)
+                        }
+                        shell("""
+                            sh ./cassandra-builds/docker/jenkins/jenkinscommand.sh apache ${branchName} https://github.com/apache/cassandra-dtest.git trunk ${buildsRepo} ${buildsBranch} ${dtestDockerImage} ${targetName} \${split}/${splits} ;
+                            xz test_stdout.txt
+                            """)
+                    }
                 }
             }
         }
@@ -667,7 +698,11 @@ matrixJob('Cassandra-devbranch-artifacts') {
     concurrentBuild()
     axes {
         jdk(jdkLabel,'jdk_11_latest')
-        label('label', slaveLabel)
+        if (arm64_enabled) {
+            label('label', slaveLabel, slaveArm64Label)
+        } else {
+            label('label', slaveLabel)
+        }
     }
     compressBuildLog()
     logRotator {
@@ -753,7 +788,11 @@ testTargets.each {
         concurrentBuild()
         axes {
             jdk(jdkLabel,'jdk_11_latest')
-            label('label', slaveLabel)
+            if (use_arm64_test_label()) {
+                label('label', slaveLabel, slaveArm64Label)
+            } else {
+                label('label', slaveLabel)
+            }
         }
         compressBuildLog()
         logRotator {
@@ -853,111 +892,130 @@ testTargets.each {
  * Only the vanilla dtest target is used in the Cassandra-devbranch pipeline,
  *  but they are all added here for developers needing to pre-commit test them specifically.
  */
-dtestTargets.each {
-    def targetName = it
+archs.each {
+    def arch = it
+    dtestTargets.each {
+        def targetName = it
+        def targetArchName = targetName + arch
 
-    matrixJob("Cassandra-devbranch-${targetName}") {
-        description(jobDescription)
-        concurrentBuild()
-        compressBuildLog()
-        compressBuildLog()
-        logRotator {
-            numToKeep(90)
-            artifactNumToKeep(5)
-            artifactDaysToKeep(1)
-        }
-        wrappers {
-            timeout {
-                noActivity(2400)
+        matrixJob("Cassandra-devbranch-${targetArchName}") {
+            description(jobDescription)
+            concurrentBuild()
+            compressBuildLog()
+            compressBuildLog()
+            logRotator {
+                numToKeep(90)
+                artifactNumToKeep(5)
+                artifactDaysToKeep(1)
             }
-            timestamps()
-        }
-        parameters {
-            stringParam('REPO', 'apache', 'The github user/org to clone cassandra repo from')
-            stringParam('BRANCH', 'trunk', 'The branch of cassandra to checkout')
-            stringParam('DTEST_REPO', "${dtestRepo}", 'The cassandra-dtest repo URL')
-            stringParam('DTEST_BRANCH', 'trunk', 'The branch of cassandra-dtest to checkout')
-            stringParam('DOCKER_IMAGE', "${dtestDockerImage}", 'Docker image for running dtests')
-        }
-        axes {
-            List<String> values = new ArrayList<String>()
-            if (targetName == 'dtest-large' || targetName == 'dtest-large-novnode') {
-                splits = dtestLargeSplits
-            } else {
-                splits = dtestSplits
-            }
-            (1..splits).each { values << it.toString() }
-            text('split', values)
-            if (targetName == 'dtest-large' || targetName == 'dtest-large-novnode') {
-                label('label', dtestLargeSlaveLabel)
-            } else {
-                label('label', dtestSlaveLabel)
-            }
-         }
-        properties {
-            githubProjectUrl(githubRepo)
-            priorityJobProperty {
-                useJobPriority(true)
-                priority(6)
-            }
-        }
-        scm {
-            git {
-                remote {
-                    url('https://github.com/${REPO}/cassandra.git')
+            wrappers {
+                timeout {
+                    noActivity(2400)
                 }
-                branch('${BRANCH}')
-                extensions {
-                    cleanAfterCheckout()
-                    cloneOption {
-                        shallow(false)
-                        reference('.')
-                        honorRefspec(true)
-                        noTags(true)
-                        timeout(maxJobHours * 60)
+                timestamps()
+            }
+            parameters {
+                stringParam('REPO', 'apache', 'The github user/org to clone cassandra repo from')
+                stringParam('BRANCH', 'trunk', 'The branch of cassandra to checkout')
+                stringParam('DTEST_REPO', "${dtestRepo}", 'The cassandra-dtest repo URL')
+                stringParam('DTEST_BRANCH', 'trunk', 'The branch of cassandra-dtest to checkout')
+                stringParam('DOCKER_IMAGE', "${dtestDockerImage}", 'Docker image for running dtests')
+            }
+            axes {
+                List<String> values = new ArrayList<String>()
+                if (targetName == 'dtest-large' || targetName == 'dtest-large-novnode') {
+                    splits = dtestLargeSplits
+                } else {
+                    splits = dtestSplits
+                }
+                (1..splits).each { values << it.toString() }
+                text('split', values)
+                if (targetName == 'dtest-large' || targetName == 'dtest-large-novnode') {
+                    if (arch == "-arm64") {
+                        label('label', slaveArm64DtestLargeLabel)
+                    } else {
+                        label('label', slaveDtestLargeLabel)
+                    }
+                } else {
+                    if (arch == "-arm64") {
+                        label('label', slaveArm64DtestLabel)
+                    } else {
+                        label('label', slaveDtestLabel)
                     }
                 }
             }
-        }
-        steps {
-            buildDescription('', buildDescStr)
-            shell("""
-                    git clean -xdff ;
-                    git clone --depth 1 --single-branch -b ${buildsBranch} ${buildsRepo} ;
-                    echo "cassandra-builds at: `git -C cassandra-builds log -1 --pretty=format:'%h %an %ad %s'`" ;
-                    echo "Cassandra-devbranch-${targetName} cassandra: `git log -1 --pretty=format:'%h %an %ad %s'`" > Cassandra-devbranch-${targetName}.head ;
-                  """)
-            shell("""
-                sh ./cassandra-builds/docker/jenkins/jenkinscommand.sh \$REPO \$BRANCH \$DTEST_REPO \$DTEST_BRANCH ${buildsRepo} ${buildsBranch} \$DOCKER_IMAGE ${targetName} \${split}/${splits} ;
-                xz test_stdout.txt
-                  """)
-        }
-        publishers {
-            publishOverSsh {
-                server('Nightlies') {
-                    transferSet {
-                        sourceFiles("**/nosetests.xml,**/test_stdout.txt.xz,**/ccm_logs.tar.xz")
-                        remoteDirectory("cassandra/devbranch/Cassandra-devbranch-${targetName}/\${BUILD_NUMBER}/\${JOB_NAME}/")
+            properties {
+                githubProjectUrl(githubRepo)
+                priorityJobProperty {
+                    useJobPriority(true)
+                    priority(6)
+                }
+            }
+            scm {
+                git {
+                    remote {
+                        url('https://github.com/${REPO}/cassandra.git')
+                    }
+                    branch('${BRANCH}')
+                    extensions {
+                        cleanAfterCheckout()
+                        cloneOption {
+                            shallow(false)
+                            reference('.')
+                            honorRefspec(true)
+                            noTags(true)
+                            timeout(maxJobHours * 60)
+                        }
                     }
                 }
-                failOnError(false)
             }
-            archiveArtifacts {
-                pattern('**/nosetests.xml,**/*.head')
-                allowEmpty()
-                fingerprint()
+            steps {
+                buildDescription('', buildDescStr)
+                shell("""
+                        git clean -xdff ;
+                        git clone --depth 1 --single-branch -b ${buildsBranch} ${buildsRepo} ;
+                        echo "cassandra-builds at: `git -C cassandra-builds log -1 --pretty=format:'%h %an %ad %s'`" ;
+                        echo "Cassandra-devbranch-${targetArchName} cassandra: `git log -1 --pretty=format:'%h %an %ad %s'`" > Cassandra-devbranch-${targetArchName}.head ;
+                      """)
+                if (arch == "-arm64") {
+                    shell("""
+                            # docker image has to be built on arm64 (as they are not published to dockerhub)
+                            cd cassandra-builds/docker/testing ;
+                            docker build -t \$DOCKER_IMAGE:latest -f ubuntu2004_j11.docker .
+                          """)
+                }
+                shell("""
+                    sh ./cassandra-builds/docker/jenkins/jenkinscommand.sh \$REPO \$BRANCH \$DTEST_REPO \$DTEST_BRANCH ${buildsRepo} ${buildsBranch} \$DOCKER_IMAGE ${targetName} \${split}/${splits} ;
+                    xz test_stdout.txt
+                      """)
             }
-            archiveJunit('nosetests.xml')
-            postBuildTask {
-                // the pgrep needs to catch any other build/process that is using docker
-                task('.', """
-                    echo "Cleaning project…" ; git clean -xdff ;
-                    echo "Pruning docker…" ; if pgrep -af "cassandra-artifacts.sh|jenkinscommand.sh"; then docker system prune --all --force --filter "until=${maxJobHours}h"; else docker system prune --all --force --volumes ; fi;
-                    echo "Reporting disk usage…"; df -h ;
-                    echo "Cleaning tmp…";
-                    find . -type d -name tmp -delete 2>/dev/null ;
-                    find /tmp -type f -atime +2 -user jenkins -and -not -exec fuser -s {} ';' -and -delete 2>/dev/null
-                """)
+            publishers {
+                publishOverSsh {
+                    server('Nightlies') {
+                        transferSet {
+                            sourceFiles("**/nosetests.xml,**/test_stdout.txt.xz,**/ccm_logs.tar.xz")
+                            remoteDirectory("cassandra/devbranch/Cassandra-devbranch-${targetArchName}/\${BUILD_NUMBER}/\${JOB_NAME}/")
+                        }
+                    }
+                    failOnError(false)
+                }
+                archiveArtifacts {
+                    pattern('**/nosetests.xml,**/*.head')
+                    allowEmpty()
+                    fingerprint()
+                }
+                archiveJunit('nosetests.xml')
+                postBuildTask {
+                    // the pgrep needs to catch any other build/process that is using docker
+                    task('.', """
+                        echo "Cleaning project…" ; git clean -xdff ;
+                        echo "Pruning docker…" ; if pgrep -af "cassandra-artifacts.sh|jenkinscommand.sh"; then docker system prune --all --force --filter "until=${maxJobHours}h"; else docker system prune --all --force --volumes ; fi;
+                        echo "Reporting disk usage…"; df -h ;
+                        echo "Cleaning tmp…";
+                        find . -type d -name tmp -delete 2>/dev/null ;
+                        find /tmp -type f -atime +2 -user jenkins -and -not -exec fuser -s {} ';' -and -delete 2>/dev/null
+                    """)
+                }
             }
         }
     }
@@ -994,7 +1052,11 @@ matrixJob('Cassandra-devbranch-cqlsh-tests') {
     axes {
         text('cython', 'yes', 'no')
         jdk(jdkLabel)
-        label('label', slaveLabel)
+        if (use_arm64_test_label()) {
+            label('label', slaveLabel, slaveArm64Label)
+        } else {
+            label('label', slaveLabel)
+        }
     }
     // this should prevent long path expansion from the axis definitions
     childCustomWorkspace('.')
