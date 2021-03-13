@@ -62,42 +62,6 @@ pipeline {
                 }
               }
             }
-            stage('jvm-dtest') {
-              steps {
-                script {
-                  jvm_dtest = build job: "${env.JOB_NAME}-jvm-dtest", parameters: [string(name: 'REPO', value: params.REPO), string(name: 'BRANCH', value: params.BRANCH)], propagate: false
-                  if (jvm_dtest.result != 'SUCCESS') unstable('jvm-dtest failures')
-                  if (jvm_dtest.result == 'FAILURE')  currentBuild.result='FAILURE'
-                }
-              }
-              post {
-                always {
-                    warnError('missing test xml files') {
-                        script {
-                            copyTestResults('jvm-dtest', jvm_dtest.getNumber())
-                        }
-                    }
-                }
-              }
-            }
-            stage('jvm-dtest-upgrade') {
-              steps {
-                script {
-                  jvm_dtest_upgrade = build job: "${env.JOB_NAME}-jvm-dtest-upgrade", parameters: [string(name: 'REPO', value: params.REPO), string(name: 'BRANCH', value: params.BRANCH)], propagate: false
-                  if (jvm_dtest_upgrade.result != 'SUCCESS') unstable('jvm-dtest-upgrade failures')
-                  if (jvm_dtest_upgrade.result == 'FAILURE') currentBuild.result='FAILURE'
-                }
-              }
-              post {
-                always {
-                    warnError('missing test xml files') {
-                        script {
-                            copyTestResults('jvm-dtest-upgrade', jvm_dtest_upgrade.getNumber())
-                        }
-                    }
-                }
-              }
-            }
             stage('units') {
               steps {
                 script {
@@ -210,6 +174,42 @@ pipeline {
       }
       stage('Distributed Test') {
         parallel {
+          stage('jvm-dtest') {
+            steps {
+              script {
+                jvm_dtest = build job: "${env.JOB_NAME}-jvm-dtest", parameters: [string(name: 'REPO', value: params.REPO), string(name: 'BRANCH', value: params.BRANCH)], propagate: false
+                if (jvm_dtest.result != 'SUCCESS') unstable('jvm-dtest failures')
+                if (jvm_dtest.result == 'FAILURE')  currentBuild.result='FAILURE'
+              }
+            }
+            post {
+              always {
+                  warnError('missing test xml files') {
+                      script {
+                          copyTestResults('jvm-dtest', jvm_dtest.getNumber())
+                      }
+                  }
+              }
+            }
+          }
+          stage('jvm-dtest-upgrade') {
+            steps {
+              script {
+                jvm_dtest_upgrade = build job: "${env.JOB_NAME}-jvm-dtest-upgrade", parameters: [string(name: 'REPO', value: params.REPO), string(name: 'BRANCH', value: params.BRANCH)], propagate: false
+                if (jvm_dtest_upgrade.result != 'SUCCESS') unstable('jvm-dtest-upgrade failures')
+                if (jvm_dtest_upgrade.result == 'FAILURE') currentBuild.result='FAILURE'
+              }
+            }
+            post {
+              always {
+                  warnError('missing test xml files') {
+                      script {
+                          copyTestResults('jvm-dtest-upgrade', jvm_dtest_upgrade.getNumber())
+                      }
+                  }
+              }
+            }
+          }
           stage('dtest') {
             steps {
               script {

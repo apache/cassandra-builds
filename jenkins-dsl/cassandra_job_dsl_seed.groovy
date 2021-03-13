@@ -75,13 +75,12 @@ if(binding.hasVariable("MAX_JOB_HOURS")) {
 }
 
 // how many splits are dtest jobs matrixed into
+def testSplits = 8
 def dtestSplits = 64
 def dtestLargeSplits = 8
-if(binding.hasVariable("DTEST_SPLITS")) {
-    dtestSplits = "${DTEST_SPLITS}"
-}
-if(binding.hasVariable("DTEST_LARGE_SPLITS")) {
-    dtestLargeSplits = "${DTEST_LARGE_SPLITS}"
+
+def isSplittableTest(targetName) {
+    return targetName == 'test' || targetName == 'test-cdc' || targetName == 'test-compression' || targetName == 'test-burn' || targetName == 'long-test' || targetName == 'jvm-dtest' || targetName == 'jvm-dtest-upgrade';
 }
 
 ////////////////////////////////////////////////////////////
@@ -523,6 +522,11 @@ cassandraBranches.each {
                 disabled(false)
                 using('Cassandra-template-test')
                 axes {
+                    if (isSplittableTest(targetName)) {
+                        List<String> values = new ArrayList<String>()
+                        (1..testSplits).each { values << it.toString() }
+                        text('split', values)
+                    }
                     // jvm-dtest-upgrade would require mixed JDK compilations to support JDK11+
                     if (branchName == 'trunk' && targetName != 'jvm-dtest-upgrade') {
                         jdk(jdkLabel,'jdk_11_latest')
@@ -540,7 +544,7 @@ cassandraBranches.each {
                 }
                 steps {
                     shell("""
-                            ./cassandra-builds/build-scripts/cassandra-test.sh ${targetName} ;
+                            ./cassandra-builds/build-scripts/cassandra-test.sh ${targetName} \${split}/${testSplits} ;
                              find build/test/logs -type f -name "*.log" | xargs xz -qq ;
                             ./cassandra-builds/build-scripts/cassandra-test-report.sh ;
                              xz TESTS-TestSuites.xml
@@ -650,7 +654,7 @@ cassandraBranches.each {
         }
         properties {
             githubProjectUrl(githubRepo)
-            priorityJobProperty {        
+            priorityJobProperty {
                 useJobPriority(true)
                 priority(1)
             }
@@ -787,6 +791,11 @@ testTargets.each {
         description(jobDescription)
         concurrentBuild()
         axes {
+            if (isSplittableTest(targetName)) {
+                List<String> values = new ArrayList<String>()
+                (1..testSplits).each { values << it.toString() }
+                text('split', values)
+            }
             jdk(jdkLabel,'jdk_11_latest')
             if (use_arm64_test_label()) {
                 label('label', slaveLabel, slaveArm64Label)
@@ -847,7 +856,7 @@ testTargets.each {
                     echo "Cassandra-devbranch-${targetName} cassandra: `git log -1 --pretty=format:'%h %an %ad %s'`" > Cassandra-devbranch-${targetName}.head
                   """)
             shell("""
-                    ./cassandra-builds/build-scripts/cassandra-test.sh ${targetName} ;
+                    ./cassandra-builds/build-scripts/cassandra-test.sh ${targetName} \${split}/${testSplits} ;
                     find build/test/logs -type f -name "*.log" | xargs xz -qq ;
                     ./cassandra-builds/build-scripts/cassandra-test-report.sh ;
                     xz TESTS-TestSuites.xml
@@ -979,7 +988,7 @@ archs.each {
                       """)
                 if (arch == "-arm64") {
                     shell("""
-                            # docker image has to be built on arm64 (as they are not published to dockerhub)
+                            # docker image has to be built on arm64 (they are not currently published to dockerhub)
                             cd cassandra-builds/docker/testing ;
                             docker build -t \$DOCKER_IMAGE:latest -f ubuntu2004_j11.docker .
                           """)

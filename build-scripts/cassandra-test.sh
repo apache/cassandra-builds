@@ -7,8 +7,17 @@ set -o nounset
 
 # lists all tests for the specific test type
 _list_tests() {
-  local readonly classlistprefix="$1"
+  local -r classlistprefix="$1"
   find "test/$classlistprefix" -name '*Test.java' | sed "s;^test/$classlistprefix/;;g"
+}
+
+_split_tests() {
+  local -r split_chunk="$1"
+  if [[ "x" == "x${split_chunk}" ]] ; then
+    split -n r/1/1
+  else
+    split -n r/${split_chunk}
+  fi
 }
 
 _timeout_for() {
@@ -32,9 +41,13 @@ _build_all_dtest_jars() {
 }
 
 _main() {
-  local target="${1:-}"
-  local java_version=$(java -version 2>&1 | awk -F '"' '/version/ {print $2}' | awk -F. '{print $1}')
-  local version=$(grep 'property\s*name=\"base.version\"' build.xml |sed -ne 's/.*value=\"\([^"]*\)\".*/\1/p')
+  # parameters
+  local -r target="${1:-}"
+  local -r split_chunk="${2:-}" # Optional: pass in chunk to test, formatted as "K/N" for the Kth chunk of N chunks
+
+  local -r java_version=$(java -version 2>&1 | awk -F '"' '/version/ {print $2}' | awk -F. '{print $1}')
+  local -r version=$(grep 'property\s*name=\"base.version\"' build.xml |sed -ne 's/.*value=\"\([^"]*\)\".*/\1/p')
+
   if [ "$java_version" -ge 11 ]; then
     export CASSANDRA_USE_JDK11=true
     if ! grep -q CASSANDRA_USE_JDK11 build.xml ; then
@@ -78,26 +91,40 @@ _main() {
       ant $target -Dtmp.dir="$(pwd)/tmp" -Dmaven.test.failure.ignore=true
       ;;
     "test")
-      ant testclasslist -Dtest.classlistfile=<( _list_tests "unit" ) -Dtmp.dir="${TMP_DIR}" -Dtest.runners=1 || echo "failed $target"
+      testlist="$( _list_tests "unit" | _split_tests "${split_chunk}")"
+      echo ${testlist}
+      ant testclasslist -Dtest.classlistfile=<(${testlist}) -Dtmp.dir="${TMP_DIR}" || echo "failed $target"
       ;;
     "test-cdc")
-      ant testclasslist-cdc -Dtest.classlistfile=<( _list_tests "unit" ) -Dtmp.dir="${TMP_DIR}" -Dtest.runners=1 || echo "failed $target"
+      testlist=$( _list_tests "unit" | _split_tests "${split_chunk}")
+      echo ${testlist}
+      ant testclasslist-cdc -Dtest.classlistfile=<(${testlist}) -Dtmp.dir="${TMP_DIR}" || echo "failed $target"
       ;;
     "test-compression")
-      ant testclasslist-compression -Dtest.classlistfile=<( _list_tests "unit" ) -Dtmp.dir="${TMP_DIR}" -Dtest.runners=1 || echo "failed $target"
+      testlist=$( _list_tests "unit" | _split_tests "${split_chunk}")
+      echo ${testlist}
+      ant testclasslist-compression -Dtest.classlistfile=<(${testlist}) -Dtmp.dir="${TMP_DIR}" || echo "failed $target"
       ;;
     "test-burn")
-      ant testclasslist -Dtest.classlistprefix=burn -Dtest.timeout=$(_timeout_for "test.burn.timeout") -Dtest.classlistfile=<( _list_tests "burn" ) -Dtmp.dir="${TMP_DIR}" -Dtest.runners=1 || echo "failed $target"
+      testlist=$( _list_tests "burn" | _split_tests "${split_chunk}")
+      echo ${testlist}
+      ant testclasslist -Dtest.classlistprefix=burn -Dtest.timeout=$(_timeout_for "test.burn.timeout") -Dtest.classlistfile=<(${testlist}) -Dtmp.dir="${TMP_DIR}" || echo "failed $target"
       ;;
     "long-test")
-      ant testclasslist -Dtest.classlistprefix=long -Dtest.timeout=$(_timeout_for "test.long.timeout") -Dtest.classlistfile=<( _list_tests "long" ) -Dtmp.dir="${TMP_DIR}" -Dtest.runners=1 || echo "failed $target"
+      testlist=$( _list_tests "long" | _split_tests "${split_chunk}")
+      echo ${testlist}
+      ant testclasslist -Dtest.classlistprefix=long -Dtest.timeout=$(_timeout_for "test.long.timeout") -Dtest.classlistfile=<(${testlist}) -Dtmp.dir="${TMP_DIR}" || echo "failed $target"
       ;;
     "jvm-dtest")
-      ant testclasslist -Dtest.classlistprefix=distributed -Dtest.timeout=$(_timeout_for "test.distributed.timeout") -Dtest.classlistfile=<( _list_tests "distributed" | grep -v "upgrade" ) -Dtmp.dir="${TMP_DIR}" -Dtest.runners=1 || echo "failed $target"
+      testlist=$( _list_tests "distributed" | grep -v "upgrade" | _split_tests "${split_chunk}")
+      echo ${testlist}
+      ant testclasslist -Dtest.classlistprefix=distributed -Dtest.timeout=$(_timeout_for "test.distributed.timeout") -Dtest.classlistfile=<(${testlist}) -Dtmp.dir="${TMP_DIR}" -Dtest.runners=1 || echo "failed $target"
       ;;
     "jvm-dtest-upgrade")
       _build_all_dtest_jars
-      ant testclasslist -Dtest.classlistprefix=distributed -Dtest.timeout=$(_timeout_for "test.distributed.timeout") -Dtest.classlistfile=<( _list_tests "distributed" | grep "upgrade" ) -Dtmp.dir="${TMP_DIR}" -Dtest.runners=1 || echo "failed $target"
+      testlist=$( _list_tests "distributed"  | grep "upgrade" | _split_tests "${split_chunk}")
+      echo ${testlist}
+      ant testclasslist -Dtest.classlistprefix=distributed -Dtest.timeout=$(_timeout_for "test.distributed.timeout") -Dtest.classlistfile=<(${testlist}) -Dtmp.dir="${TMP_DIR}" -Dtest.runners=1 || echo "failed $target"
       ;;
     *)
       echo "unregconised \"$target\""
