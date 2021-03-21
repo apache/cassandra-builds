@@ -316,7 +316,7 @@ pipeline {
             }
             slackSend channel: '#cassandra-builds-patches', message: ":apache: <${env.BUILD_URL}|${currentBuild.fullDisplayName}> completed: ${currentBuild.result}. <https://github.com/${REPO}/cassandra/commit/${commit_head_sha}|${REPO} ${commit_head_sha}>\n${commit_head_msg}"
             sh "echo \"cassandra-builds at: `git -C cassandra-builds log -1 --pretty=format:'%h %an %ad %s'`\" > builds.head"
-            sh "find . -type f -name \\*.head -exec cat {} \\;"
+            sh "./cassandra-builds/jenkins-dsl/print-shas.sh"
             sh "xz TESTS-TestSuites.xml"
             sh "echo \"For test report and logs see https://nightlies.apache.org/cassandra/devbranch/${JOB_NAME}/${BUILD_NUMBER}/\""
         }
