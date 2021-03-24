@@ -78,19 +78,19 @@ _main() {
       ant $target -Dtmp.dir="$(pwd)/tmp" -Dmaven.test.failure.ignore=true
       ;;
     "test")
-      ant testclasslist -Dtest.classlistfile=<( _list_tests "unit" ) -Dtmp.dir="${TMP_DIR}" || echo "failed $target"
+      ant testclasslist -Dtest.classlistfile=<( _list_tests "unit" ) -Dtmp.dir="${TMP_DIR}" -Dtest.runners=1 || echo "failed $target"
       ;;
     "test-cdc")
-      ant testclasslist-cdc -Dtest.classlistfile=<( _list_tests "unit" ) -Dtmp.dir="${TMP_DIR}" || echo "failed $target"
+      ant testclasslist-cdc -Dtest.classlistfile=<( _list_tests "unit" ) -Dtmp.dir="${TMP_DIR}" -Dtest.runners=1 || echo "failed $target"
       ;;
     "test-compression")
-      ant testclasslist-compression -Dtest.classlistfile=<( _list_tests "unit" ) -Dtmp.dir="${TMP_DIR}" || echo "failed $target"
+      ant testclasslist-compression -Dtest.classlistfile=<( _list_tests "unit" ) -Dtmp.dir="${TMP_DIR}" -Dtest.runners=1 || echo "failed $target"
       ;;
     "test-burn")
-      ant testclasslist -Dtest.classlistprefix=burn -Dtest.timeout=$(_timeout_for "test.burn.timeout") -Dtest.classlistfile=<( _list_tests "burn" ) -Dtmp.dir="${TMP_DIR}" || echo "failed $target"
+      ant testclasslist -Dtest.classlistprefix=burn -Dtest.timeout=$(_timeout_for "test.burn.timeout") -Dtest.classlistfile=<( _list_tests "burn" ) -Dtmp.dir="${TMP_DIR}" -Dtest.runners=1 || echo "failed $target"
       ;;
     "long-test")
-      ant testclasslist -Dtest.classlistprefix=long -Dtest.timeout=$(_timeout_for "test.long.timeout") -Dtest.classlistfile=<( _list_tests "long" ) -Dtmp.dir="${TMP_DIR}" || echo "failed $target"
+      ant testclasslist -Dtest.classlistprefix=long -Dtest.timeout=$(_timeout_for "test.long.timeout") -Dtest.classlistfile=<( _list_tests "long" ) -Dtmp.dir="${TMP_DIR}" -Dtest.runners=1 || echo "failed $target"
       ;;
     "jvm-dtest")
       ant testclasslist -Dtest.classlistprefix=distributed -Dtest.timeout=$(_timeout_for "test.distributed.timeout") -Dtest.classlistfile=<( _list_tests "distributed" | grep -v "upgrade" ) -Dtmp.dir="${TMP_DIR}" -Dtest.runners=1 || echo "failed $target"
