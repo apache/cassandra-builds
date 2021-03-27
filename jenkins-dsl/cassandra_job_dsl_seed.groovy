@@ -149,7 +149,7 @@ matrixJob('Cassandra-template-artifacts') {
             server('Nightlies') {
                 transferSet {
                     sourceFiles("build/apache-cassandra-*.tar.gz, build/apache-cassandra-*.jar, build/apache-cassandra-*.pom, build/cassandra*.deb, build/cassandra*.rpm")
-                    remoteDirectory("cassandra/\${JOB_NAME}/\${BUILD_NUMBER}/")
+                    remoteDirectory("cassandra/\${scm.branches[0].name}/\${JOB_BASE_NAME}/\${BUILD_NUMBER}/\${JOB_NAME}/")
                 }
             }
             failOnError(false)
@@ -259,7 +259,7 @@ matrixJob('Cassandra-template-test') {
             server('Nightlies') {
                 transferSet {
                     sourceFiles("TESTS-TestSuites.xml.xz,build/test/logs/**,build/test/jmh-result.json")
-                    remoteDirectory("cassandra/\${JOB_NAME}/\${BUILD_NUMBER}/")
+                    remoteDirectory("cassandra/\${scm.branches[0].name}/\${JOB_BASE_NAME}/\${BUILD_NUMBER}/\${JOB_NAME}/")
                 }
             }
             failOnError(false)
@@ -336,7 +336,7 @@ matrixJob('Cassandra-template-dtest-matrix') {
             server('Nightlies') {
                 transferSet {
                     sourceFiles("**/nosetests.xml,**/test_stdout.txt.xz,**/ccm_logs.tar.xz")
-                    remoteDirectory("cassandra/\${JOB_NAME}/\${BUILD_NUMBER}/")
+                    remoteDirectory("cassandra/\${scm.branches[0].name}/\${JOB_BASE_NAME}/\${BUILD_NUMBER}/\${JOB_NAME}/")
                 }
             }
             failOnError(false)
@@ -435,7 +435,7 @@ matrixJob('Cassandra-template-cqlsh-tests') {
             server('Nightlies') {
                 transferSet {
                     sourceFiles("**/cqlshlib.xml,**/*.head")
-                    remoteDirectory("cassandra/\${JOB_NAME}/\${BUILD_NUMBER}/")
+                    remoteDirectory("cassandra/\${scm.branches[0].name}/\${JOB_BASE_NAME}/\${BUILD_NUMBER}/\${JOB_NAME}/")
                 }
             }
             failOnError(false)
