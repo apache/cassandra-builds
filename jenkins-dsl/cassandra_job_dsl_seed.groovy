@@ -145,15 +145,6 @@ matrixJob('Cassandra-template-artifacts') {
               """)
     }
     publishers {
-        publishOverSsh {
-            server('Nightlies') {
-                transferSet {
-                    sourceFiles("build/apache-cassandra-*.tar.gz, build/apache-cassandra-*.jar, build/apache-cassandra-*.pom, build/cassandra*.deb, build/cassandra*.rpm")
-                    remoteDirectory("cassandra/\${scm.branches[0].name}/\${JOB_BASE_NAME}/\${BUILD_NUMBER}/\${JOB_NAME}/")
-                }
-            }
-            failOnError(false)
-        }
         extendedEmail {
             recipientList('builds@cassandra.apache.org')
             triggers {
@@ -241,7 +232,7 @@ matrixJob('Cassandra-template-test') {
                 git clean -xdff -e build/test/jmh-result.json ;
                 git clone --depth 1 --single-branch -b ${buildsBranch} ${buildsRepo} ;
                 echo "cassandra-builds at: `git -C cassandra-builds log -1 --pretty=format:'%h %an %ad %s'`" ;
-                echo "\${JOB_BASE_NAME}: `git log -1 --pretty=format:'%h %an %ad %s'`" > \${JOB_BASE_NAME}.head
+                echo "\${BUILD_TAG}: `git log -1 --pretty=format:'%h %an %ad %s'`" > \${BUILD_TAG}.head
               """)
     }
     publishers {
@@ -249,31 +240,6 @@ matrixJob('Cassandra-template-test') {
             pattern('build/test/**/TEST-*.xml, **/*.head')
             allowEmpty()
             fingerprint()
-        }
-        archiveJunit('build/test/**/TEST-*.xml') {
-            testDataPublishers {
-                publishTestStabilityData()
-            }
-        }
-        publishOverSsh {
-            server('Nightlies') {
-                transferSet {
-                    sourceFiles("TESTS-TestSuites.xml.xz,build/test/logs/**,build/test/jmh-result.json")
-                    remoteDirectory("cassandra/\${scm.branches[0].name}/\${JOB_BASE_NAME}/\${BUILD_NUMBER}/\${JOB_NAME}/")
-                }
-            }
-            failOnError(false)
-        }
-        postBuildTask {
-            task('.', """
-                echo "Finding job process orphans…"; if pgrep -af "\${JOB_BASE_NAME}"; then pkill -9 -f "\${JOB_BASE_NAME}"; fi;
-                echo "Cleaning project…"; git clean -xdff -e build/test/jmh-result.json ;
-                echo "Pruning docker…" ; docker system prune --all --force --filter "until=${maxJobHours}h"  ;
-                echo "Reporting disk usage…"; du -xm / 2>/dev/null | sort -rn | head -n 30 ; df -h ;
-                echo "Cleaning tmp…";
-                find . -type d -name tmp -delete 2>/dev/null ;
-                find /tmp -type f -atime +2 -user jenkins -and -not -exec fuser -s {} ';' -and -delete 2>/dev/null
-            """)
         }
     }
 }
@@ -328,40 +294,8 @@ matrixJob('Cassandra-template-dtest-matrix') {
                 git clean -xdff ;
                 git clone --depth 1 --single-branch -b ${buildsBranch} ${buildsRepo} ;
                 echo "cassandra-builds at: `git -C cassandra-builds log -1 --pretty=format:'%h %an %ad %s'`" ;
-                echo "\${JOB_BASE_NAME}: `git log -1 --pretty=format:'%h %an %ad %s'`" > \${JOB_BASE_NAME}.head ;
+                echo "\${BUILD_TAG}: `git log -1 --pretty=format:'%h %an %ad %s'`" > \${BUILD_TAG}.head ;
               """)
-    }
-    publishers {
-        publishOverSsh {
-            server('Nightlies') {
-                transferSet {
-                    sourceFiles("**/nosetests.xml,**/test_stdout.txt.xz,**/ccm_logs.tar.xz")
-                    remoteDirectory("cassandra/\${scm.branches[0].name}/\${JOB_BASE_NAME}/\${BUILD_NUMBER}/\${JOB_NAME}/")
-                }
-            }
-            failOnError(false)
-        }
-        archiveArtifacts {
-            pattern('**/nosetests.xml,**/*.head')
-            allowEmpty()
-            fingerprint()
-        }
-        archiveJunit('nosetests.xml') {
-            testDataPublishers {
-                publishTestStabilityData()
-            }
-        }
-        postBuildTask {
-            // the pgrep needs to catch any other build/process that is using docker
-            task('.', """
-                echo "Cleaning project…"; git clean -xdff ;
-                echo "Pruning docker…" ; if pgrep -af "cassandra-artifacts.sh|jenkinscommand.sh"; then docker system prune --all --force --filter 'until=${maxJobHours}h'; else docker system prune --all --force --volumes ; fi;
-                echo "Reporting disk usage…"; df -h ;
-                echo "Cleaning tmp…";
-                find . -type d -name tmp -delete 2>/dev/null ;
-                find /tmp -type f -atime +2 -user jenkins -and -not -exec fuser -s {} ';' -and -delete 2>/dev/null
-            """)
-        }
     }
 }
 
@@ -425,42 +359,9 @@ matrixJob('Cassandra-template-cqlsh-tests') {
     }
     steps {
         buildDescription('', buildDescStr)
-        shell("""
-                git clean -xdff ;
-                echo "\${JOB_BASE_NAME}: `git log -1 --pretty=format:'%h %an %ad %s'`" > \${JOB_BASE_NAME}.head ;
-              """)
-    }
-    publishers {
-        publishOverSsh {
-            server('Nightlies') {
-                transferSet {
-                    sourceFiles("**/cqlshlib.xml,**/*.head")
-                    remoteDirectory("cassandra/\${scm.branches[0].name}/\${JOB_BASE_NAME}/\${BUILD_NUMBER}/\${JOB_NAME}/")
-                }
-            }
-            failOnError(false)
-        }
-        archiveArtifacts {
-            pattern('**/cqlshlib.xml,**/*.head')
-            allowEmpty()
-            fingerprint()
-        }
-        archiveJunit('**/cqlshlib.xml') {
-            testDataPublishers {
-                publishTestStabilityData()
-            }
-        }
-        postBuildTask {
-            task('.', """
-                echo "Finding job process orphans…"; if pgrep -af "\${JOB_BASE_NAME}"; then pkill -9 -f "\${JOB_BASE_NAME}"; fi;
-                echo "Cleaning project…"; git clean -xdff ;
-                echo "Pruning docker…" ; docker system prune --all --force --filter "until=${maxJobHours}h"  ;
-                echo "Reporting disk usage…"; df -h ;
-                echo "Cleaning tmp…";
-                find . -type d -name tmp -delete 2>/dev/null ;
-                find /tmp -type f -atime +2 -user jenkins -and -not -exec fuser -s {} ';' -and -delete 2>/dev/null
-            """)
-        }
+        shell("git clean -xdff")
+        shell('./pylib/cassandra-cqlsh-tests.sh $WORKSPACE')
+        shell("""echo "\${BUILD_TAG}: `git log -1 --pretty=format:'%h %an %ad %s'`" > \${BUILD_TAG}.head """)
     }
 }
 
@@ -500,6 +401,17 @@ cassandraBranches.each {
         }
         steps {
             shell('./cassandra-builds/build-scripts/cassandra-artifacts.sh')
+        }
+        publishers {
+            publishOverSsh {
+                server('Nightlies') {
+                    transferSet {
+                        sourceFiles("build/apache-cassandra-*.tar.gz, build/apache-cassandra-*.jar, build/apache-cassandra-*.pom, build/cassandra*.deb, build/cassandra*.rpm")
+                        remoteDirectory("cassandra/${branchName}/${jobNamePrefix}-artifacts/\${BUILD_NUMBER}/\${JOB_NAME}/")
+                    }
+                }
+                failOnError(false)
+            }
         }
     }
 
@@ -550,14 +462,39 @@ cassandraBranches.each {
                              xz TESTS-TestSuites.xml
                           """)
                 }
-                if (targetName == 'microbench') {
-                    publishers {
+                publishers {
+                    if (targetName == 'microbench') {
                         jmhReport {
                             resultPath('build/test/jmh-result.json')
                         }
                         archiveJunit('build/test/**/TEST-*.xml') {
                             allowEmptyResults(true)
                         }
+                    } else {
+                        archiveJunit('build/test/**/TEST-*.xml') {
+                            testDataPublishers {
+                                publishTestStabilityData()
+                            }
+                        }
+                    }
+                    publishOverSsh {
+                        server('Nightlies') {
+                            transferSet {
+                                sourceFiles("TESTS-TestSuites.xml.xz,build/test/logs/**,build/test/jmh-result.json")
+                                remoteDirectory("cassandra/${branchName}/${jobNamePrefix}-${targetName}/\${BUILD_NUMBER}/\${JOB_NAME}/")
+                            }
+                        }
+                        failOnError(false)
+                    }
+                    postBuildTask {
+                        task('.', """
+                            echo "Cleaning project…"; git clean -xdff -e build/test/jmh-result.json ;
+                            echo "Pruning docker…" ; docker system prune --all --force --filter "until=${maxJobHours}h"  ;
+                            echo "Reporting disk usage…"; du -xm / 2>/dev/null | sort -rn | head -n 30 ; df -h ;
+                            echo "Cleaning tmp…";
+                            find . -type d -name tmp -delete 2>/dev/null ;
+                            find /tmp -type f -atime +2 -user jenkins -and -not -exec fuser -s {} ';' -and -delete 2>/dev/null
+                        """)
                     }
                 }
             }
@@ -619,6 +556,38 @@ cassandraBranches.each {
                             xz test_stdout.txt
                             """)
                     }
+                    publishers {
+                        publishOverSsh {
+                            server('Nightlies') {
+                                transferSet {
+                                    sourceFiles("**/nosetests.xml,**/test_stdout.txt.xz,**/ccm_logs.tar.xz")
+                                    remoteDirectory("cassandra/${branchName}/${jobNamePrefix}-${targetArchName}/\${BUILD_NUMBER}/\${JOB_NAME}/")
+                                }
+                            }
+                            failOnError(false)
+                        }
+                        archiveArtifacts {
+                            pattern('**/nosetests.xml,**/*.head')
+                            allowEmpty()
+                            fingerprint()
+                        }
+                        archiveJunit('nosetests.xml') {
+                            testDataPublishers {
+                                publishTestStabilityData()
+                            }
+                        }
+                        postBuildTask {
+                            // the pgrep needs to catch any other build/process that is using docker
+                            task('.', """
+                                echo "Cleaning project…"; git clean -xdff ;
+                                echo "Pruning docker…" ; if pgrep -af "cassandra-artifacts.sh|jenkinscommand.sh"; then docker system prune --all --force --filter 'until=${maxJobHours}h'; else docker system prune --all --force --volumes ; fi;
+                                echo "Reporting disk usage…"; df -h ;
+                                echo "Cleaning tmp…";
+                                find . -type d -name tmp -delete 2>/dev/null ;
+                                find /tmp -type f -atime +2 -user jenkins -and -not -exec fuser -s {} ';' -and -delete 2>/dev/null
+                            """)
+                        }
+                    }
                 }
             }
         }
@@ -636,9 +605,36 @@ cassandraBranches.each {
             configure { node ->
                 node / scm / branches / 'hudson.plugins.git.BranchSpec' / name(branchName)
             }
-            steps {
-                shell("git clean -xdff")
-                shell('./pylib/cassandra-cqlsh-tests.sh $WORKSPACE')
+            publishers {
+                publishOverSsh {
+                    server('Nightlies') {
+                        transferSet {
+                            sourceFiles("**/cqlshlib.xml,**/*.head")
+                            remoteDirectory("cassandra/${branchName}/${jobNamePrefix}-cqlsh-tests/\${BUILD_NUMBER}/\${JOB_NAME}/")
+                        }
+                    }
+                    failOnError(false)
+                }
+                archiveArtifacts {
+                    pattern('**/cqlshlib.xml,**/*.head')
+                    allowEmpty()
+                    fingerprint()
+                }
+                archiveJunit('**/cqlshlib.xml') {
+                    testDataPublishers {
+                        publishTestStabilityData()
+                    }
+                }
+                postBuildTask {
+                    task('.', """
+                        echo "Cleaning project…"; git clean -xdff ;
+                        echo "Pruning docker…" ; docker system prune --all --force --filter "until=${maxJobHours}h"  ;
+                        echo "Reporting disk usage…"; df -h ;
+                        echo "Cleaning tmp…";
+                        find . -type d -name tmp -delete 2>/dev/null ;
+                        find /tmp -type f -atime +2 -user jenkins -and -not -exec fuser -s {} ';' -and -delete 2>/dev/null
+                    """)
+                }
             }
         }
     }
