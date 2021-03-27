@@ -166,16 +166,6 @@ matrixJob('Cassandra-template-artifacts') {
                 }
             }
         }
-        postBuildTask {
-            task('.', """
-                echo "Cleaning project…"; git clean -xdff ;
-                echo "Pruning docker…" ; docker system prune --all --force --filter "until=${maxJobHours}h"  ;
-                echo "Reporting disk usage…"; df -h ;
-                echo "Cleaning tmp…";
-                find . -type d -name tmp -delete 2>/dev/null ;
-                find /tmp -type f -atime +2 -user jenkins -and -not -exec fuser -s {} ';' -and -delete 2>/dev/null
-            """)
-        }
     }
 }
 
@@ -411,6 +401,16 @@ cassandraBranches.each {
                     }
                 }
                 failOnError(false)
+            }
+            postBuildTask {
+                task('.', """
+                    echo "Cleaning project…"; git clean -xdff ;
+                    echo "Pruning docker…" ; docker system prune --all --force --filter "until=${maxJobHours}h"  ;
+                    echo "Reporting disk usage…"; df -h ;
+                    echo "Cleaning tmp…";
+                    find . -type d -name tmp -delete 2>/dev/null ;
+                    find /tmp -type f -atime +2 -user jenkins -and -not -exec fuser -s {} ';' -and -delete 2>/dev/null
+                """)
             }
         }
     }
