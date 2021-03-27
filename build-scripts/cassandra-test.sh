@@ -92,39 +92,32 @@ _main() {
       ;;
     "test")
       testlist="$( _list_tests "unit" | _split_tests "${split_chunk}")"
-      echo ${testlist}
-      ant testclasslist -Dtest.classlistfile=<(${testlist}) -Dtmp.dir="${TMP_DIR}" || echo "failed $target"
+      ant testclasslist -Dtest.classlistfile=<(echo ${testlist}) -Dtmp.dir="${TMP_DIR}" || echo "failed $target"
       ;;
     "test-cdc")
       testlist=$( _list_tests "unit" | _split_tests "${split_chunk}")
-      echo ${testlist}
-      ant testclasslist-cdc -Dtest.classlistfile=<(${testlist}) -Dtmp.dir="${TMP_DIR}" || echo "failed $target"
+      ant testclasslist-cdc -Dtest.classlistfile=<(echo ${testlist}) -Dtmp.dir="${TMP_DIR}" || echo "failed $target"
       ;;
     "test-compression")
       testlist=$( _list_tests "unit" | _split_tests "${split_chunk}")
-      echo ${testlist}
-      ant testclasslist-compression -Dtest.classlistfile=<(${testlist}) -Dtmp.dir="${TMP_DIR}" || echo "failed $target"
+      ant testclasslist-compression -Dtest.classlistfile=<(echo ${testlist}) -Dtmp.dir="${TMP_DIR}" || echo "failed $target"
       ;;
     "test-burn")
       testlist=$( _list_tests "burn" | _split_tests "${split_chunk}")
-      echo ${testlist}
-      ant testclasslist -Dtest.classlistprefix=burn -Dtest.timeout=$(_timeout_for "test.burn.timeout") -Dtest.classlistfile=<(${testlist}) -Dtmp.dir="${TMP_DIR}" || echo "failed $target"
+      ant testclasslist -Dtest.classlistprefix=burn -Dtest.timeout=$(_timeout_for "test.burn.timeout") -Dtest.classlistfile=<(echo ${testlist}) -Dtmp.dir="${TMP_DIR}" || echo "failed $target"
       ;;
     "long-test")
       testlist=$( _list_tests "long" | _split_tests "${split_chunk}")
-      echo ${testlist}
-      ant testclasslist -Dtest.classlistprefix=long -Dtest.timeout=$(_timeout_for "test.long.timeout") -Dtest.classlistfile=<(${testlist}) -Dtmp.dir="${TMP_DIR}" || echo "failed $target"
+      ant testclasslist -Dtest.classlistprefix=long -Dtest.timeout=$(_timeout_for "test.long.timeout") -Dtest.classlistfile=<(echo ${testlist}) -Dtmp.dir="${TMP_DIR}" || echo "failed $target"
       ;;
     "jvm-dtest")
       testlist=$( _list_tests "distributed" | grep -v "upgrade" | _split_tests "${split_chunk}")
-      echo ${testlist}
-      ant testclasslist -Dtest.classlistprefix=distributed -Dtest.timeout=$(_timeout_for "test.distributed.timeout") -Dtest.classlistfile=<(${testlist}) -Dtmp.dir="${TMP_DIR}" -Dtest.runners=1 || echo "failed $target"
+      ant testclasslist -Dtest.classlistprefix=distributed -Dtest.timeout=$(_timeout_for "test.distributed.timeout") -Dtest.classlistfile=<(echo ${testlist}) -Dtmp.dir="${TMP_DIR}" -Dtest.runners=1 || echo "failed $target"
       ;;
     "jvm-dtest-upgrade")
       _build_all_dtest_jars
       testlist=$( _list_tests "distributed"  | grep "upgrade" | _split_tests "${split_chunk}")
-      echo ${testlist}
-      ant testclasslist -Dtest.classlistprefix=distributed -Dtest.timeout=$(_timeout_for "test.distributed.timeout") -Dtest.classlistfile=<(${testlist}) -Dtmp.dir="${TMP_DIR}" -Dtest.runners=1 || echo "failed $target"
+      ant testclasslist -Dtest.classlistprefix=distributed -Dtest.timeout=$(_timeout_for "test.distributed.timeout") -Dtest.classlistfile=<(echo ${testlist}) -Dtmp.dir="${TMP_DIR}" -Dtest.runners=1 || echo "failed $target"
       ;;
     *)
       echo "unregconised \"$target\""
