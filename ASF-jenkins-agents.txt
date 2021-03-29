@@ -111,8 +111,8 @@ cassandra33 - 64.18.213.246  - Ubuntu 18.04 LTS amd64, 32G RAM, 16 core, donated
 cassandra34 - 64.18.213.247  - Ubuntu 18.04 LTS amd64, 32G RAM, 16 core, donated by iland
 cassandra35 - 64.18.213.248  - Ubuntu 18.04 LTS amd64, 32G RAM, 16 core, donated by iland
 cassandra36 - 64.18.213.249  - Ubuntu 18.04 LTS amd64, 32G RAM, 16 core, donated by iland
-cassandra-arm1 - 64.18.213.245  - Ubuntu 18.04.3 LTS arm64, 32G RAM, 16 core, donated by Huawei
-cassandra-arm2 - 64.18.213.246  - Ubuntu 18.04.3 LTS arm64, 32G RAM, 16 core, donated by Huawei
+cassandra-arm1 - 114.119.184.236  - Ubuntu 18.04.3 LTS arm64, 32G RAM, 16 core, donated by Huawei
+cassandra-arm2 - 94.74.91.186     - Ubuntu 18.04.3 LTS arm64, 32G RAM, 16 core, donated by Huawei
 
 
 ----
