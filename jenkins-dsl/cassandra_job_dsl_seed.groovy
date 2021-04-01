@@ -222,7 +222,7 @@ matrixJob('Cassandra-template-test') {
                 git clean -xdff -e build/test/jmh-result.json ;
                 git clone --depth 1 --single-branch -b ${buildsBranch} ${buildsRepo} ;
                 echo "cassandra-builds at: `git -C cassandra-builds log -1 --pretty=format:'%h %an %ad %s'`" ;
-                echo "\${BUILD_TAG}: `git log -1 --pretty=format:'%h %an %ad %s'`" > \${BUILD_TAG}.head
+                echo "\${BUILD_TAG}) cassandra: `git log -1 --pretty=format:'%h %an %ad %s'`" > \${BUILD_TAG}.head
               """)
     }
     publishers {
@@ -284,7 +284,7 @@ matrixJob('Cassandra-template-dtest-matrix') {
                 git clean -xdff ;
                 git clone --depth 1 --single-branch -b ${buildsBranch} ${buildsRepo} ;
                 echo "cassandra-builds at: `git -C cassandra-builds log -1 --pretty=format:'%h %an %ad %s'`" ;
-                echo "\${BUILD_TAG}: `git log -1 --pretty=format:'%h %an %ad %s'`" > \${BUILD_TAG}.head ;
+                echo "\${BUILD_TAG}) cassandra: `git log -1 --pretty=format:'%h %an %ad %s'`" > \${BUILD_TAG}.head ;
               """)
     }
 }
@@ -351,7 +351,7 @@ matrixJob('Cassandra-template-cqlsh-tests') {
         buildDescription('', buildDescStr)
         shell("git clean -xdff")
         shell('./pylib/cassandra-cqlsh-tests.sh $WORKSPACE')
-        shell("""echo "\${BUILD_TAG}: `git log -1 --pretty=format:'%h %an %ad %s'`" > \${BUILD_TAG}.head """)
+        shell("""echo "\${BUILD_TAG}) cassandra: `git log -1 --pretty=format:'%h %an %ad %s'`" > \${BUILD_TAG}.head """)
     }
 }
 
@@ -849,7 +849,7 @@ testTargets.each {
                     git clean -xdff ${targetName == 'microbench' ? '-e build/test/jmh-result.json' : ''};
                     git clone --depth 1 --single-branch -b ${buildsBranch} ${buildsRepo} ;
                     echo "cassandra-builds at: `git -C cassandra-builds log -1 --pretty=format:'%h %an %ad %s'`" ;
-                    echo "Cassandra-devbranch-${targetName} cassandra: `git log -1 --pretty=format:'%h %an %ad %s'`" > Cassandra-devbranch-${targetName}.head
+                    echo "Cassandra-devbranch-${targetName}) cassandra: `git log -1 --pretty=format:'%h %an %ad %s'`" > Cassandra-devbranch-${targetName}.head
                   """)
             shell("""
                     ./cassandra-builds/build-scripts/cassandra-test.sh ${targetName} \${split}/${testSplits} ;
@@ -980,7 +980,7 @@ archs.each {
                         git clean -xdff ;
                         git clone --depth 1 --single-branch -b ${buildsBranch} ${buildsRepo} ;
                         echo "cassandra-builds at: `git -C cassandra-builds log -1 --pretty=format:'%h %an %ad %s'`" ;
-                        echo "Cassandra-devbranch-${targetArchName} cassandra: `git log -1 --pretty=format:'%h %an %ad %s'`" > Cassandra-devbranch-${targetArchName}.head ;
+                        echo "Cassandra-devbranch-${targetArchName}) cassandra: `git log -1 --pretty=format:'%h %an %ad %s'`" > Cassandra-devbranch-${targetArchName}.head ;
                       """)
                 if (arch == "-arm64") {
                     shell("""
@@ -1094,7 +1094,7 @@ matrixJob('Cassandra-devbranch-cqlsh-tests') {
         buildDescription('', buildDescStr)
         shell("""
                 git clean -xdff ;
-                echo "Cassandra-devbranch-cqlsh-tests: `git log -1 --pretty=format:'%h %an %ad %s'`" > Cassandra-devbranch-cqlsh-tests.head ;
+                echo "Cassandra-devbranch-cqlsh-tests) cassandra: `git log -1 --pretty=format:'%h %an %ad %s'`" > Cassandra-devbranch-cqlsh-tests.head ;
               """)
         shell('./pylib/cassandra-cqlsh-tests.sh $WORKSPACE')
     }
