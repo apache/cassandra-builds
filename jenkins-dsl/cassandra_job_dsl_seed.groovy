@@ -57,6 +57,7 @@ def testTargets = ['test', 'test-burn', 'test-cdc', 'test-compression', 'stress-
 if(binding.hasVariable("CASSANDRA_ANT_TEST_TARGETS")) {
     testTargets = "${CASSANDRA_ANT_TEST_TARGETS}".split(",")
 }
+def testDockerImage = 'apache/cassandra-testing-ubuntu2004-java11-w-dependencies'
 
 // Dtest test targets
 def dtestTargets = ['dtest', 'dtest-novnode', 'dtest-offheap', 'dtest-large', 'dtest-large-novnode', 'dtest-upgrade']
@@ -64,9 +65,6 @@ if(binding.hasVariable("CASSANDRA_DTEST_TEST_TARGETS")) {
     dtestTargets = "${CASSANDRA_DTEST_TEST_TARGETS}".split(",")
 }
 def dtestDockerImage = 'apache/cassandra-testing-ubuntu2004-java11'
-if(binding.hasVariable("CASSANDRA_DOCKER_IMAGE")) {
-    dtestDockerImage = "${CASSANDRA_DOCKER_IMAGE}"
-}
 
 // expected longest job runtime
 def maxJobHours = 18
@@ -456,8 +454,7 @@ cassandraBranches.each {
                 }
                 steps {
                     shell("""
-                            ./cassandra-builds/build-scripts/cassandra-test.sh ${targetName} \${split}/${testSplits} ;
-                             find build/test/logs -type f -name "*.log" | xargs xz -qq ;
+                            sh ./cassandra-builds/build-scripts/cassandra-dtest-pytest.sh apache ${branchName} ${buildsRepo} ${buildsBranch} ${testDockerImage} ${targetName} \${split}/${splits} ;
                             ./cassandra-builds/build-scripts/cassandra-test-report.sh ;
                              xz TESTS-TestSuites.xml
                           """)
@@ -552,8 +549,7 @@ cassandraBranches.each {
                                   """)
                         }
                         shell("""
-                            sh ./cassandra-builds/docker/jenkins/jenkinscommand.sh apache ${branchName} https://github.com/apache/cassandra-dtest.git trunk ${buildsRepo} ${buildsBranch} ${dtestDockerImage} ${targetName} \${split}/${splits} ;
-                            xz test_stdout.txt
+                            sh ./cassandra-builds/build-scripts/cassandra-dtest-pytest.sh apache ${branchName} https://github.com/apache/cassandra-dtest.git trunk ${buildsRepo} ${buildsBranch} ${dtestDockerImage} ${targetName} \${split}/${splits} ;
                             """)
                     }
                     publishers {
@@ -580,7 +576,7 @@ cassandraBranches.each {
                             // the pgrep needs to catch any other build/process that is using docker
                             task('.', """
                                 echo "Cleaning project…"; git clean -xdff ;
-                                echo "Pruning docker…" ; if pgrep -af "cassandra-artifacts.sh|jenkinscommand.sh"; then docker system prune --all --force --filter 'until=${maxJobHours}h'; else docker system prune --all --force --volumes ; fi;
+                                echo "Pruning docker…" ; if pgrep -af "cassandra-artifacts.sh|-docker.sh"; then docker system prune --all --force --filter 'until=${maxJobHours}h'; else docker system prune --all --force --volumes ; fi;
                                 echo "Reporting disk usage…"; df -h ;
                                 echo "Cleaning tmp…";
                                 find . -type d -name tmp -delete 2>/dev/null ;
@@ -852,8 +848,7 @@ testTargets.each {
                     echo "Cassandra-devbranch-${targetName}) cassandra: `git log -1 --pretty=format:'%h %an %ad %s'`" > Cassandra-devbranch-${targetName}.head
                   """)
             shell("""
-                    ./cassandra-builds/build-scripts/cassandra-test.sh ${targetName} \${split}/${testSplits} ;
-                    find build/test/logs -type f -name "*.log" | xargs xz -qq ;
+                    sh ./cassandra-builds/build-scripts/cassandra-dtest-pytest.sh ${REPO} ${BRANCH} ${buildsRepo} ${buildsBranch} ${testDockerImage} ${targetName} \${split}/${splits} ;
                     ./cassandra-builds/build-scripts/cassandra-test-report.sh ;
                     xz TESTS-TestSuites.xml
                   """)
@@ -990,8 +985,7 @@ archs.each {
                           """)
                 }
                 shell("""
-                    sh ./cassandra-builds/docker/jenkins/jenkinscommand.sh \$REPO \$BRANCH \$DTEST_REPO \$DTEST_BRANCH ${buildsRepo} ${buildsBranch} \$DOCKER_IMAGE ${targetName} \${split}/${splits} ;
-                    xz test_stdout.txt
+                    sh ./cassandra-builds/build-scripts/cassandra-dtest-pytest.sh \$REPO \$BRANCH \$DTEST_REPO \$DTEST_BRANCH ${buildsRepo} ${buildsBranch} \$DOCKER_IMAGE ${targetName} \${split}/${splits} ;
                       """)
             }
             publishers {
@@ -1014,7 +1008,7 @@ archs.each {
                     // the pgrep needs to catch any other build/process that is using docker
                     task('.', """
                         echo "Cleaning project…" ; git clean -xdff ;
-                        echo "Pruning docker…" ; if pgrep -af "cassandra-artifacts.sh|jenkinscommand.sh"; then docker system prune --all --force --filter "until=${maxJobHours}h"; else docker system prune --all --force --volumes ; fi;
+                        echo "Pruning docker…" ; if pgrep -af "cassandra-artifacts.sh|-docker.sh"; then docker system prune --all --force --filter "until=${maxJobHours}h"; else docker system prune --all --force --volumes ; fi;
                         echo "Reporting disk usage…"; df -h ;
                         echo "Cleaning tmp…";
                         find . -type d -name tmp -delete 2>/dev/null ;
