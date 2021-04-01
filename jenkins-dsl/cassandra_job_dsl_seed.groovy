@@ -454,7 +454,7 @@ cassandraBranches.each {
                 }
                 steps {
                     shell("""
-                            sh ./cassandra-builds/build-scripts/cassandra-dtest-pytest.sh apache ${branchName} ${buildsRepo} ${buildsBranch} ${testDockerImage} ${targetName} \${split}/${splits} ;
+                            sh ./cassandra-builds/build-scripts/cassandra-test-docker.sh apache ${branchName} ${buildsRepo} ${buildsBranch} ${testDockerImage} ${targetName} \${split}/${testSplits} ;
                             ./cassandra-builds/build-scripts/cassandra-test-report.sh ;
                              xz TESTS-TestSuites.xml
                           """)
@@ -549,7 +549,7 @@ cassandraBranches.each {
                                   """)
                         }
                         shell("""
-                            sh ./cassandra-builds/build-scripts/cassandra-dtest-pytest.sh apache ${branchName} https://github.com/apache/cassandra-dtest.git trunk ${buildsRepo} ${buildsBranch} ${dtestDockerImage} ${targetName} \${split}/${splits} ;
+                            sh ./cassandra-builds/build-scripts/cassandra-dtest-pytest-docker.sh apache ${branchName} https://github.com/apache/cassandra-dtest.git trunk ${buildsRepo} ${buildsBranch} ${dtestDockerImage} ${targetName} \${split}/${splits} ;
                             """)
                     }
                     publishers {
@@ -848,7 +848,7 @@ testTargets.each {
                     echo "Cassandra-devbranch-${targetName}) cassandra: `git log -1 --pretty=format:'%h %an %ad %s'`" > Cassandra-devbranch-${targetName}.head
                   """)
             shell("""
-                    sh ./cassandra-builds/build-scripts/cassandra-dtest-pytest.sh ${REPO} ${BRANCH} ${buildsRepo} ${buildsBranch} ${testDockerImage} ${targetName} \${split}/${splits} ;
+                    sh ./cassandra-builds/build-scripts/cassandra-test-docker.sh \${REPO} \${BRANCH} ${buildsRepo} ${buildsBranch} ${testDockerImage} ${targetName} \${split}/${testSplits} ;
                     ./cassandra-builds/build-scripts/cassandra-test-report.sh ;
                     xz TESTS-TestSuites.xml
                   """)
@@ -985,7 +985,7 @@ archs.each {
                           """)
                 }
                 shell("""
-                    sh ./cassandra-builds/build-scripts/cassandra-dtest-pytest.sh \$REPO \$BRANCH \$DTEST_REPO \$DTEST_BRANCH ${buildsRepo} ${buildsBranch} \$DOCKER_IMAGE ${targetName} \${split}/${splits} ;
+                    sh ./cassandra-builds/build-scripts/cassandra-dtest-pytest-docker.sh \$REPO \$BRANCH \$DTEST_REPO \$DTEST_BRANCH ${buildsRepo} ${buildsBranch} \$DOCKER_IMAGE ${targetName} \${split}/${splits} ;
                       """)
             }
             publishers {
