@@ -45,7 +45,6 @@ hostname `dig +short myip.opendns.com @resolver1.opendns.com`
 groupadd -g 910 jenkins
 useradd -m -u 910 -g 910 -s /bin/bash jenkins
 mkdir /home/jenkins/.ssh
-usermod -a -G sudo jenkins
 
 # Authorize ssh pub key for jenkins user
 
