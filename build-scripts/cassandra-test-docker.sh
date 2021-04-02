@@ -21,7 +21,7 @@ if [ "$#" -lt 3 ]; then
     echo "cassandra-test.sh (${1} ${2}) cassandra: `git log -1 --pretty=format:'%h %an %ad %s'`" | tee "${1}-$(echo $2 | sed 's/\//-/')-cassandra.head"
     echo "cassandra-test.sh (${1} ${2}) cassandra-builds: `git -C ../cassandra-builds log -1 --pretty=format:'%h %an %ad %s'`" | tee -a "${1}-$(echo $2 | sed 's/\//-/')-cassandra.head"
     bash ../cassandra-builds/build-scripts/cassandra-test.sh "$@"
-    find build/test/logs -type f -name "*.log" | xargs xz -qq
+    if [ -d build/test/logs ]; then find build/test/logs -type f -name "*.log" | xargs xz -qq ; fi
 else
     # start the docker container
     if [ "$#" -lt 5 ]; then
