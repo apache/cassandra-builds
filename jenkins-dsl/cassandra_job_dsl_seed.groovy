@@ -545,7 +545,7 @@ cassandraBranches.each {
                             shell("""
                                     # docker image has to be built on arm64 (they are not currently published to dockerhub)
                                     cd cassandra-builds/docker/testing ;
-                                    docker build -t \$DOCKER_IMAGE:latest -f ubuntu2004_j11.docker .
+                                    docker build -t ${dtestDockerImage}:latest -f ubuntu2004_j11.docker .
                                   """)
                         }
                         shell("""
