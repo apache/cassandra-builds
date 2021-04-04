@@ -401,9 +401,12 @@ cassandraBranches.each {
                 failOnError(false)
             }
             postBuildTask {
+                // docker needs to (soon or later) prune its volumes too, but that can only be done when the agent is idle
+                // if the agent is busy, just prune everything that is older than maxJobHours
                 task('.', """
                     echo "Cleaning project…"; git clean -xdff ;
-                    echo "Pruning docker…" ; docker system prune --all --force --filter "until=${maxJobHours}h"  ;
+                    echo "Pruning docker…" ;
+                    if `curl -s "\${JENKINS_URL}/computer/\${NODE_NAME}/api/json?pretty=true" | grep 'idle' | awk -F' : ' '{print \$2}' | cut -d',' -f1` ; then docker system prune --all --force --volumes ; else docker system prune --all --force --filter "until=${maxJobHours}h" ; fi;
                     echo "Reporting disk usage…"; df -h ;
                     echo "Cleaning tmp…";
                     find . -type d -name tmp -delete 2>/dev/null ;
@@ -484,9 +487,12 @@ cassandraBranches.each {
                         failOnError(false)
                     }
                     postBuildTask {
+                        // docker needs to (soon or later) prune its volumes too, but that can only be done when the agent is idle
+                        // if the agent is busy, just prune everything that is older than maxJobHours
                         task('.', """
                             echo "Cleaning project…"; git clean -xdff -e build/test/jmh-result.json ;
-                            echo "Pruning docker…" ; docker system prune --all --force --filter "until=${maxJobHours}h"  ;
+                            echo "Pruning docker…" ;
+                            if `curl -s "\${JENKINS_URL}/computer/\${NODE_NAME}/api/json?pretty=true" | grep 'idle' | awk -F' : ' '{print \$2}' | cut -d',' -f1` ; then docker system prune --all --force --volumes ; else docker system prune --all --force --filter "until=${maxJobHours}h" ; fi;
                             echo "Reporting disk usage…"; du -xm / 2>/dev/null | sort -rn | head -n 30 ; df -h ;
                             echo "Cleaning tmp…";
                             find . -type d -name tmp -delete 2>/dev/null ;
@@ -573,10 +579,12 @@ cassandraBranches.each {
                             }
                         }
                         postBuildTask {
-                            // the pgrep needs to catch any other build/process that is using docker
+                            // docker needs to (soon or later) prune its volumes too, but that can only be done when the agent is idle
+                            // if the agent is busy, just prune everything that is older than maxJobHours
                             task('.', """
                                 echo "Cleaning project…"; git clean -xdff ;
-                                echo "Pruning docker…" ; if pgrep -af "cassandra-artifacts.sh|-docker.sh"; then docker system prune --all --force --filter 'until=${maxJobHours}h'; else docker system prune --all --force --volumes ; fi;
+                                echo "Pruning docker…" ;
+                                if `curl -s "\${JENKINS_URL}/computer/\${NODE_NAME}/api/json?pretty=true" | grep 'idle' | awk -F' : ' '{print \$2}' | cut -d',' -f1` ; then docker system prune --all --force --volumes ; else docker system prune --all --force --filter "until=${maxJobHours}h" ; fi;
                                 echo "Reporting disk usage…"; df -h ;
                                 echo "Cleaning tmp…";
                                 find . -type d -name tmp -delete 2>/dev/null ;
@@ -622,9 +630,12 @@ cassandraBranches.each {
                     }
                 }
                 postBuildTask {
+                    // docker needs to (soon or later) prune its volumes too, but that can only be done when the agent is idle
+                    // if the agent is busy, just prune everything that is older than maxJobHours
                     task('.', """
                         echo "Cleaning project…"; git clean -xdff ;
-                        echo "Pruning docker…" ; docker system prune --all --force --filter "until=${maxJobHours}h"  ;
+                        echo "Pruning docker…" ;
+                        if `curl -s "\${JENKINS_URL}/computer/\${NODE_NAME}/api/json?pretty=true" | grep 'idle' | awk -F' : ' '{print \$2}' | cut -d',' -f1` ; then docker system prune --all --force --volumes ; else docker system prune --all --force --filter "until=${maxJobHours}h" ; fi;
                         echo "Reporting disk usage…"; df -h ;
                         echo "Cleaning tmp…";
                         find . -type d -name tmp -delete 2>/dev/null ;
@@ -761,9 +772,12 @@ matrixJob('Cassandra-devbranch-artifacts') {
             failOnError(false)
         }
         postBuildTask {
+            // docker needs to (soon or later) prune its volumes too, but that can only be done when the agent is idle
+            // if the agent is busy, just prune everything that is older than maxJobHours
             task('.', """
                 echo "Cleaning project…"; git clean -xdff ;
-                echo "Pruning docker…" ; docker system prune --all --force --filter "until=${maxJobHours}h"  ;
+                echo "Pruning docker…" ;
+                if `curl -s "\${JENKINS_URL}/computer/\${NODE_NAME}/api/json?pretty=true" | grep 'idle' | awk -F' : ' '{print \$2}' | cut -d',' -f1` ; then docker system prune --all --force --volumes ; else docker system prune --all --force --filter "until=${maxJobHours}h" ; fi;
                 echo "Reporting disk usage…"; df -h ;
                 echo "Cleaning tmp…";
                 find . -type d -name tmp -delete 2>/dev/null ;
@@ -872,10 +886,12 @@ testTargets.each {
                 allowEmptyResults()
             }
             postBuildTask {
+                // docker needs to (soon or later) prune its volumes too, but that can only be done when the agent is idle
+                // if the agent is busy, just prune everything that is older than maxJobHours
                 task('.', """
-                    echo "Finding job process orphans…"; if pgrep -af "\${JOB_BASE_NAME}"; then pkill -9 -f "\${JOB_BASE_NAME}"; fi;
                     echo "Cleaning project…"; git clean -xdff ${targetName == 'microbench' ? '-e build/test/jmh-result.json' : ''};
-                    echo "Pruning docker…" ; docker system prune --all --force --filter "until=${maxJobHours}h"  ;
+                    echo "Pruning docker…" ;
+                    if `curl -s "\${JENKINS_URL}/computer/\${NODE_NAME}/api/json?pretty=true" | grep 'idle' | awk -F' : ' '{print \$2}' | cut -d',' -f1` ; then docker system prune --all --force --volumes ; else docker system prune --all --force --filter "until=${maxJobHours}h" ; fi;
                     echo "Reporting disk usage…"; du -xm / 2>/dev/null | sort -rn | head -n 30 ; df -h ;
                     echo "Cleaning tmp…";
                     find . -type d -name tmp -delete 2>/dev/null ;
@@ -1005,10 +1021,12 @@ archs.each {
                 }
                 archiveJunit('nosetests.xml')
                 postBuildTask {
-                    // the pgrep needs to catch any other build/process that is using docker
+                    // docker needs to (soon or later) prune its volumes too, but that can only be done when the agent is idle
+                    // if the agent is busy, just prune everything that is older than maxJobHours
                     task('.', """
                         echo "Cleaning project…" ; git clean -xdff ;
-                        echo "Pruning docker…" ; if pgrep -af "cassandra-artifacts.sh|-docker.sh"; then docker system prune --all --force --filter "until=${maxJobHours}h"; else docker system prune --all --force --volumes ; fi;
+                        echo "Pruning docker…" ;
+                        if `curl -s "\${JENKINS_URL}/computer/\${NODE_NAME}/api/json?pretty=true" | grep 'idle' | awk -F' : ' '{print \$2}' | cut -d',' -f1` ; then docker system prune --all --force --volumes ; else docker system prune --all --force --filter "until=${maxJobHours}h" ; fi;
                         echo "Reporting disk usage…"; df -h ;
                         echo "Cleaning tmp…";
                         find . -type d -name tmp -delete 2>/dev/null ;
@@ -1109,10 +1127,12 @@ matrixJob('Cassandra-devbranch-cqlsh-tests') {
         }
         archiveJunit('**/cqlshlib.xml')
         postBuildTask {
+            // docker needs to (soon or later) prune its volumes too, but that can only be done when the agent is idle
+            // if the agent is busy, just prune everything that is older than maxJobHours
             task('.', """
-                echo "Finding job process orphans…"; if pgrep -af "\${JOB_BASE_NAME}"; then pkill -9 -f "\${JOB_BASE_NAME}"; fi;
                 echo "Cleaning project…"; git clean -xdff ;
-                echo "Pruning docker…" ; docker system prune --all --force --filter "until=${maxJobHours}h" ;
+                echo "Pruning docker…" ;
+                if `curl -s "\${JENKINS_URL}/computer/\${NODE_NAME}/api/json?pretty=true" | grep 'idle' | awk -F' : ' '{print \$2}' | cut -d',' -f1` ; then docker system prune --all --force --volumes ; else docker system prune --all --force --filter "until=${maxJobHours}h" ; fi;
                 echo "Reporting disk usage…"; df -h ;
                 echo "Cleaning tmp…";
                 find . -type d -name tmp -delete 2>/dev/null ;
