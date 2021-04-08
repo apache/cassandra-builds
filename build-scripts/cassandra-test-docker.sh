@@ -38,6 +38,9 @@ REPO=$1
 BRANCH=$2
 EOF
 
+    # docker login to avoid rate-limiting apache images. credentials are expected to already be in place
+    docker login || true
+
     echo "cassandra-test-docker.sh: running: git clone --single-branch --depth 1 --branch $BUILDSBRANCH $BUILDSREPO; sh ./cassandra-builds/build-scripts/cassandra-test-docker.sh $TARGET $SPLIT_CHUNK"
     ID=$(docker run -m 15g --memory-swap 15g --env-file env.list -dt $DOCKER_IMAGE dumb-init bash -ilc "git clone --single-branch --depth 1 --branch $BUILDSBRANCH $BUILDSREPO; sh ./cassandra-builds/build-scripts/cassandra-test-docker.sh $TARGET $SPLIT_CHUNK")
 
