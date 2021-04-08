@@ -15,6 +15,13 @@ if [ "$#" -lt 3 ]; then
     export LC_CTYPE=en_US.UTF-8
     export PYTHONIOENCODING=utf-8
     export PYTHONUNBUFFERED=true
+    if [ "${JAVA_VERSION}" -ge 11 ]; then
+        sudo update-java-alternatives --set java-1.11.0-openjdk-$(dpkg --print-architecture)
+        export CASSANDRA_USE_JDK11=true
+        export JAVA_HOME=$(sudo update-java-alternatives -l | grep "java-1.11.0-openjdk" | awk '{print $3}')
+    fi
+    java -version
+    javac -version
     echo "running: git clone --depth 1 --single-branch --branch=$BRANCH https://github.com/$REPO/cassandra.git"
     git clone --depth 1 --single-branch --branch=$BRANCH https://github.com/$REPO/cassandra.git
     cd cassandra
@@ -33,9 +40,23 @@ else
     DOCKER_IMAGE=$5
     TARGET=$6
     SPLIT_CHUNK=$7
+
+    # Setup JDK
+    java_version=$(java -version 2>&1 | awk -F '"' '/version/ {print $2}' | awk -F. '{print $1}')
+    if [ "$java_version" -ge 11 ]; then
+        java_version="11"
+        if ! grep -q CASSANDRA_USE_JDK11 build.xml ; then
+            echo "Skipping build. JDK11 not supported against $(grep 'property\s*name=\"base.version\"' build.xml |sed -ne 's/.*value=\"\([^"]*\)\".*/\1/p')"
+            exit 0
+        fi
+    else
+        java_version="8"
+    fi
+
     cat > env.list <<EOF
 REPO=$1
 BRANCH=$2
+JAVA_VERSION=${java_version}
 EOF
 
     # docker login to avoid rate-limiting apache images. credentials are expected to already be in place
