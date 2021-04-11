@@ -8,6 +8,9 @@ LABEL org.cassandra.buildenv=buster
 
 VOLUME ${DEB_DIST_DIR}
 
+# configure apt to retry downloads
+RUN echo 'APT::Acquire::Retries "9";' > /etc/apt/apt.conf.d/80-retries
+
 # install deps
 RUN apt-get update && apt-get -y install \
    ant \

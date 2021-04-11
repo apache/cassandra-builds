@@ -186,9 +186,6 @@ matrixJob('Cassandra-template-test') {
         }
         timestamps()
     }
-    throttleConcurrentBuilds {
-        categories(['Cassandra'])
-    }
     properties {
         githubProjectUrl(githubRepo)
         priorityJobProperty {
@@ -456,8 +453,16 @@ cassandraBranches.each {
                     node / scm / branches / 'hudson.plugins.git.BranchSpec' / name(branchName)
                 }
                 steps {
+                    if (arch == "-arm64") {
+                        shell("""
+                                # docker image has to be built on arm64 (they are not currently published to dockerhub)
+                                cd cassandra-builds/docker/testing ;
+                                docker build -t ${dtestDockerImage}:latest -f ubuntu2004_j11.docker . ;
+                                docker build -t ${testDockerImage}:latest -f ubuntu2004_j11_w_dependencies.docker .
+                              """)
+                    }
                     shell("""
-                            sh ./cassandra-builds/build-scripts/cassandra-test-docker.sh apache ${branchName} ${buildsRepo} ${buildsBranch} ${testDockerImage} ${targetName} \${split}/${testSplits} ;
+                            ./cassandra-builds/build-scripts/cassandra-test-docker.sh apache ${branchName} ${buildsRepo} ${buildsBranch} ${testDockerImage} ${targetName} \${split}/${testSplits} ;
                             ./cassandra-builds/build-scripts/cassandra-test-report.sh ;
                              xz TESTS-TestSuites.xml
                           """)
@@ -555,7 +560,7 @@ cassandraBranches.each {
                                   """)
                         }
                         shell("""
-                            sh ./cassandra-builds/build-scripts/cassandra-dtest-pytest-docker.sh apache ${branchName} https://github.com/apache/cassandra-dtest.git trunk ${buildsRepo} ${buildsBranch} ${dtestDockerImage} ${targetName} \${split}/${splits} ;
+                            ./cassandra-builds/build-scripts/cassandra-dtest-pytest-docker.sh apache ${branchName} https://github.com/apache/cassandra-dtest.git trunk ${buildsRepo} ${buildsBranch} ${dtestDockerImage} ${targetName} \${split}/${splits} ;
                             """)
                     }
                     publishers {
@@ -821,9 +826,6 @@ testTargets.each {
             }
             timestamps()
         }
-        throttleConcurrentBuilds {
-            categories(['Cassandra'])
-        }
         parameters {
             stringParam('REPO', 'apache', 'The github user/org to clone cassandra repo from')
             stringParam('BRANCH', 'trunk', 'The branch of cassandra to checkout')
@@ -859,10 +861,18 @@ testTargets.each {
                     git clean -xdff ${targetName == 'microbench' ? '-e build/test/jmh-result.json' : ''};
                     git clone --depth 1 --single-branch -b ${buildsBranch} ${buildsRepo} ;
                     echo "cassandra-builds at: `git -C cassandra-builds log -1 --pretty=format:'%h %an %ad %s'`" ;
-                    echo "Cassandra-devbranch-${targetName}) cassandra: `git log -1 --pretty=format:'%h %an %ad %s'`" > Cassandra-devbranch-${targetName}.head
-                  """)
+                    echo "Cassandra-devbranch-${targetName}) cassandra: `git log -1 --pretty=format:'%h %an %ad %s'`" > Cassandra-devbranch-${targetName}.head 
+                    """)
+            if (arch == "-arm64") {
+                shell("""
+                        # docker image has to be built on arm64 (they are not currently published to dockerhub)
+                        cd cassandra-builds/docker/testing ;
+                        docker build -t ${dtestDockerImage}:latest -f ubuntu2004_j11.docker . ;
+                        docker build -t ${testDockerImage}:latest -f ubuntu2004_j11_w_dependencies.docker .
+                      """)
+            }
             shell("""
-                    sh ./cassandra-builds/build-scripts/cassandra-test-docker.sh \${REPO} \${BRANCH} ${buildsRepo} ${buildsBranch} ${testDockerImage} ${targetName} \${split}/${testSplits} ;
+                    ./cassandra-builds/build-scripts/cassandra-test-docker.sh \${REPO} \${BRANCH} ${buildsRepo} ${buildsBranch} ${testDockerImage} ${targetName} \${split}/${testSplits} ;
                     ./cassandra-builds/build-scripts/cassandra-test-report.sh ;
                     xz TESTS-TestSuites.xml
                   """)
@@ -1001,7 +1011,7 @@ archs.each {
                           """)
                 }
                 shell("""
-                    sh ./cassandra-builds/build-scripts/cassandra-dtest-pytest-docker.sh \$REPO \$BRANCH \$DTEST_REPO \$DTEST_BRANCH ${buildsRepo} ${buildsBranch} \$DOCKER_IMAGE ${targetName} \${split}/${splits} ;
+                    ./cassandra-builds/build-scripts/cassandra-dtest-pytest-docker.sh \$REPO \$BRANCH \$DTEST_REPO \$DTEST_BRANCH ${buildsRepo} ${buildsBranch} \$DOCKER_IMAGE ${targetName} \${split}/${splits} ;
                       """)
             }
             publishers {
