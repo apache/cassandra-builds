@@ -9,7 +9,14 @@
 //
 ////////////////////////////////////////////////////////////
 
-def jobDescription = '<img src="http://cassandra.apache.org/img/cassandra_logo.png" /><br/>Apache Cassandra DSL-generated job - DSL git repo: <a href="https://github.com/apache/cassandra-builds">cassandra-builds</a>'
+def jobDescription = '''
+<p><img src="http://cassandra.apache.org/img/cassandra_logo.png" />
+<br/>Apache Cassandra DSL-generated job - DSL git repo: <a href="https://github.com/apache/cassandra-builds">cassandra-builds</a></p>
+<p>Logs and test results are archived in <a href="https://nightlies.apache.org/cassandra/">nightlies.apache.org</a>
+<br/><i>protip: it is required to look in the pipeline's console log to find the stage build numbers for a specific pipeline run</i></p>
+<p>A basic mirror of all build summary pages (classic and blue ocean ui) is found here <a href="https://nightlies.apache.org/cassandra/ci-cassandra.apache.org/">here</a></p>
+                    '''
+
 def jdkLabel = 'jdk_1.8_latest'
 if(binding.hasVariable("CASSANDRA_JDK_LABEL")) {
     jdkLabel = "${CASSANDRA_JDK_LABEL}"
@@ -344,9 +351,12 @@ matrixJob('Cassandra-template-cqlsh-tests') {
     }
     steps {
         buildDescription('', buildDescStr)
-        shell("git clean -xdff")
-        shell('./pylib/cassandra-cqlsh-tests.sh $WORKSPACE')
-        shell("""echo "\${BUILD_TAG}) cassandra: `git log -1 --pretty=format:'%h %an %ad %s'`" > \${BUILD_TAG}.head """)
+        shell("""
+            git clean -xdff" ;
+            ./pylib/cassandra-cqlsh-tests.sh $WORKSPACE' ;
+            echo "\${BUILD_TAG}) cassandra: `git log -1 --pretty=format:'%h %an %ad %s'`" > \${BUILD_TAG}.head ;
+            wget "\${BUILD_URL}/timestamps/?time=HH:mm:ss&timeZone=UTC&appendLog" -qO - > console.log.xz
+            """)
     }
 }
 
@@ -385,13 +395,16 @@ cassandraBranches.each {
             node / scm / branches / 'hudson.plugins.git.BranchSpec' / name(branchName)
         }
         steps {
-            shell('./cassandra-builds/build-scripts/cassandra-artifacts.sh')
+            shell("""
+                    ./cassandra-builds/build-scripts/cassandra-artifacts.sh ;
+                    wget "\${BUILD_URL}/timestamps/?time=HH:mm:ss&timeZone=UTC&appendLog" -qO - > console.log.xz
+                  """)
         }
         publishers {
             publishOverSsh {
                 server('Nightlies') {
                     transferSet {
-                        sourceFiles("build/apache-cassandra-*.tar.gz, build/apache-cassandra-*.jar, build/apache-cassandra-*.pom, build/cassandra*.deb, build/cassandra*.rpm")
+                        sourceFiles("console.log.xz, build/apache-cassandra-*.tar.gz, build/apache-cassandra-*.jar, build/apache-cassandra-*.pom, build/cassandra*.deb, build/cassandra*.rpm")
                         remoteDirectory("cassandra/${branchName}/${jobNamePrefix}-artifacts/\${BUILD_NUMBER}/\${JOB_NAME}/")
                     }
                 }
@@ -464,7 +477,8 @@ cassandraBranches.each {
                     shell("""
                             ./cassandra-builds/build-scripts/cassandra-test-docker.sh apache ${branchName} ${buildsRepo} ${buildsBranch} ${testDockerImage} ${targetName} \${split}/${testSplits} ;
                             ./cassandra-builds/build-scripts/cassandra-test-report.sh ;
-                             xz TESTS-TestSuites.xml
+                            xz TESTS-TestSuites.xml ;
+                            wget "\${BUILD_URL}/timestamps/?time=HH:mm:ss&timeZone=UTC&appendLog" -qO - > console.log.xz
                           """)
                 }
                 publishers {
@@ -485,7 +499,7 @@ cassandraBranches.each {
                     publishOverSsh {
                         server('Nightlies') {
                             transferSet {
-                                sourceFiles("TESTS-TestSuites.xml.xz,build/test/logs/**,build/test/jmh-result.json")
+                                sourceFiles("console.log.xz,TESTS-TestSuites.xml.xz,build/test/logs/**,build/test/jmh-result.json")
                                 remoteDirectory("cassandra/${branchName}/${jobNamePrefix}-${targetName}/\${BUILD_NUMBER}/\${JOB_NAME}/")
                             }
                         }
@@ -561,13 +575,14 @@ cassandraBranches.each {
                         }
                         shell("""
                             ./cassandra-builds/build-scripts/cassandra-dtest-pytest-docker.sh apache ${branchName} https://github.com/apache/cassandra-dtest.git trunk ${buildsRepo} ${buildsBranch} ${dtestDockerImage} ${targetName} \${split}/${splits} ;
+                            wget "\${BUILD_URL}/timestamps/?time=HH:mm:ss&timeZone=UTC&appendLog" -qO - > console.log.xz
                             """)
                     }
                     publishers {
                         publishOverSsh {
                             server('Nightlies') {
                                 transferSet {
-                                    sourceFiles("**/nosetests.xml,**/test_stdout.txt.xz,**/ccm_logs.tar.xz")
+                                    sourceFiles("console.log.xz,**/nosetests.xml,**/test_stdout.txt.xz,**/ccm_logs.tar.xz")
                                     remoteDirectory("cassandra/${branchName}/${jobNamePrefix}-${targetArchName}/\${BUILD_NUMBER}/\${JOB_NAME}/")
                                 }
                             }
@@ -618,7 +633,7 @@ cassandraBranches.each {
                 publishOverSsh {
                     server('Nightlies') {
                         transferSet {
-                            sourceFiles("**/cqlshlib.xml,**/*.head")
+                            sourceFiles("console.log.xz,**/cqlshlib.xml,**/*.head")
                             remoteDirectory("cassandra/${branchName}/${jobNamePrefix}-cqlsh-tests/\${BUILD_NUMBER}/\${JOB_NAME}/")
                         }
                     }
@@ -763,14 +778,15 @@ matrixJob('Cassandra-devbranch-artifacts') {
                 git clean -xdff ;
                 git clone --depth 1 --single-branch -b ${buildsBranch} ${buildsRepo} ;
                 echo "cassandra-builds at: `git -C cassandra-builds log -1 --pretty=format:'%h %an %ad %s'`" ;
-              """)
-        shell('./cassandra-builds/build-scripts/cassandra-artifacts.sh')
+                ./cassandra-builds/build-scripts/cassandra-artifacts.sh ;
+                wget "\${BUILD_URL}/timestamps/?time=HH:mm:ss&timeZone=UTC&appendLog" -qO - > console.log.xz
+                """)
     }
     publishers {
         publishOverSsh {
             server('Nightlies') {
                 transferSet {
-                    sourceFiles("build/apache-cassandra-*.tar.gz, build/apache-cassandra-*.jar, build/apache-cassandra-*.pom, build/cassandra*.deb, build/cassandra*.rpm")
+                    sourceFiles("console.log.xz,build/apache-cassandra-*.tar.gz, build/apache-cassandra-*.jar, build/apache-cassandra-*.pom, build/cassandra*.deb, build/cassandra*.rpm")
                     remoteDirectory("cassandra/devbranch/Cassandra-devbranch-artifacts/\${BUILD_NUMBER}/\${JOB_NAME}/")
                 }
             }
@@ -861,7 +877,6 @@ testTargets.each {
                     git clean -xdff ${targetName == 'microbench' ? '-e build/test/jmh-result.json' : ''};
                     git clone --depth 1 --single-branch -b ${buildsBranch} ${buildsRepo} ;
                     echo "cassandra-builds at: `git -C cassandra-builds log -1 --pretty=format:'%h %an %ad %s'`" ;
-                    echo "Cassandra-devbranch-${targetName}) cassandra: `git log -1 --pretty=format:'%h %an %ad %s'`" > Cassandra-devbranch-${targetName}.head 
                     """)
             if (arch == "-arm64") {
                 shell("""
@@ -872,10 +887,12 @@ testTargets.each {
                       """)
             }
             shell("""
+                    echo "Cassandra-devbranch-${targetName}) cassandra: `git log -1 --pretty=format:'%h %an %ad %s'`" > Cassandra-devbranch-${targetName}.head ;
                     ./cassandra-builds/build-scripts/cassandra-test-docker.sh \${REPO} \${BRANCH} ${buildsRepo} ${buildsBranch} ${testDockerImage} ${targetName} \${split}/${testSplits} ;
                     ./cassandra-builds/build-scripts/cassandra-test-report.sh ;
-                    xz TESTS-TestSuites.xml
-                  """)
+                    xz TESTS-TestSuites.xml ;
+                    wget "\${BUILD_URL}/timestamps/?time=HH:mm:ss&timeZone=UTC&appendLog" -qO - > console.log.xz
+                """)
         }
         publishers {
             publishOverSsh {
@@ -888,7 +905,7 @@ testTargets.each {
                 failOnError(false)
             }
             archiveArtifacts {
-                pattern('build/test/**/TEST-*.xml, **/*.head')
+                pattern('console.log.xz,build/test/**/TEST-*.xml,**/*.head')
                 allowEmpty()
                 fingerprint()
             }
@@ -1011,14 +1028,15 @@ archs.each {
                           """)
                 }
                 shell("""
-                    ./cassandra-builds/build-scripts/cassandra-dtest-pytest-docker.sh \$REPO \$BRANCH \$DTEST_REPO \$DTEST_BRANCH ${buildsRepo} ${buildsBranch} \$DOCKER_IMAGE ${targetName} \${split}/${splits} ;
-                      """)
+                      ./cassandra-builds/build-scripts/cassandra-dtest-pytest-docker.sh \$REPO \$BRANCH \$DTEST_REPO \$DTEST_BRANCH ${buildsRepo} ${buildsBranch} \$DOCKER_IMAGE ${targetName} \${split}/${splits} ;
+                      wget "\${BUILD_URL}/timestamps/?time=HH:mm:ss&timeZone=UTC&appendLog" -qO - > console.log.xz
+                     """)
             }
             publishers {
                 publishOverSsh {
                     server('Nightlies') {
                         transferSet {
-                            sourceFiles("**/nosetests.xml,**/test_stdout.txt.xz,**/ccm_logs.tar.xz")
+                            sourceFiles("console.log.xz,**/nosetests.xml,**/test_stdout.txt.xz,**/ccm_logs.tar.xz")
                             remoteDirectory("cassandra/devbranch/Cassandra-devbranch-${targetArchName}/\${BUILD_NUMBER}/\${JOB_NAME}/")
                         }
                     }
@@ -1117,14 +1135,15 @@ matrixJob('Cassandra-devbranch-cqlsh-tests') {
         shell("""
                 git clean -xdff ;
                 echo "Cassandra-devbranch-cqlsh-tests) cassandra: `git log -1 --pretty=format:'%h %an %ad %s'`" > Cassandra-devbranch-cqlsh-tests.head ;
-              """)
-        shell('./pylib/cassandra-cqlsh-tests.sh $WORKSPACE')
+                ./pylib/cassandra-cqlsh-tests.sh $WORKSPACE ;
+                wget "\${BUILD_URL}/timestamps/?time=HH:mm:ss&timeZone=UTC&appendLog" -qO - > console.log.xz
+             """)
     }
     publishers {
         publishOverSsh {
             server('Nightlies') {
                 transferSet {
-                    sourceFiles("**/test_stdout.txt.xz,**/ccm_logs.tar.xz")
+                    sourceFiles("console.log.xz,**/test_stdout.txt.xz,**/ccm_logs.tar.xz")
                     remoteDirectory("cassandra/devbranch/Cassandra-devbranch-cqlsh-tests/\${BUILD_NUMBER}/\${JOB_NAME}/")
                 }
             }
