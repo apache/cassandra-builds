@@ -12,6 +12,9 @@ pipeline {
       stage('Init') {
           steps {
               cleanWs()
+              script {
+                  currentBuild.result='SUCCESS'
+              }
               sh "git clone --depth 1 --single-branch -b ${BRANCH} https://github.com/${REPO}/cassandra.git"
               sh "test -f cassandra/.jenkins/Jenkinsfile"
               sh "git clone --depth 1 --single-branch -b ${DTEST_BRANCH} ${DTEST_REPO}"
