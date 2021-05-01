@@ -4,10 +4,8 @@
 
 asf_username="$USER"
 
-# your username to log into bintray (your account needs access to the "apache" organisation)
-BINTRAY_USER="$USER"
-# get your bintray API Key from https://bintray.com/profile/edit/apikey
-BINTRAY_KEY="XXXXXXXX"
+# get your jfrog artifactory API Key from https://apache.jfrog.io/ui/admin/artifactory/user_profile
+ARTIFACTORY_API_KEY="XXXXXXXX"
 
 # The name of remote for the asf remote in your git repo
 git_asf_remote="origin"
@@ -159,7 +157,7 @@ rm _tmp_msg_
 
 echo "Deploying debian packages ..." 1>&3 2>&4
 
-# Upload to bintray
+# Upload to ASF jfrog artifactory
 debian_dist_dir=$tmp_dir/cassandra-dist-$release-debian
 execute "svn co https://dist.apache.org/repos/dist/release/cassandra/$release/debian $debian_dist_dir"
 [ -e "$debian_dist_dir" ] || mkdir $debian_dist_dir # create it for fake mode, to satisfy `find …` command below
@@ -173,7 +171,8 @@ for i in $(find ${debian_dist_dir}/ -mindepth 2 -type f -mtime -10 -not -path "*
     then
     	FDIR=`echo $i | cut -c ${ROOTLEN}-${#i}`
     	echo "Uploading $FDIR"
-    	execute "curl -X PUT -T $i -u${BINTRAY_USER}:${BINTRAY_KEY} https://api.bintray.com/content/apache/cassandra/debian/prod${FDIR}?override=1"
+        execute "curl -X PUT -T $i -u${asf_username}:${ARTIFACTORY_API_KEY} https://apache.jfrog.io/artifactory/cassandra/${FDIR}?override=1"
+        execute "curl -X PUT -T $i -u${asf_username}:${ARTIFACTORY_API_KEY} https://apache.jfrog.io/artifactory/cassandra-deb/${FDIR}?override=1"
     	sleep 1
     fi
 done
@@ -211,6 +210,26 @@ execute "svn rm -F _tmp_msg_ https://dist.apache.org/repos/dist/release/cassandr
 #
 
 echo "Deploying redhat packages ..." 1>&3 2>&4
+
+# Upload to ASF jfrog artifactory
+redhat_dist_dir=$tmp_dir/cassandra-dist-$release-redhat
+execute "svn co https://dist.apache.org/repos/dist/release/cassandra/$release/redhat $redhat_dist_dir"
+[ -e "$redhat_dist_dir" ] || mkdir $redhat_dist_dir # create it for fake mode, to satisfy `find …` command below
+execute "cd $redhat_dist_dir"
+
+ROOTLEN=$(( ${#redhat_dist_dir} + 1))
+
+for i in $(find ${redhat_dist_dir} -mindepth 2 -type f -mtime -10 -not -path "*/.svn/*" -printf "%T@ %p\n" | sort -n -r | cut -d' ' -f 2); do
+    IFILE=`echo $(basename -- "$i") | cut -c 1`
+    if [[ $IFILE != "." ]];
+    then
+        FDIR=`echo $i | cut -c ${ROOTLEN}-${#i}`
+        echo "Uploading $FDIR"
+        execute "curl -X PUT -T $i -u${asf_username}:${ARTIFACTORY_API_KEY} https://apache.jfrog.io/artifactory/cassandra-rpm/${FDIR}?override=1"
+        sleep 1
+    fi
+done
+cd $tmp_dir
 
 # Move to dist release top-level redhat directory
 echo "Apache Cassandra $release redhat artifacts" > "_tmp_msg_"
@@ -250,16 +269,15 @@ echo "[3]: https://issues.apache.org/jira/browse/CASSANDRA" >> $mail_file
 
 
 echo 'Done deploying artifacts. Please make sure to:'
-echo ' 1) release artifacts from repository.apache.org'
+echo ' 1) "Release" the staging repository from repository.apache.org'
 echo ' 2) wait for the artifacts to sync at https://downloads.apache.org/cassandra/'
-echo ' 3) login to bintray and \"publish\" the uploaded artifacts, at https://bintray.com/apache/cassandra'
-echo ' 4) update the website (TODO provide link)'  # TODO - this is old info and needs updating..
-echo ' 5) update CQL doc if appropriate'
-echo ' 6) update wikipedia page if appropriate'
-echo ' 7) send announcement email: draft in $mail_file'
-echo ' 8) update #cassandra topic on slack'
-echo ' 9) tweet from @cassandra'
-echo ' 10) release version in JIRA'
-echo ' 11) remove old version (eg: `svn rm https://dist.apache.org/repos/dist/release/cassandra/<previous_version>`)'
-echo ' 12) increment build.xml base.version for the next release'
-echo ' 13) follow instructions in email you will receive from the \"Apache Reporter Service\" to update the project`s list of releases in reporter.apache.org'
+echo ' 3) update the website (TODO provide link)'  # TODO - this is old info and needs updating..
+echo ' 4) update CQL doc if appropriate'
+echo ' 5) update wikipedia page if appropriate ( https://en.wikipedia.org/wiki/Apache_Cassandra )'
+echo " 6) send announcement email: draft in $mail_file"
+echo ' 7) update #cassandra topic on slack'
+echo ' 8) tweet from @cassandra'
+echo ' 9) release version in JIRA'
+echo ' 10) remove old version (eg: `svn rm https://dist.apache.org/repos/dist/release/cassandra/<previous_version>`)'
+echo ' 11) increment build.xml base.version for the next release'
+echo ' 12) follow instructions in email you will receive from the \"Apache Reporter Service\" to update the project`s list of releases in reporter.apache.org'
