@@ -48,7 +48,7 @@ if(binding.hasVariable("CASSANDRA_DTEST_GIT_URL")) {
 }
 def buildDescStr = 'REF = ${GIT_BRANCH} <br /> COMMIT = ${GIT_COMMIT}'
 // Cassandra active branches
-def cassandraBranches = ['cassandra-2.2', 'cassandra-3.0', 'cassandra-3.11', 'trunk']
+def cassandraBranches = ['cassandra-2.2', 'cassandra-3.0', 'cassandra-3.11', 'cassandra-4.0', 'trunk']
 if(binding.hasVariable("CASSANDRA_BRANCHES")) {
     cassandraBranches = "${CASSANDRA_BRANCHES}".split(",")
 }
