@@ -208,7 +208,7 @@ then
     execute "ant realclean"
     execute "ant publish -Drelease=true -Dbase.version=$release"
 
-    echo "Artifacts uploaded, please close release on repository.apache.org and indicate the staging number:" 1>&3 2>&4
+    echo "Artifacts uploaded, find the staging repository on repository.apache.org, \"Close\" it, and indicate its staging number:" 1>&3 2>&4
     read -p "staging number? " staging_number 1>&3 2>&4
 
     execute "cd $tmp_dir"
