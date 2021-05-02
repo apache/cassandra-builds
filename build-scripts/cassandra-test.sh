@@ -28,7 +28,7 @@ _build_all_dtest_jars() {
     cd $TMP_DIR
     git clone --depth 1 --no-single-branch https://gitbox.apache.org/repos/asf/cassandra.git cassandra-dtest-jars
     cd cassandra-dtest-jars
-    for branch in cassandra-2.2 cassandra-3.0 cassandra-3.11 trunk; do
+    for branch in cassandra-2.2 cassandra-3.0 cassandra-3.11 cassandra-4.0 trunk; do
         git checkout $branch
         ant realclean
         ant jar dtest-jar
