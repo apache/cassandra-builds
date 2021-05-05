@@ -89,6 +89,9 @@ _main() {
       regx_version="(2.2|3.0).([0-9]+)$"
       ! [[ $version =~ $regx_version ]] || { echo "Skipping ${target}. It does not exist in ${version}"; exit 0; }
       ;;
+    "cqlsh-test")
+      [[ -f "./pylib/cassandra-cqlsh-tests.sh" ]] || { echo "Skipping ${target}. It does not exist in ${version}"; exit 0; }
+      ;;
     *)
       ;;
   esac
@@ -144,6 +147,9 @@ _main() {
           testlist="$( _list_tests "distributed"  | grep "upgrade" | head -n1)"
       fi
       ant testclasslist -Dtest.classlistprefix=distributed -Dtest.timeout=$(_timeout_for "test.distributed.timeout") -Dtest.classlistfile=<(echo "${testlist}") -Dtmp.dir="${TMP_DIR}" || echo "failed $target"
+      ;;
+    "cqlsh-test")
+      ./pylib/cassandra-cqlsh-tests.sh .
       ;;
     *)
       echo "unregconised \"$target\""
