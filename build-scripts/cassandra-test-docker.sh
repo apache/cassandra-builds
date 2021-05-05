@@ -15,7 +15,7 @@ if [ "$#" -lt 3 ]; then
     export LC_CTYPE=en_US.UTF-8
     export PYTHONIOENCODING=utf-8
     export PYTHONUNBUFFERED=true
-    if [ "${JAVA_VERSION}" -ge 11 ]; then
+    if [ "${JAVA_VERSION}" -ge 11 ] ; then
         sudo update-java-alternatives --set java-1.11.0-openjdk-$(dpkg --print-architecture)
         export CASSANDRA_USE_JDK11=true
         export JAVA_HOME=$(sudo update-java-alternatives -l | grep "java-1.11.0-openjdk" | awk '{print $3}')
@@ -76,7 +76,7 @@ EOF
     # for relevant test targets calculate how many docker containers we should split the test list over
     case $TARGET in
       # test-burn doesn't have enough tests in it to split beyond 8, and burn and long we want a bit more resources anyway
-      "stress-test" | "fqltool-test" | "microbench" | "test-burn" | "long-test")
+      "stress-test" | "fqltool-test" | "microbench" | "test-burn" | "long-test" | "cqlsh-test")
           docker_runs=1
         ;;
       "test"| "test-cdc" | "test-compression" | "jvm-dtest" | "jvm-dtest-upgrade")
@@ -160,6 +160,7 @@ EOF
             docker cp "$docker_id:/home/cassandra/cassandra/${TARGET}-${inner_split}-${INNER_SPLITS}-cassandra.head" .
             docker cp $docker_id:/home/cassandra/cassandra/build/test/output/. build/test/output
             docker cp $docker_id:/home/cassandra/cassandra/build/test/logs/. build/test/logs
+            docker cp $docker_id:/home/cassandra/cassandra/pylib/cqlshlib/cqlshlib.xml cqlshlib.xml
         fi
         docker rm $docker_id
         ((i++))
