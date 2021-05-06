@@ -352,8 +352,8 @@ matrixJob('Cassandra-template-cqlsh-tests') {
     steps {
         buildDescription('', buildDescStr)
         shell("""
-            git clean -xdff" ;
-            ./pylib/cassandra-cqlsh-tests.sh $WORKSPACE' ;
+            git clean -xdff ;
+            ./pylib/cassandra-cqlsh-tests.sh \$WORKSPACE ;
             echo "\${BUILD_TAG}) cassandra: `git log -1 --pretty=format:'%h %an %ad %s'`" > \${BUILD_TAG}.head ;
             wget "\${BUILD_URL}/timestamps/?time=HH:mm:ss&timeZone=UTC&appendLog" -qO - > console.log.xz
             """)
@@ -444,11 +444,13 @@ cassandraBranches.each {
             matrixJob("${jobNamePrefix}-${targetName}") {
                 disabled(false)
                 using('Cassandra-template-test')
+                def _testSplits = ''
                 axes {
                     if (isSplittableTest(targetName)) {
                         List<String> values = new ArrayList<String>()
                         (1..testSplits).each { values << it.toString() }
                         text('split', values)
+                        _testSplits = "/${testSplits}"
                     }
                     // jvm-dtest-upgrade would require mixed JDK compilations to support JDK11+
                     if ((branchName == 'trunk' || branchName == 'cassandra-4.0') && targetName != 'jvm-dtest-upgrade') {
@@ -467,7 +469,7 @@ cassandraBranches.each {
                 }
                 steps {
                     shell("""
-                            ./cassandra-builds/build-scripts/cassandra-test-docker.sh apache ${branchName} ${buildsRepo} ${buildsBranch} ${testDockerImage} ${targetName} \${split}/${testSplits} ;
+                            ./cassandra-builds/build-scripts/cassandra-test-docker.sh apache ${branchName} ${buildsRepo} ${buildsBranch} ${testDockerImage} ${targetName} \${split}${_testSplits} ;
                             ./cassandra-builds/build-scripts/cassandra-test-report.sh ;
                             xz TESTS-TestSuites.xml ;
                             wget "\${BUILD_URL}/timestamps/?time=HH:mm:ss&timeZone=UTC&appendLog" -qO - > console.log.xz
@@ -809,11 +811,13 @@ testTargets.each {
     matrixJob("Cassandra-devbranch-${targetName}") {
         description(jobDescription)
         concurrentBuild()
+        def _testSplits = ''
         axes {
             if (isSplittableTest(targetName)) {
                 List<String> values = new ArrayList<String>()
                 (1..testSplits).each { values << it.toString() }
                 text('split', values)
+                _testSplits = "/${testSplits}"
             }
             jdk(jdkLabel,'jdk_11_latest')
             if (use_arm64_test_label()) {
@@ -1119,7 +1123,7 @@ matrixJob('Cassandra-devbranch-cqlsh-tests') {
         shell("""
                 git clean -xdff ;
                 echo "Cassandra-devbranch-cqlsh-tests) cassandra: `git log -1 --pretty=format:'%h %an %ad %s'`" > Cassandra-devbranch-cqlsh-tests.head ;
-                ./pylib/cassandra-cqlsh-tests.sh $WORKSPACE ;
+                ./pylib/cassandra-cqlsh-tests.sh \$WORKSPACE ;
                 wget "\${BUILD_URL}/timestamps/?time=HH:mm:ss&timeZone=UTC&appendLog" -qO - > console.log.xz
              """)
     }

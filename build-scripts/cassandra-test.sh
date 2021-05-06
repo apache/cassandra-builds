@@ -30,6 +30,7 @@ _timeout_for() {
 }
 
 _build_all_dtest_jars() {
+    mkdir -p build
     cd $TMP_DIR
     until git clone --quiet --depth 1 --no-single-branch https://github.com/apache/cassandra.git cassandra-dtest-jars ; do echo "git clone failed… trying again… " ; done
     cd cassandra-dtest-jars
@@ -51,12 +52,13 @@ _run_testlist() {
     local _split_chunk=$3
     local _test_timeout=$4
     testlist="$( _list_tests "${_target_prefix}" | _split_tests "${_split_chunk}")"
-    if ! [[ -z "$testlist" ]]; then
-      ant clean jar
-      ant $_testlist_target -Dtest.classlistprefix="${_target_prefix}" -Dtest.classlistfile=<(echo "${testlist}") -Dtest.timeout="${_test_timeout}" -Dtmp.dir="${TMP_DIR}" || echo "failed ${_target_prefix} ${$_testlist_target}"
-    else
-      echo Skipping ${_target_prefix} ${_testlist_target}, no tests in split ${_split_chunk}
+    if [[ -z "$testlist" ]]; then
+      # something has to run in the split to generate a junit xml result
+      echo Hacking ${_target_prefix} ${_testlist_target} to run only first test found as no tests in split ${_split_chunk} were found
+      testlist="$( _list_tests "${_target_prefix}" | head -n1)"
     fi
+    ant clean jar
+    ant $_testlist_target -Dtest.classlistprefix="${_target_prefix}" -Dtest.classlistfile=<(echo "${testlist}") -Dtest.timeout="${_test_timeout}" -Dtmp.dir="${TMP_DIR}" || echo "failed ${_target_prefix} ${$_testlist_target}"
 }
 
 _main() {
