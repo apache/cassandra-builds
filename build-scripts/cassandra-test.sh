@@ -99,12 +99,12 @@ _main() {
   case $target in
     "stress-test")
       # hard fail on test compilation, but dont fail the test run as unstable test reports are processed
-      ant clean stress-build-test jar
+      ant clean jar stress-build-test
       ant $target -Dtmp.dir="$(pwd)/tmp" || echo "failed $target"
       ;;
     "fqltool-test")
       # hard fail on test compilation, but dont fail the test run so unstable test reports are processed
-      ant clean fqltool-build-test jar
+      ant clean jar fqltool-build-test
       ant $target -Dtmp.dir="$(pwd)/tmp" || echo "failed $target"
       ;;
     "microbench")
