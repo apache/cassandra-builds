@@ -466,14 +466,6 @@ cassandraBranches.each {
                     node / scm / branches / 'hudson.plugins.git.BranchSpec' / name(branchName)
                 }
                 steps {
-                    if (arch == "-arm64") {
-                        shell("""
-                                # docker image has to be built on arm64 (they are not currently published to dockerhub)
-                                cd cassandra-builds/docker/testing ;
-                                docker build -t ${dtestDockerImage}:latest -f ubuntu2004_j11.docker . ;
-                                docker build -t ${testDockerImage}:latest -f ubuntu2004_j11_w_dependencies.docker .
-                              """)
-                    }
                     shell("""
                             ./cassandra-builds/build-scripts/cassandra-test-docker.sh apache ${branchName} ${buildsRepo} ${buildsBranch} ${testDockerImage} ${targetName} \${split}/${testSplits} ;
                             ./cassandra-builds/build-scripts/cassandra-test-report.sh ;
@@ -878,14 +870,6 @@ testTargets.each {
                     git clone --depth 1 --single-branch -b ${buildsBranch} ${buildsRepo} ;
                     echo "cassandra-builds at: `git -C cassandra-builds log -1 --pretty=format:'%h %an %ad %s'`" ;
                     """)
-            if (arch == "-arm64") {
-                shell("""
-                        # docker image has to be built on arm64 (they are not currently published to dockerhub)
-                        cd cassandra-builds/docker/testing ;
-                        docker build -t ${dtestDockerImage}:latest -f ubuntu2004_j11.docker . ;
-                        docker build -t ${testDockerImage}:latest -f ubuntu2004_j11_w_dependencies.docker .
-                      """)
-            }
             shell("""
                     echo "Cassandra-devbranch-${targetName}) cassandra: `git log -1 --pretty=format:'%h %an %ad %s'`" > Cassandra-devbranch-${targetName}.head ;
                     ./cassandra-builds/build-scripts/cassandra-test-docker.sh \${REPO} \${BRANCH} ${buildsRepo} ${buildsBranch} ${testDockerImage} ${targetName} \${split}/${testSplits} ;
