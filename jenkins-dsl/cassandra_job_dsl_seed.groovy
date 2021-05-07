@@ -416,7 +416,7 @@ cassandraBranches.each {
                 task('.', """
                     echo "Cleaning project…"; git clean -xdff ;
                     echo "Pruning docker…" ;
-                    if pgrep -af "cassandra-builds/build-scripts" ; then docker system prune --all --force --filter "until=${maxJobHours}h" ; else  docker system prune --all --force --volumes ;  fi;
+                    if pgrep -af "cassandra-builds/build-scripts" ; then docker system prune --all --force --filter "until=${maxJobHours}h" || true ; else  docker system prune --all --force --volumes || true ;  fi;
                     echo "Reporting disk usage…"; df -h ;
                     echo "Cleaning tmp…";
                     find . -type d -name tmp -delete 2>/dev/null ;
@@ -505,7 +505,7 @@ cassandraBranches.each {
                         task('.', """
                             echo "Cleaning project…"; git clean -xdff -e build/test/jmh-result.json ;
                             echo "Pruning docker…" ;
-                            if pgrep -af "cassandra-builds/build-scripts" ; then docker system prune --all --force --filter "until=${maxJobHours}h" ; else  docker system prune --all --force --volumes ;  fi;
+                            if pgrep -af "cassandra-builds/build-scripts" ; then docker system prune --all --force --filter "until=${maxJobHours}h" || true ; else  docker system prune --all --force --volumes || true ;  fi;
                             echo "Reporting disk usage…"; du -xm / 2>/dev/null | sort -rn | head -n 30 ; df -h ;
                             echo "Cleaning tmp…";
                             find . -type d -name tmp -delete 2>/dev/null ;
@@ -598,7 +598,7 @@ cassandraBranches.each {
                             task('.', """
                                 echo "Cleaning project…"; git clean -xdff ;
                                 echo "Pruning docker…" ;
-                                if pgrep -af "cassandra-builds/build-scripts" ; then docker system prune --all --force --filter "until=${maxJobHours}h" ; else  docker system prune --all --force --volumes ;  fi;
+                                if pgrep -af "cassandra-builds/build-scripts" ; then docker system prune --all --force --filter "until=${maxJobHours}h" || true ; else  docker system prune --all --force --volumes || true ;  fi;
                                 echo "Reporting disk usage…"; df -h ;
                                 echo "Cleaning tmp…";
                                 find . -type d -name tmp -delete 2>/dev/null ;
@@ -649,7 +649,7 @@ cassandraBranches.each {
                     task('.', """
                         echo "Cleaning project…"; git clean -xdff ;
                         echo "Pruning docker…" ;
-                        if pgrep -af "cassandra-builds/build-scripts" ; then docker system prune --all --force --filter "until=${maxJobHours}h" ; else  docker system prune --all --force --volumes ;  fi;
+                        if pgrep -af "cassandra-builds/build-scripts" ; then docker system prune --all --force --filter "until=${maxJobHours}h" || true ; else  docker system prune --all --force --volumes || true ;  fi;
                         echo "Reporting disk usage…"; df -h ;
                         echo "Cleaning tmp…";
                         find . -type d -name tmp -delete 2>/dev/null ;
@@ -792,7 +792,7 @@ matrixJob('Cassandra-devbranch-artifacts') {
             task('.', """
                 echo "Cleaning project…"; git clean -xdff ;
                 echo "Pruning docker…" ;
-                if pgrep -af "cassandra-builds/build-scripts" ; then docker system prune --all --force --filter "until=${maxJobHours}h" ; else  docker system prune --all --force --volumes ;  fi;
+                if pgrep -af "cassandra-builds/build-scripts" ; then docker system prune --all --force --filter "until=${maxJobHours}h" || true ; else  docker system prune --all --force --volumes || true ;  fi;
                 echo "Reporting disk usage…"; df -h ;
                 echo "Cleaning tmp…";
                 find . -type d -name tmp -delete 2>/dev/null ;
@@ -876,7 +876,7 @@ testTargets.each {
                     """)
             shell("""
                     echo "Cassandra-devbranch-${targetName}) cassandra: `git log -1 --pretty=format:'%h %an %ad %s'`" > Cassandra-devbranch-${targetName}.head ;
-                    ./cassandra-builds/build-scripts/cassandra-test-docker.sh \${REPO} \${BRANCH} ${buildsRepo} ${buildsBranch} ${testDockerImage} ${targetName} \${split}/${testSplits} ;
+                    ./cassandra-builds/build-scripts/cassandra-test-docker.sh \${REPO} \${BRANCH} ${buildsRepo} ${buildsBranch} ${testDockerImage} ${targetName} \${split}${_testSplits} ;
                     ./cassandra-builds/build-scripts/cassandra-test-report.sh ;
                     xz TESTS-TestSuites.xml ;
                     wget --retry-connrefused --waitretry=1 "\${BUILD_URL}/timestamps/?time=HH:mm:ss&timeZone=UTC&appendLog" -qO - > console.log.xz || echo wget failed
@@ -906,7 +906,7 @@ testTargets.each {
                 task('.', """
                     echo "Cleaning project…"; git clean -xdff ${targetName == 'microbench' ? '-e build/test/jmh-result.json' : ''};
                     echo "Pruning docker…" ;
-                    if pgrep -af "cassandra-builds/build-scripts" ; then docker system prune --all --force --filter "until=${maxJobHours}h" ; else  docker system prune --all --force --volumes ;  fi;
+                    if pgrep -af "cassandra-builds/build-scripts" ; then docker system prune --all --force --filter "until=${maxJobHours}h" || true ; else  docker system prune --all --force --volumes || true ;  fi;
                     echo "Reporting disk usage…"; du -xm / 2>/dev/null | sort -rn | head -n 30 ; df -h ;
                     echo "Cleaning tmp…";
                     find . -type d -name tmp -delete 2>/dev/null ;
@@ -1042,7 +1042,7 @@ archs.each {
                     task('.', """
                         echo "Cleaning project…" ; git clean -xdff ;
                         echo "Pruning docker…" ;
-                        if pgrep -af "cassandra-builds/build-scripts" ; then docker system prune --all --force --filter "until=${maxJobHours}h" ; else  docker system prune --all --force --volumes ;  fi;
+                        if pgrep -af "cassandra-builds/build-scripts" ; then docker system prune --all --force --filter "until=${maxJobHours}h" || true ; else  docker system prune --all --force --volumes || true ;  fi;
                         echo "Reporting disk usage…"; df -h ;
                         echo "Cleaning tmp…";
                         find . -type d -name tmp -delete 2>/dev/null ;
@@ -1149,7 +1149,7 @@ matrixJob('Cassandra-devbranch-cqlsh-tests') {
             task('.', """
                 echo "Cleaning project…"; git clean -xdff ;
                 echo "Pruning docker…" ;
-                if pgrep -af "cassandra-builds/build-scripts" ; then docker system prune --all --force --filter "until=${maxJobHours}h" ; else  docker system prune --all --force --volumes ;  fi;
+                if pgrep -af "cassandra-builds/build-scripts" ; then docker system prune --all --force --filter "until=${maxJobHours}h" || true ; else  docker system prune --all --force --volumes || true ;  fi;
                 echo "Reporting disk usage…"; df -h ;
                 echo "Cleaning tmp…";
                 find . -type d -name tmp -delete 2>/dev/null ;
