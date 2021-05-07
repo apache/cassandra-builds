@@ -355,7 +355,7 @@ matrixJob('Cassandra-template-cqlsh-tests') {
             git clean -xdff ;
             ./pylib/cassandra-cqlsh-tests.sh \$WORKSPACE ;
             echo "\${BUILD_TAG}) cassandra: `git log -1 --pretty=format:'%h %an %ad %s'`" > \${BUILD_TAG}.head ;
-            wget "\${BUILD_URL}/timestamps/?time=HH:mm:ss&timeZone=UTC&appendLog" -qO - > console.log.xz
+            wget --retry-connrefused --waitretry=1 "\${BUILD_URL}/timestamps/?time=HH:mm:ss&timeZone=UTC&appendLog" -qO - > console.log.xz || echo wget failed
             """)
     }
 }
@@ -397,7 +397,7 @@ cassandraBranches.each {
         steps {
             shell("""
                     ./cassandra-builds/build-scripts/cassandra-artifacts.sh ;
-                    wget "\${BUILD_URL}/timestamps/?time=HH:mm:ss&timeZone=UTC&appendLog" -qO - > console.log.xz
+                    wget --retry-connrefused --waitretry=1 "\${BUILD_URL}/timestamps/?time=HH:mm:ss&timeZone=UTC&appendLog" -qO - > console.log.xz || echo wget failed
                   """)
         }
         publishers {
@@ -420,7 +420,7 @@ cassandraBranches.each {
                     echo "Reporting disk usage…"; df -h ;
                     echo "Cleaning tmp…";
                     find . -type d -name tmp -delete 2>/dev/null ;
-                    find /tmp -type f -atime +2 -user jenkins -and -not -exec fuser -s {} ';' -and -delete 2>/dev/null
+                    find /tmp -type f -atime +2 -user jenkins -and -not -exec fuser -s {} ';' -and -delete 2>/dev/null || echo clean tmp failed
                 """)
             }
         }
@@ -472,7 +472,7 @@ cassandraBranches.each {
                             ./cassandra-builds/build-scripts/cassandra-test-docker.sh apache ${branchName} ${buildsRepo} ${buildsBranch} ${testDockerImage} ${targetName} \${split}${_testSplits} ;
                             ./cassandra-builds/build-scripts/cassandra-test-report.sh ;
                             xz TESTS-TestSuites.xml ;
-                            wget "\${BUILD_URL}/timestamps/?time=HH:mm:ss&timeZone=UTC&appendLog" -qO - > console.log.xz
+                            wget --retry-connrefused --waitretry=1 "\${BUILD_URL}/timestamps/?time=HH:mm:ss&timeZone=UTC&appendLog" -qO - > console.log.xz || echo wget failed
                           """)
                 }
                 publishers {
@@ -509,7 +509,7 @@ cassandraBranches.each {
                             echo "Reporting disk usage…"; du -xm / 2>/dev/null | sort -rn | head -n 30 ; df -h ;
                             echo "Cleaning tmp…";
                             find . -type d -name tmp -delete 2>/dev/null ;
-                            find /tmp -type f -atime +2 -user jenkins -and -not -exec fuser -s {} ';' -and -delete 2>/dev/null
+                            find /tmp -type f -atime +2 -user jenkins -and -not -exec fuser -s {} ';' -and -delete 2>/dev/null || echo clean tmp failed
                         """)
                     }
                 }
@@ -569,7 +569,7 @@ cassandraBranches.each {
                         }
                         shell("""
                             ./cassandra-builds/build-scripts/cassandra-dtest-pytest-docker.sh apache ${branchName} https://github.com/apache/cassandra-dtest.git trunk ${buildsRepo} ${buildsBranch} ${dtestDockerImage} ${targetName} \${split}/${splits} ;
-                            wget "\${BUILD_URL}/timestamps/?time=HH:mm:ss&timeZone=UTC&appendLog" -qO - > console.log.xz
+                            wget --retry-connrefused --waitretry=1 "\${BUILD_URL}/timestamps/?time=HH:mm:ss&timeZone=UTC&appendLog" -qO - > console.log.xz || echo wget failed
                             """)
                     }
                     publishers {
@@ -602,7 +602,7 @@ cassandraBranches.each {
                                 echo "Reporting disk usage…"; df -h ;
                                 echo "Cleaning tmp…";
                                 find . -type d -name tmp -delete 2>/dev/null ;
-                                find /tmp -type f -atime +2 -user jenkins -and -not -exec fuser -s {} ';' -and -delete 2>/dev/null
+                                find /tmp -type f -atime +2 -user jenkins -and -not -exec fuser -s {} ';' -and -delete 2>/dev/null || echo clean tmp failed
                             """)
                         }
                     }
@@ -653,7 +653,7 @@ cassandraBranches.each {
                         echo "Reporting disk usage…"; df -h ;
                         echo "Cleaning tmp…";
                         find . -type d -name tmp -delete 2>/dev/null ;
-                        find /tmp -type f -atime +2 -user jenkins -and -not -exec fuser -s {} ';' -and -delete 2>/dev/null
+                        find /tmp -type f -atime +2 -user jenkins -and -not -exec fuser -s {} ';' -and -delete 2>/dev/null || echo clean tmp failed
                     """)
                 }
             }
@@ -773,7 +773,7 @@ matrixJob('Cassandra-devbranch-artifacts') {
                 git clone --depth 1 --single-branch -b ${buildsBranch} ${buildsRepo} ;
                 echo "cassandra-builds at: `git -C cassandra-builds log -1 --pretty=format:'%h %an %ad %s'`" ;
                 ./cassandra-builds/build-scripts/cassandra-artifacts.sh ;
-                wget "\${BUILD_URL}/timestamps/?time=HH:mm:ss&timeZone=UTC&appendLog" -qO - > console.log.xz
+                wget --retry-connrefused --waitretry=1 "\${BUILD_URL}/timestamps/?time=HH:mm:ss&timeZone=UTC&appendLog" -qO - > console.log.xz || echo wget failed
                 """)
     }
     publishers {
@@ -796,7 +796,7 @@ matrixJob('Cassandra-devbranch-artifacts') {
                 echo "Reporting disk usage…"; df -h ;
                 echo "Cleaning tmp…";
                 find . -type d -name tmp -delete 2>/dev/null ;
-                find /tmp -type -f -atime +3 -user jenkins -and -not -exec fuser -s {} ';' -and -delete 2>/dev/null
+                find /tmp -type -f -atime +3 -user jenkins -and -not -exec fuser -s {} ';' -and -delete 2>/dev/null || echo clean tmp failed
             """)
         }
     }
@@ -879,7 +879,7 @@ testTargets.each {
                     ./cassandra-builds/build-scripts/cassandra-test-docker.sh \${REPO} \${BRANCH} ${buildsRepo} ${buildsBranch} ${testDockerImage} ${targetName} \${split}/${testSplits} ;
                     ./cassandra-builds/build-scripts/cassandra-test-report.sh ;
                     xz TESTS-TestSuites.xml ;
-                    wget "\${BUILD_URL}/timestamps/?time=HH:mm:ss&timeZone=UTC&appendLog" -qO - > console.log.xz
+                    wget --retry-connrefused --waitretry=1 "\${BUILD_URL}/timestamps/?time=HH:mm:ss&timeZone=UTC&appendLog" -qO - > console.log.xz || echo wget failed
                 """)
         }
         publishers {
@@ -910,7 +910,7 @@ testTargets.each {
                     echo "Reporting disk usage…"; du -xm / 2>/dev/null | sort -rn | head -n 30 ; df -h ;
                     echo "Cleaning tmp…";
                     find . -type d -name tmp -delete 2>/dev/null ;
-                    find /tmp -type f -atime +2 -user jenkins -and -not -exec fuser -s {} ';' -and -delete 2>/dev/null
+                    find /tmp -type f -atime +2 -user jenkins -and -not -exec fuser -s {} ';' -and -delete 2>/dev/null || echo clean tmp failed
                 """)
             }
         }
@@ -1017,7 +1017,7 @@ archs.each {
                 }
                 shell("""
                       ./cassandra-builds/build-scripts/cassandra-dtest-pytest-docker.sh \$REPO \$BRANCH \$DTEST_REPO \$DTEST_BRANCH ${buildsRepo} ${buildsBranch} \$DOCKER_IMAGE ${targetName} \${split}/${splits} ;
-                      wget "\${BUILD_URL}/timestamps/?time=HH:mm:ss&timeZone=UTC&appendLog" -qO - > console.log.xz
+                      wget --retry-connrefused --waitretry=1 "\${BUILD_URL}/timestamps/?time=HH:mm:ss&timeZone=UTC&appendLog" -qO - > console.log.xz || echo wget failed
                      """)
             }
             publishers {
@@ -1046,7 +1046,7 @@ archs.each {
                         echo "Reporting disk usage…"; df -h ;
                         echo "Cleaning tmp…";
                         find . -type d -name tmp -delete 2>/dev/null ;
-                        find /tmp -type f -atime +2 -user jenkins -and -not -exec fuser -s {} ';' -and -delete 2>/dev/null
+                        find /tmp -type f -atime +2 -user jenkins -and -not -exec fuser -s {} ';' -and -delete 2>/dev/null || echo clean tmp failed
                     """)
                 }
             }
@@ -1124,7 +1124,7 @@ matrixJob('Cassandra-devbranch-cqlsh-tests') {
                 git clean -xdff ;
                 echo "Cassandra-devbranch-cqlsh-tests) cassandra: `git log -1 --pretty=format:'%h %an %ad %s'`" > Cassandra-devbranch-cqlsh-tests.head ;
                 ./pylib/cassandra-cqlsh-tests.sh \$WORKSPACE ;
-                wget "\${BUILD_URL}/timestamps/?time=HH:mm:ss&timeZone=UTC&appendLog" -qO - > console.log.xz
+                wget --retry-connrefused --waitretry=1 "\${BUILD_URL}/timestamps/?time=HH:mm:ss&timeZone=UTC&appendLog" -qO - > console.log.xz || echo wget failed
              """)
     }
     publishers {
@@ -1153,7 +1153,7 @@ matrixJob('Cassandra-devbranch-cqlsh-tests') {
                 echo "Reporting disk usage…"; df -h ;
                 echo "Cleaning tmp…";
                 find . -type d -name tmp -delete 2>/dev/null ;
-                find /tmp -type f -atime +2 -user jenkins -and -not -exec fuser -s {} ';' -and -delete 2>/dev/null
+                find /tmp -type f -atime +2 -user jenkins -and -not -exec fuser -s {} ';' -and -delete 2>/dev/null || echo clean tmp failed
             """)
         }
     }
