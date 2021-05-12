@@ -321,6 +321,7 @@ pipeline {
             sh "echo \"summary) cassandra-builds: `git -C cassandra-builds log -1 --pretty=format:'%h %an %ad %s'`\" > builds.head"
             sh "./cassandra-builds/jenkins-dsl/print-shas.sh"
             sh "xz TESTS-TestSuites.xml"
+            sh "wget --retry-connrefused --waitretry=1 \"\${BUILD_URL}/timestamps/?time=HH:mm:ss&timeZone=UTC&appendLog\" -qO - > console.log.xz || echo wget failed"
             sh "echo \"For test report and logs see https://nightlies.apache.org/cassandra/devbranch/${JOB_NAME}/${BUILD_NUMBER}/\""
         }
         post {

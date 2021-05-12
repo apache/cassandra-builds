@@ -81,7 +81,7 @@ EOF
           # Jenkins agents run multiple executors per machine. `jenkins_executors=1` is used for anything non-jenkins.
           jenkins_executors=1
           if [[ ! -z ${JENKINS_URL+x} ]] && [[ ! -z ${NODE_NAME+x} ]] ; then
-              jenkins_executors=$(curl -s "${JENKINS_URL}/computer/${NODE_NAME}/api/json?pretty=true" | grep 'numExecutors' | awk -F' : ' '{print $2}' | cut -d',' -f1)
+              jenkins_executors=$(curl -s --retry 9 --retry-connrefused --retry-delay 1 "${JENKINS_URL}/computer/${NODE_NAME}/api/json?pretty=true" | grep 'numExecutors' | awk -F' : ' '{print $2}' | cut -d',' -f1)
           fi
           max_docker_runs_by_cores=$( echo "sqrt( $cores / $jenkins_executors )" | bc )
           max_docker_runs_by_mem=$(( $mem / ( 5 * 1024 * 1024 * 1024 * $jenkins_executors ) ))
