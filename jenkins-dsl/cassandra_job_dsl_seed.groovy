@@ -407,6 +407,7 @@ cassandraBranches.each {
                         sourceFiles("console.log.xz, build/apache-cassandra-*.tar.gz, build/apache-cassandra-*.jar, build/apache-cassandra-*.pom, build/cassandra*.deb, build/cassandra*.rpm")
                         remoteDirectory("cassandra/${branchName}/${jobNamePrefix}-artifacts/\${BUILD_NUMBER}/\${JOB_NAME}/")
                     }
+                    retry(9, 5000)
                 }
                 failOnError(false)
             }
@@ -496,6 +497,7 @@ cassandraBranches.each {
                                 sourceFiles("console.log.xz,TESTS-TestSuites.xml.xz,build/test/logs/**,build/test/jmh-result.json")
                                 remoteDirectory("cassandra/${branchName}/${jobNamePrefix}-${targetName}/\${BUILD_NUMBER}/\${JOB_NAME}/")
                             }
+                            retry(9, 5000)
                         }
                         failOnError(false)
                     }
@@ -579,6 +581,7 @@ cassandraBranches.each {
                                     sourceFiles("console.log.xz,**/nosetests.xml,**/test_stdout.txt.xz,**/ccm_logs.tar.xz")
                                     remoteDirectory("cassandra/${branchName}/${jobNamePrefix}-${targetArchName}/\${BUILD_NUMBER}/\${JOB_NAME}/")
                                 }
+                                retry(9, 5000)
                             }
                             failOnError(false)
                         }
@@ -630,6 +633,7 @@ cassandraBranches.each {
                             sourceFiles("console.log.xz,**/cqlshlib.xml,**/*.head")
                             remoteDirectory("cassandra/${branchName}/${jobNamePrefix}-cqlsh-tests/\${BUILD_NUMBER}/\${JOB_NAME}/")
                         }
+                        retry(9, 5000)
                     }
                     failOnError(false)
                 }
@@ -783,6 +787,7 @@ matrixJob('Cassandra-devbranch-artifacts') {
                     sourceFiles("console.log.xz,build/apache-cassandra-*.tar.gz, build/apache-cassandra-*.jar, build/apache-cassandra-*.pom, build/cassandra*.deb, build/cassandra*.rpm")
                     remoteDirectory("cassandra/devbranch/Cassandra-devbranch-artifacts/\${BUILD_NUMBER}/\${JOB_NAME}/")
                 }
+                retry(9, 5000)
             }
             failOnError(false)
         }
@@ -889,6 +894,7 @@ testTargets.each {
                         sourceFiles("TESTS-TestSuites.xml.xz,build/test/logs/**,build/test/jmh-result.json")
                         remoteDirectory("cassandra/devbranch/Cassandra-devbranch-${targetName}/\${BUILD_NUMBER}/\${JOB_NAME}/")
                     }
+                    retry(9, 5000)
                 }
                 failOnError(false)
             }
@@ -1027,6 +1033,7 @@ archs.each {
                             sourceFiles("console.log.xz,**/nosetests.xml,**/test_stdout.txt.xz,**/ccm_logs.tar.xz")
                             remoteDirectory("cassandra/devbranch/Cassandra-devbranch-${targetArchName}/\${BUILD_NUMBER}/\${JOB_NAME}/")
                         }
+                        retry(9, 5000)
                     }
                     failOnError(false)
                 }
@@ -1134,6 +1141,7 @@ matrixJob('Cassandra-devbranch-cqlsh-tests') {
                     sourceFiles("console.log.xz,**/test_stdout.txt.xz,**/ccm_logs.tar.xz")
                     remoteDirectory("cassandra/devbranch/Cassandra-devbranch-cqlsh-tests/\${BUILD_NUMBER}/\${JOB_NAME}/")
                 }
+                retry(9, 5000)
             }
             failOnError(false)
         }
