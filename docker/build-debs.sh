@@ -115,6 +115,16 @@ fi
 java -version
 javac -version
 
+# Pre-download dependencies, loop to prevent failures
+set +e
+for x in $(seq 1 3); do
+    ant clean resolver-dist-lib
+    RETURN="$?"
+    if [ "${RETURN}" -eq "0" ]; then break ; fi
+    sleep 3
+done
+set -e
+
 # Install build dependencies and build package
 echo "y" | sudo mk-build-deps --install
 dpkg-buildpackage -rfakeroot -uc -us
