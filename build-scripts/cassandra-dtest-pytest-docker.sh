@@ -43,12 +43,21 @@ DTEST_REPO=$3
 DTEST_BRANCH=$4
 EOF
 
+    # Jenkins agents run multiple executors per machine. `jenkins_executors=1` is used for anything non-jenkins.
+    jenkins_executors=1
+    if [[ ! -z ${JENKINS_URL+x} ]] && [[ ! -z ${NODE_NAME+x} ]] ; then
+        jenkins_executors=$(curl -s --retry 9 --retry-connrefused --retry-delay 1 "${JENKINS_URL}/computer/${NODE_NAME}/api/json?pretty=true" | grep 'numExecutors' | awk -F' : ' '{print $2}' | cut -d',' -f1)
+    fi
+    cores=1
+    command -v nproc >/dev/null 2>&1 && cores=$(nproc --all)
+    docker_cpus=$(echo "scale=2; ${cores} / ${jenkins_executors}" | bc)
+
     # docker login to avoid rate-limiting apache images. credentials are expected to already be in place
     docker login || true
     [[ "$(docker images -q $DOCKER_IMAGE 2>/dev/null)" != "" ]] || docker pull -q $DOCKER_IMAGE
 
     echo "cassandra-dtest-pytest-docker.sh: running: git clone --single-branch --depth 1 --branch $BUILDSBRANCH $BUILDSREPO; sh ./cassandra-builds/build-scripts/cassandra-dtest-pytest-docker.sh $TARGET $SPLIT_CHUNK"
-    ID=$(docker run -m 15g --memory-swap 15g --env-file env.list -dt $DOCKER_IMAGE dumb-init bash -ilc "git clone --single-branch --depth 1 --branch $BUILDSBRANCH $BUILDSREPO; sh ./cassandra-builds/build-scripts/cassandra-dtest-pytest-docker.sh $TARGET $SPLIT_CHUNK")
+    ID=$(docker run --cpus=${docker_cpus} -m 15g --memory-swap 15g --env-file env.list -dt $DOCKER_IMAGE dumb-init bash -ilc "git clone --single-branch --depth 1 --branch $BUILDSBRANCH $BUILDSREPO; sh ./cassandra-builds/build-scripts/cassandra-dtest-pytest-docker.sh $TARGET $SPLIT_CHUNK")
 
     # use docker attach instead of docker wait to get output
     docker attach --no-stdin $ID
