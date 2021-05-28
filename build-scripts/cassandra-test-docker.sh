@@ -64,6 +64,13 @@ BRANCH=$2
 JAVA_VERSION=${java_version}
 EOF
 
+    # Jenkins agents run multiple executors per machine. `jenkins_executors=1` is used for anything non-jenkins.
+    jenkins_executors=1
+    if [[ ! -z ${JENKINS_URL+x} ]] && [[ ! -z ${NODE_NAME+x} ]] ; then
+        jenkins_executors=$(curl -s --retry 9 --retry-connrefused --retry-delay 1 "${JENKINS_URL}/computer/${NODE_NAME}/api/json?pretty=true" | grep 'numExecutors' | awk -F' : ' '{print $2}' | cut -d',' -f1)
+    fi
+    cores=1
+    command -v nproc >/dev/null 2>&1 && cores=$(nproc --all)
     # for relevant test targets calculate how many docker containers we should split the test list over
     case $TARGET in
       # test-burn doesn't have enough tests in it to split beyond 8
@@ -71,25 +78,18 @@ EOF
           docker_runs=1
         ;;
       "test"| "test-cdc" | "test-compression" | "long-test" | "jvm-dtest" | "jvm-dtest-upgrade")
-          cores=1
-          cores=$(nproc --all)
           mem=1
           # linux
           command -v free >/dev/null 2>&1 && mem=$(free -b | grep Mem: | awk '{print $2}')
           # macos
           sysctl -n hw.memsize >/dev/null 2>&1 && mem=$(sysctl -n hw.memsize)
-          # Jenkins agents run multiple executors per machine. `jenkins_executors=1` is used for anything non-jenkins.
-          jenkins_executors=1
-          if [[ ! -z ${JENKINS_URL+x} ]] && [[ ! -z ${NODE_NAME+x} ]] ; then
-              jenkins_executors=$(curl -s --retry 9 --retry-connrefused --retry-delay 1 "${JENKINS_URL}/computer/${NODE_NAME}/api/json?pretty=true" | grep 'numExecutors' | awk -F' : ' '{print $2}' | cut -d',' -f1)
-          fi
           max_docker_runs_by_cores=$( echo "sqrt( $cores / $jenkins_executors )" | bc )
           max_docker_runs_by_mem=$(( $mem / ( 5 * 1024 * 1024 * 1024 * $jenkins_executors ) ))
           docker_runs=$(( $max_docker_runs_by_cores < $max_docker_runs_by_mem ? $max_docker_runs_by_cores : $max_docker_runs_by_mem ))
           docker_runs=$(( $docker_runs < 1 ? 1 : $docker_runs ))
         ;;
       *)
-        echo "unregconized \"$target\""
+        echo "unrecognized \"$target\""
         exit 1
         ;;
     esac
@@ -98,6 +98,7 @@ EOF
     # This will typically be between one to four splits. Five splits would require >25 cores and >25GB ram
     INNER_SPLITS=$(( $(echo $SPLIT_CHUNK | cut -d"/" -f2 ) * $docker_runs ))
     INNER_SPLIT_FIRST=$(( ( $(echo $SPLIT_CHUNK | cut -d"/" -f1 ) * $docker_runs ) - ( $docker_runs - 1 ) ))
+    docker_cpus=$(echo "scale=2; ${cores} / ( ${jenkins_executors} * ${docker_runs} )" | bc)
 
     # docker login to avoid rate-limiting apache images. credentials are expected to already be in place
     docker login || true
@@ -112,7 +113,7 @@ EOF
         inner_split=$(( $INNER_SPLIT_FIRST + ( $i - 1 ) ))
         # start the container
         echo "cassandra-test-docker.sh: running: git clone --quiet --single-branch --depth 1 --branch $BUILDSBRANCH $BUILDSREPO; bash ./cassandra-builds/build-scripts/cassandra-test-docker.sh $TARGET ${inner_split}/${INNER_SPLITS}"
-        docker_id=$(docker run -m 5g --memory-swap 5g --env-file env.list -dt $DOCKER_IMAGE dumb-init bash -ilc "until git clone --quiet --single-branch --depth 1 --branch $BUILDSBRANCH $BUILDSREPO ; do echo 'git clone failed… trying again… ' ; done ; ./cassandra-builds/build-scripts/cassandra-test-docker.sh ${TARGET} ${inner_split}/${INNER_SPLITS}")
+        docker_id=$(docker run --cpus=${docker_cpus} -m 5g --memory-swap 5g --env-file env.list -dt $DOCKER_IMAGE dumb-init bash -ilc "until git clone --quiet --single-branch --depth 1 --branch $BUILDSBRANCH $BUILDSREPO ; do echo 'git clone failed… trying again… ' ; done ; ./cassandra-builds/build-scripts/cassandra-test-docker.sh ${TARGET} ${inner_split}/${INNER_SPLITS}")
 
         # capture logs and pid for container
         docker attach --no-stdin $docker_id > build/test/logs/docker_attach_${i}.log &
