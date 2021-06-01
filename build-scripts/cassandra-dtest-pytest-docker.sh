@@ -47,7 +47,9 @@ EOF
     # Jenkins agents run multiple executors per machine. `jenkins_executors=1` is used for anything non-jenkins.
     jenkins_executors=1
     if [[ ! -z ${JENKINS_URL+x} ]] && [[ ! -z ${NODE_NAME+x} ]] ; then
-        jenkins_executors=$(curl -s --retry 9 --retry-connrefused --retry-delay 1 "${JENKINS_URL}/computer/${NODE_NAME}/api/json?pretty=true" | grep 'numExecutors' | awk -F' : ' '{print $2}' | cut -d',' -f1)
+        fetched_jenkins_executors=$(curl -s --retry 9 --retry-connrefused --retry-delay 1 "${JENKINS_URL}/computer/${NODE_NAME}/api/json?pretty=true" | grep 'numExecutors' | awk -F' : ' '{print $2}' | cut -d',' -f1)
+        # use it if we got a valid number (despite retry settings the curl above can still fail)
+        [[ ${fetched_jenkins_executors} =~ '^[0-9]+$' ]] && jenkins_executors=${fetched_jenkins_executors}
     fi
     cores=1
     command -v nproc >/dev/null 2>&1 && cores=$(nproc --all)
