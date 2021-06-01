@@ -74,7 +74,7 @@ if(binding.hasVariable("CASSANDRA_DTEST_TEST_TARGETS")) {
 def dtestDockerImage = 'apache/cassandra-testing-ubuntu2004-java11'
 
 // expected longest job runtime
-def maxJobHours = 18
+def maxJobHours = 12
 if(binding.hasVariable("MAX_JOB_HOURS")) {
     maxJobHours = ${MAX_JOB_HOURS}
 }
@@ -189,7 +189,7 @@ matrixJob('Cassandra-template-test') {
     }
     wrappers {
         timeout {
-            noActivity(1200)
+            noActivity(5400)
         }
         timestamps()
     }
@@ -251,7 +251,7 @@ matrixJob('Cassandra-template-dtest-matrix') {
     }
     wrappers {
         timeout {
-            noActivity(1200)
+            noActivity(5400)
         }
         timestamps()
     }
@@ -839,7 +839,7 @@ testTargets.each {
         }
         wrappers {
             timeout {
-                noActivity(1200)
+                noActivity(5400)
             }
             timestamps()
         }
@@ -947,7 +947,7 @@ archs.each {
             }
             wrappers {
                 timeout {
-                    noActivity(2400)
+                    noActivity(5400)
                 }
                 timestamps()
             }

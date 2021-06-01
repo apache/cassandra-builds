@@ -16,10 +16,10 @@ if [ "$#" -lt 3 ]; then
     export PYTHONIOENCODING=utf-8
     export PYTHONUNBUFFERED=true
     echo "running: git clone --depth 1 --single-branch --branch=$BRANCH https://github.com/$REPO/cassandra.git"
-    git clone --depth 1 --single-branch --branch=$BRANCH https://github.com/$REPO/cassandra.git
+    git clone --quiet --depth 1 --single-branch --branch=$BRANCH https://github.com/$REPO/cassandra.git
     cd cassandra
     echo "running: git clone --depth 1 --single-branch --branch=$DTEST_BRANCH $DTEST_REPO"
-    git clone --depth 1 --single-branch --branch=$DTEST_BRANCH $DTEST_REPO
+    git clone --quiet --depth 1 --single-branch --branch=$DTEST_BRANCH $DTEST_REPO
     echo "cassandra-dtest-pytest.sh (${1} ${2}) cassandra: `git log -1 --pretty=format:'%h %an %ad %s'`" | tee "${1}-$(echo $2 | sed 's/\//-/')-cassandra.head"
     echo "cassandra-dtest-pytest.sh (${1} ${2}) cassandra-dtest: `git -C cassandra-dtest log -1 --pretty=format:'%h %an %ad %s'`" | tee -a "${1}-$(echo $2 | sed 's/\//-/')-cassandra.head"
     echo "cassandra-dtest-pytest.sh (${1} ${2}) cassandra-builds: `git -C ../cassandra-builds log -1 --pretty=format:'%h %an %ad %s'`" | tee -a "${1}-$(echo $2 | sed 's/\//-/')-cassandra.head"
@@ -43,6 +43,7 @@ DTEST_REPO=$3
 DTEST_BRANCH=$4
 EOF
 
+    set -x # debug, sometimes ${docker_cpus} is not evaluated
     # Jenkins agents run multiple executors per machine. `jenkins_executors=1` is used for anything non-jenkins.
     jenkins_executors=1
     if [[ ! -z ${JENKINS_URL+x} ]] && [[ ! -z ${NODE_NAME+x} ]] ; then
@@ -57,7 +58,7 @@ EOF
     [[ "$(docker images -q $DOCKER_IMAGE 2>/dev/null)" != "" ]] || docker pull -q $DOCKER_IMAGE
 
     echo "cassandra-dtest-pytest-docker.sh: running: git clone --single-branch --depth 1 --branch $BUILDSBRANCH $BUILDSREPO; sh ./cassandra-builds/build-scripts/cassandra-dtest-pytest-docker.sh $TARGET $SPLIT_CHUNK"
-    ID=$(docker run --cpus=${docker_cpus} -m 15g --memory-swap 15g --env-file env.list -dt $DOCKER_IMAGE dumb-init bash -ilc "git clone --single-branch --depth 1 --branch $BUILDSBRANCH $BUILDSREPO; sh ./cassandra-builds/build-scripts/cassandra-dtest-pytest-docker.sh $TARGET $SPLIT_CHUNK")
+    ID=$(docker run --cpus=${docker_cpus} -m 15g --memory-swap 15g --env-file env.list -dt $DOCKER_IMAGE dumb-init bash -ilc "git clone --quiet --single-branch --depth 1 --branch $BUILDSBRANCH $BUILDSREPO; sh ./cassandra-builds/build-scripts/cassandra-dtest-pytest-docker.sh $TARGET $SPLIT_CHUNK")
 
     # use docker attach instead of docker wait to get output
     docker attach --no-stdin $ID
