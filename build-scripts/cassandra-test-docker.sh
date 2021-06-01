@@ -73,11 +73,11 @@ EOF
     command -v nproc >/dev/null 2>&1 && cores=$(nproc --all)
     # for relevant test targets calculate how many docker containers we should split the test list over
     case $TARGET in
-      # test-burn doesn't have enough tests in it to split beyond 8
-      "stress-test" | "fqltool-test" | "microbench" | "test-burn")
+      # test-burn doesn't have enough tests in it to split beyond 8, and burn and long we want a bit more resources anyway
+      "stress-test" | "fqltool-test" | "microbench" | "test-burn" | "long-test")
           docker_runs=1
         ;;
-      "test"| "test-cdc" | "test-compression" | "long-test" | "jvm-dtest" | "jvm-dtest-upgrade")
+      "test"| "test-cdc" | "test-compression" | "jvm-dtest" | "jvm-dtest-upgrade")
           mem=1
           # linux
           command -v free >/dev/null 2>&1 && mem=$(free -b | grep Mem: | awk '{print $2}')
@@ -99,6 +99,12 @@ EOF
     INNER_SPLITS=$(( $(echo $SPLIT_CHUNK | cut -d"/" -f2 ) * $docker_runs ))
     INNER_SPLIT_FIRST=$(( ( $(echo $SPLIT_CHUNK | cut -d"/" -f1 ) * $docker_runs ) - ( $docker_runs - 1 ) ))
     docker_cpus=$(echo "scale=2; ${cores} / ( ${jenkins_executors} * ${docker_runs} )" | bc)
+    docker_flags="--cpus=${docker_cpus} -m 5g --memory-swap 5g --env-file env.list -dt"
+
+    # hack: long-test does not handle limited CPUs
+    if [ "$TARGET" == "long-test" ] ; then
+        docker_flags="-m 5g --memory-swap 5g --env-file env.list -dt"
+    fi
 
     # docker login to avoid rate-limiting apache images. credentials are expected to already be in place
     docker login || true
@@ -113,12 +119,13 @@ EOF
         inner_split=$(( $INNER_SPLIT_FIRST + ( $i - 1 ) ))
         # start the container
         echo "cassandra-test-docker.sh: running: git clone --quiet --single-branch --depth 1 --branch $BUILDSBRANCH $BUILDSREPO; bash ./cassandra-builds/build-scripts/cassandra-test-docker.sh $TARGET ${inner_split}/${INNER_SPLITS}"
-        docker_id=$(docker run --cpus=${docker_cpus} -m 5g --memory-swap 5g --env-file env.list -dt $DOCKER_IMAGE dumb-init bash -ilc "until git clone --quiet --single-branch --depth 1 --branch $BUILDSBRANCH $BUILDSREPO ; do echo 'git clone failed… trying again… ' ; done ; ./cassandra-builds/build-scripts/cassandra-test-docker.sh ${TARGET} ${inner_split}/${INNER_SPLITS}")
+        docker_id=$(docker run ${docker_flags} $DOCKER_IMAGE dumb-init bash -ilc "until git clone --quiet --single-branch --depth 1 --branch $BUILDSBRANCH $BUILDSREPO ; do echo 'git clone failed… trying again… ' ; done ; ./cassandra-builds/build-scripts/cassandra-test-docker.sh ${TARGET} ${inner_split}/${INNER_SPLITS}")
 
         # capture logs and pid for container
         docker attach --no-stdin $docker_id > build/test/logs/docker_attach_${i}.log &
         PROCESS_IDS+=( $! )
         DOCKER_IDS+=( $docker_id )
+break
     done
 
     exit_result=0
