@@ -380,7 +380,7 @@ cassandraBranches.each {
         disabled(false)
         using('Cassandra-template-artifacts')
         axes {
-            if (branchName == 'trunk' || branchName == 'cassandra-4.0') {
+            if (branchName == 'trunk' || branchName == 'cassandra-4.0.0' || branchName == 'cassandra-4.0') {
                 jdk('jdk_1.8_latest','jdk_11_latest')
             } else {
                 jdk('jdk_1.8_latest')
@@ -454,7 +454,7 @@ cassandraBranches.each {
                         _testSplits = "/${testSplits}"
                     }
                     // jvm-dtest-upgrade would require mixed JDK compilations to support JDK11+
-                    if ((branchName == 'trunk' || branchName == 'cassandra-4.0') && targetName != 'jvm-dtest-upgrade') {
+                    if ((branchName == 'trunk' || branchName == 'cassandra-4.0.0' || branchName == 'cassandra-4.0') && targetName != 'jvm-dtest-upgrade') {
                         jdk(jdkLabel,'jdk_11_latest')
                     } else {
                         jdk(jdkLabel)
