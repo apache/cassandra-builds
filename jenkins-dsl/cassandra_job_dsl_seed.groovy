@@ -416,6 +416,8 @@ cassandraBranches.each {
                 // if the agent is busy, just prune everything that is older than maxJobHours
                 task('.', """
                     echo "Cleaning project…"; git clean -xdff ;
+                    echo "Cleaning processes…" ;
+                    if ! pgrep -af "cassandra-builds/build-scripts" ; then pkill -9 -f org.apache.cassandra. ; fi ;
                     echo "Pruning docker…" ;
                     if pgrep -af "cassandra-builds/build-scripts" ; then docker system prune --all --force --filter "until=${maxJobHours}h" || true ; else  docker system prune --all --force --volumes || true ;  fi;
                     echo "Reporting disk usage…"; df -h ;
@@ -506,6 +508,8 @@ cassandraBranches.each {
                         // if the agent is busy, just prune everything that is older than maxJobHours
                         task('.', """
                             echo "Cleaning project…"; git clean -xdff -e build/test/jmh-result.json ;
+                            echo "Cleaning processes…" ;
+                            if ! pgrep -af "cassandra-builds/build-scripts" ; then pkill -9 -f org.apache.cassandra. ; fi ;
                             echo "Pruning docker…" ;
                             if pgrep -af "cassandra-builds/build-scripts" ; then docker system prune --all --force --filter "until=${maxJobHours}h" || true ; else  docker system prune --all --force --volumes || true ;  fi;
                             echo "Reporting disk usage…"; du -xm / 2>/dev/null | sort -rn | head -n 30 ; df -h ;
@@ -600,6 +604,8 @@ cassandraBranches.each {
                             // if the agent is busy, just prune everything that is older than maxJobHours
                             task('.', """
                                 echo "Cleaning project…"; git clean -xdff ;
+                                echo "Cleaning processes…" ;
+                                if ! pgrep -af "cassandra-builds/build-scripts" ; then pkill -9 -f org.apache.cassandra. ; fi ;
                                 echo "Pruning docker…" ;
                                 if pgrep -af "cassandra-builds/build-scripts" ; then docker system prune --all --force --filter "until=${maxJobHours}h" || true ; else  docker system prune --all --force --volumes || true ;  fi;
                                 echo "Reporting disk usage…"; df -h ;
@@ -652,6 +658,8 @@ cassandraBranches.each {
                     // if the agent is busy, just prune everything that is older than maxJobHours
                     task('.', """
                         echo "Cleaning project…"; git clean -xdff ;
+                        echo "Cleaning processes…" ;
+                        if ! pgrep -af "cassandra-builds/build-scripts" ; then pkill -9 -f org.apache.cassandra. ; fi ;
                         echo "Pruning docker…" ;
                         if pgrep -af "cassandra-builds/build-scripts" ; then docker system prune --all --force --filter "until=${maxJobHours}h" || true ; else  docker system prune --all --force --volumes || true ;  fi;
                         echo "Reporting disk usage…"; df -h ;
@@ -796,6 +804,8 @@ matrixJob('Cassandra-devbranch-artifacts') {
             // if the agent is busy, just prune everything that is older than maxJobHours
             task('.', """
                 echo "Cleaning project…"; git clean -xdff ;
+                echo "Cleaning processes…" ;
+                if ! pgrep -af "cassandra-builds/build-scripts" ; then pkill -9 -f org.apache.cassandra. ; fi ;
                 echo "Pruning docker…" ;
                 if pgrep -af "cassandra-builds/build-scripts" ; then docker system prune --all --force --filter "until=${maxJobHours}h" || true ; else  docker system prune --all --force --volumes || true ;  fi;
                 echo "Reporting disk usage…"; df -h ;
@@ -911,6 +921,8 @@ testTargets.each {
                 // if the agent is busy, just prune everything that is older than maxJobHours
                 task('.', """
                     echo "Cleaning project…"; git clean -xdff ${targetName == 'microbench' ? '-e build/test/jmh-result.json' : ''};
+                    echo "Cleaning processes…" ;
+                    if ! pgrep -af "cassandra-builds/build-scripts" ; then pkill -9 -f org.apache.cassandra. ; fi ;
                     echo "Pruning docker…" ;
                     if pgrep -af "cassandra-builds/build-scripts" ; then docker system prune --all --force --filter "until=${maxJobHours}h" || true ; else  docker system prune --all --force --volumes || true ;  fi;
                     echo "Reporting disk usage…"; du -xm / 2>/dev/null | sort -rn | head -n 30 ; df -h ;
@@ -1048,6 +1060,8 @@ archs.each {
                     // if the agent is busy, just prune everything that is older than maxJobHours
                     task('.', """
                         echo "Cleaning project…" ; git clean -xdff ;
+                        echo "Cleaning processes…" ;
+                        if ! pgrep -af "cassandra-builds/build-scripts" ; then pkill -9 -f org.apache.cassandra. ; fi ;
                         echo "Pruning docker…" ;
                         if pgrep -af "cassandra-builds/build-scripts" ; then docker system prune --all --force --filter "until=${maxJobHours}h" || true ; else  docker system prune --all --force --volumes || true ;  fi;
                         echo "Reporting disk usage…"; df -h ;
@@ -1156,6 +1170,8 @@ matrixJob('Cassandra-devbranch-cqlsh-tests') {
             // if the agent is busy, just prune everything that is older than maxJobHours
             task('.', """
                 echo "Cleaning project…"; git clean -xdff ;
+                echo "Cleaning processes…" ;
+                if ! pgrep -af "cassandra-builds/build-scripts" ; then pkill -9 -f org.apache.cassandra. ; fi ;
                 echo "Pruning docker…" ;
                 if pgrep -af "cassandra-builds/build-scripts" ; then docker system prune --all --force --filter "until=${maxJobHours}h" || true ; else  docker system prune --all --force --volumes || true ;  fi;
                 echo "Reporting disk usage…"; df -h ;
