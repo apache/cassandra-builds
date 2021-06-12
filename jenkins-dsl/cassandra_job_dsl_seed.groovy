@@ -417,7 +417,7 @@ cassandraBranches.each {
                 task('.', """
                     echo "Cleaning project…"; git clean -xdff ;
                     echo "Cleaning processes…" ;
-                    if ! pgrep -af "cassandra-builds/build-scripts" ; then pkill -9 -f org.apache.cassandra. ; fi ;
+                    if ! pgrep -af "cassandra-builds/build-scripts" ; then pkill -9 -f org.apache.cassandra. || echo "already clean" ; fi ;
                     echo "Pruning docker…" ;
                     if pgrep -af "cassandra-builds/build-scripts" ; then docker system prune --all --force --filter "until=${maxJobHours}h" || true ; else  docker system prune --all --force --volumes || true ;  fi;
                     echo "Reporting disk usage…"; df -h ;
@@ -510,7 +510,7 @@ cassandraBranches.each {
                         task('.', """
                             echo "Cleaning project…"; git clean -xdff -e build/test/jmh-result.json ;
                             echo "Cleaning processes…" ;
-                            if ! pgrep -af "cassandra-builds/build-scripts" ; then pkill -9 -f org.apache.cassandra. ; fi ;
+                            if ! pgrep -af "cassandra-builds/build-scripts" ; then pkill -9 -f org.apache.cassandra. || echo "already clean" ; fi ;
                             echo "Pruning docker…" ;
                             if pgrep -af "cassandra-builds/build-scripts" ; then docker system prune --all --force --filter "until=${maxJobHours}h" || true ; else  docker system prune --all --force --volumes || true ;  fi;
                             echo "Reporting disk usage…"; du -xm / 2>/dev/null | sort -rn | head -n 30 ; df -h ;
@@ -607,7 +607,7 @@ cassandraBranches.each {
                             task('.', """
                                 echo "Cleaning project…"; git clean -xdff ;
                                 echo "Cleaning processes…" ;
-                                if ! pgrep -af "cassandra-builds/build-scripts" ; then pkill -9 -f org.apache.cassandra. ; fi ;
+                                if ! pgrep -af "cassandra-builds/build-scripts" ; then pkill -9 -f org.apache.cassandra. || echo "already clean" ; fi ;
                                 echo "Pruning docker…" ;
                                 if pgrep -af "cassandra-builds/build-scripts" ; then docker system prune --all --force --filter "until=${maxJobHours}h" || true ; else  docker system prune --all --force --volumes || true ;  fi;
                                 echo "Reporting disk usage…"; df -h ;
@@ -662,7 +662,7 @@ cassandraBranches.each {
                     task('.', """
                         echo "Cleaning project…"; git clean -xdff ;
                         echo "Cleaning processes…" ;
-                        if ! pgrep -af "cassandra-builds/build-scripts" ; then pkill -9 -f org.apache.cassandra. ; fi ;
+                        if ! pgrep -af "cassandra-builds/build-scripts" ; then pkill -9 -f org.apache.cassandra. || echo "already clean" ; fi ;
                         echo "Pruning docker…" ;
                         if pgrep -af "cassandra-builds/build-scripts" ; then docker system prune --all --force --filter "until=${maxJobHours}h" || true ; else  docker system prune --all --force --volumes || true ;  fi;
                         echo "Reporting disk usage…"; df -h ;
@@ -809,7 +809,7 @@ matrixJob('Cassandra-devbranch-artifacts') {
             task('.', """
                 echo "Cleaning project…"; git clean -xdff ;
                 echo "Cleaning processes…" ;
-                if ! pgrep -af "cassandra-builds/build-scripts" ; then pkill -9 -f org.apache.cassandra. ; fi ;
+                if ! pgrep -af "cassandra-builds/build-scripts" ; then pkill -9 -f org.apache.cassandra. || echo "already clean" ; fi ;
                 echo "Pruning docker…" ;
                 if pgrep -af "cassandra-builds/build-scripts" ; then docker system prune --all --force --filter "until=${maxJobHours}h" || true ; else  docker system prune --all --force --volumes || true ;  fi;
                 echo "Reporting disk usage…"; df -h ;
@@ -927,7 +927,7 @@ testTargets.each {
                 task('.', """
                     echo "Cleaning project…"; git clean -xdff ${targetName == 'microbench' ? '-e build/test/jmh-result.json' : ''};
                     echo "Cleaning processes…" ;
-                    if ! pgrep -af "cassandra-builds/build-scripts" ; then pkill -9 -f org.apache.cassandra. ; fi ;
+                    if ! pgrep -af "cassandra-builds/build-scripts" ; then pkill -9 -f org.apache.cassandra. || echo "already clean" ; fi ;
                     echo "Pruning docker…" ;
                     if pgrep -af "cassandra-builds/build-scripts" ; then docker system prune --all --force --filter "until=${maxJobHours}h" || true ; else  docker system prune --all --force --volumes || true ;  fi;
                     echo "Reporting disk usage…"; du -xm / 2>/dev/null | sort -rn | head -n 30 ; df -h ;
@@ -1067,7 +1067,7 @@ archs.each {
                     task('.', """
                         echo "Cleaning project…" ; git clean -xdff ;
                         echo "Cleaning processes…" ;
-                        if ! pgrep -af "cassandra-builds/build-scripts" ; then pkill -9 -f org.apache.cassandra. ; fi ;
+                        if ! pgrep -af "cassandra-builds/build-scripts" ; then pkill -9 -f org.apache.cassandra. || echo "already clean" ; fi ;
                         echo "Pruning docker…" ;
                         if pgrep -af "cassandra-builds/build-scripts" ; then docker system prune --all --force --filter "until=${maxJobHours}h" || true ; else  docker system prune --all --force --volumes || true ;  fi;
                         echo "Reporting disk usage…"; df -h ;
@@ -1178,7 +1178,7 @@ matrixJob('Cassandra-devbranch-cqlsh-tests') {
             task('.', """
                 echo "Cleaning project…"; git clean -xdff ;
                 echo "Cleaning processes…" ;
-                if ! pgrep -af "cassandra-builds/build-scripts" ; then pkill -9 -f org.apache.cassandra. ; fi ;
+                if ! pgrep -af "cassandra-builds/build-scripts" ; then pkill -9 -f org.apache.cassandra. || echo "already clean" ; fi ;
                 echo "Pruning docker…" ;
                 if pgrep -af "cassandra-builds/build-scripts" ; then docker system prune --all --force --filter "until=${maxJobHours}h" || true ; else  docker system prune --all --force --volumes || true ;  fi;
                 echo "Reporting disk usage…"; df -h ;
