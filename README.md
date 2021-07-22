@@ -25,7 +25,7 @@ Prior to release, make sure to edit:
    * Debian:
    ```docker build -t cass-build-debs -f docker/jessie-image.docker docker/```
    * RPM:
-   ```docker build -t cass-build-rpms -f docker/centos7-image.docker docker/```
+   ```docker build -t cass-build-rpms -f docker/centos8-image.docker docker/```
    The image will contain a clone of the Apache git repository by default. Using a different repository is possible by adding the `--build-arg CASSANDRA_GIT_URL=https://github.com/myuser/cassandra.git` parameter. All successive builds will be executed based on the repository cloned during docker image creation.
 2. Run build script through docker (specify branch, e.g. cassandra-3.0 and version, e.g. 3.0.11):
    * Debian Jessie:
