@@ -11,8 +11,11 @@ VOLUME ${DEB_DIST_DIR}
 # configure apt to retry downloads
 RUN echo 'APT::Acquire::Retries "9";' > /etc/apt/apt.conf.d/80-retries
 
+RUN rm /etc/apt/sources.list.d/backports.list
+RUN echo "deb [check-valid-until=no] http://archive.debian.org/debian jessie-backports main" > /etc/apt/sources.list.d/backports.list
+
 # install deps
-RUN apt-get update && apt-get -y install \
+RUN apt-get update -o Acquire::Check-Valid-Until=false && apt-get -y install \
    ant \
    build-essential \
    curl \
