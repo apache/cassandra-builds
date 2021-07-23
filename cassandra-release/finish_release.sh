@@ -4,8 +4,13 @@
 
 asf_username="$USER"
 
-# get your jfrog artifactory API Key from https://apache.jfrog.io/ui/admin/artifactory/user_profile
-ARTIFACTORY_API_KEY="XXXXXXXX"
+if [ -z "$ARTIFACTORY_API_KEY" ]; then
+    ARTIFACTORY_API_KEY="XXXXXXXX"
+fi
+
+if [ "$ARTIFACTORY_API_KEY" = "XXXXXXXX" ]; then
+    exit -e "Get your jfrog artifactory API Key from https://apache.jfrog.io/ui/admin/artifactory/user_profile and set ARTIFACTORY_API_KEY to it"
+fi
 
 # The name of remote for the asf remote in your git repo
 git_asf_remote="origin"
