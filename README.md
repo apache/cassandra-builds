@@ -8,6 +8,17 @@
     * `cassandra-release/`
     * `docker/`
 
+## Releasing Cassanda
+
+Please refer to the following documents for more details about releases:
+
+  * [Release Process](https://cassandra.apache.org/doc/latest/development/release_process.html)
+  * [Release Managers Onboarding](https://cwiki.apache.org/confluence/display/CASSANDRA/Release+Managers+Onboarding)
+
+Prior to release, make sure to edit:
+  * `cassandra-release/finish_release.sh` to set `ARTIFACTORY_API_KEY`
+  * `cassandra-release/prepare_release.sh` to set `gpg_key`
+
 ## Building packages
 
 1. Create build images containing the build tool-chain, Java and an Apache Cassandra git working directory

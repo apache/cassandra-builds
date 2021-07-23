@@ -3,7 +3,14 @@
 ##### TO EDIT #####
 
 asf_username="$USER"
-gpg_key="XXXXXXXX"
+
+if [ -z "$gpg_key" ]; then
+    gpg_key="XXXXXXXX"
+fi
+
+if [ "$gpg_key" = "XXXXXXXX" ]; then
+    exit -e "Gpg key is unset. Pleae set gpg_key variable."
+fi
 
 # The name of remote for the asf remote in your git repo
 git_asf_remote="origin"
