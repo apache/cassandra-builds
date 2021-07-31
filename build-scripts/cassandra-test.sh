@@ -34,7 +34,7 @@ _build_all_dtest_jars() {
     cd $TMP_DIR
     until git clone --quiet --depth 1 --no-single-branch https://github.com/apache/cassandra.git cassandra-dtest-jars ; do echo "git clone failed… trying again… " ; done
     cd cassandra-dtest-jars
-    for branch in cassandra-2.2 cassandra-3.0 cassandra-3.11 cassandra-4.0 cassandra-4.0.0 trunk; do
+    for branch in cassandra-2.2 cassandra-3.0 cassandra-3.11 cassandra-4.0 trunk; do
         git checkout $branch
         ant realclean
         ant jar dtest-jar
