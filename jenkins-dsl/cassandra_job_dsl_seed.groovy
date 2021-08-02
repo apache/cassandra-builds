@@ -1280,3 +1280,59 @@ job('cassandra-website') {
               """)
     }
 }
+
+job('contribulyze') {
+    description(jobDescription)
+    label('cassandra')
+    compressBuildLog()
+    logRotator {
+        numToKeep(10)
+        artifactNumToKeep(10)
+    }
+    wrappers {
+        preBuildCleanup()
+        timeout {
+            noActivity(300)
+        }
+        timestamps()
+    }
+    properties {
+        githubProjectUrl('https://github.com/apache/cassandra-builds/')
+    }
+    scm {
+        git {
+            remote {
+                url('https://gitbox.apache.org/repos/asf/cassandra-builds.git')
+            }
+            branch('*/trunk')
+            extensions {
+                wipeOutWorkspace()
+                cleanBeforeCheckout()
+                cleanAfterCheckout()
+            }
+        }
+    }
+    triggers {
+        cron('01 01 * * *')
+    }
+    steps {
+        buildDescription('', buildDescStr)
+        shell("""
+                mkdir -p build/html ; chmod -R 777 build/html
+                docker run -t -v`pwd`/build/html:/tmp/contribulyze-html -v`pwd`/contribulyze:/contribulyze apache/cassandra-testing-ubuntu2004-java11-w-dependencies bash -lc 'pip3 install --quiet python-dateutil ; cd /contribulyze ; bash contribulyze.sh '
+              """)
+    }
+    publishers {
+        publishOverSsh {
+            server('Nightlies') {
+                transferSet {
+                    sourceFiles("build/html/**")
+                    removePrefix("build/html")
+                    remoteDirectory("cassandra/devbranch/misc/contribulyze/html/")
+                }
+                retry(9, 5000)
+            }
+            failOnError(false)
+        }
+    }
+}
