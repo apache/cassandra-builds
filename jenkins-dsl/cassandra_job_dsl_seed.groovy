@@ -1321,6 +1321,9 @@ job('cassandra-website') {
         numToKeep(10)
         artifactNumToKeep(10)
     }
+    throttleConcurrentBuilds {
+        maxTotal(1)
+    }
     wrappers {
         preBuildCleanup()
         timeout {
@@ -1350,21 +1353,27 @@ job('cassandra-website') {
         }
     }
     triggers {
+        upstream('Cassandra-3.11,Cassandra-4.0,Cassandra-trunk', 'UNSTABLE')
         scm('H/5 * * * *')
     }
     steps {
         buildDescription('', buildDescStr)
-        // the chmod below is a hack for INFRA-20814
         // for debugging it can be useful to add a `git show --stat HEAD` before the push
         shell("""
-                git checkout asf-staging ;
-                git reset --hard origin/trunk ;
-                docker-compose build --build-arg UID=`id -u` --build-arg GID=`id -g` cassandra-website ;
-                chmod -R 777 src content ;
-                docker-compose run cassandra-website ;
-                git add content/ src/doc/ ;
-                git commit -a -m "generate docs for `git rev-parse --short HEAD`" ;
-                git push -f origin asf-staging ;
+            git checkout asf-staging ;
+            git reset --hard origin/trunk ;
+
+            # HACK for INFRA-20814 ;
+            mkdir -p content/doc ;
+            chmod -R ag+rw site-* content ;
+
+            ./run.sh website-ui bundle -a BUILD_USER_ARG:`whoami` -a UID_ARG:`id -u` -a GID_ARG:`id -g` ;
+            ./run.sh website container -a BUILD_USER_ARG:`whoami` -a UID_ARG:`id -u` -a GID_ARG:`id -g` ;
+            ./run.sh website build -g ;
+
+            git add content ;
+            git commit -a -m "generate docs for `git rev-parse --short HEAD`" ;
+            git push -f origin asf-staging ;
               """)
     }
 }
