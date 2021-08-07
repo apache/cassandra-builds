@@ -58,7 +58,7 @@ _run_testlist() {
       testlist="$( _list_tests "${_target_prefix}" | head -n1)"
     fi
     ant clean jar
-    ant $_testlist_target -Dtest.classlistprefix="${_target_prefix}" -Dtest.classlistfile=<(echo "${testlist}") -Dtest.timeout="${_test_timeout}" -Dtmp.dir="${TMP_DIR}" || echo "failed ${_target_prefix} ${$_testlist_target}"
+    ant $_testlist_target -Dtest.classlistprefix="${_target_prefix}" -Dtest.classlistfile=<(echo "${testlist}") -Dtest.timeout="${_test_timeout}" -Dtmp.dir="${TMP_DIR}" || echo "failed ${_target_prefix} ${_testlist_target}"
 }
 
 _main() {
