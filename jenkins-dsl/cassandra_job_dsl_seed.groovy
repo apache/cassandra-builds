@@ -346,15 +346,6 @@ matrixJob('Cassandra-template-cqlsh-tests') {
             }
         }
     }
-    steps {
-        buildDescription('', buildDescStr)
-        shell("""
-            git clean -xdff ;
-            ./cassandra-builds/build-scripts/cassandra-test-docker.sh apache ${branchName} ${buildsRepo} ${buildsBranch} ${testDockerImage} cqlsh-test ;
-            echo "\${BUILD_TAG}) cassandra: `git log -1 --pretty=format:'%h %an %ad %s'`" > \${BUILD_TAG}.head ;
-            wget --retry-connrefused --waitretry=1 "\${BUILD_URL}/timestamps/?time=HH:mm:ss&timeZone=UTC&appendLog" -qO - > console.log.xz || echo wget failed
-            """)
-    }
 }
 
 ////////////////////////////////////////////////////////////
@@ -645,6 +636,15 @@ cassandraBranches.each {
                     testDataPublishers {
                         publishTestStabilityData()
                     }
+                }
+                steps {
+                    buildDescription('', buildDescStr)
+                    shell("""
+                        git clean -xdff ;
+                        ./cassandra-builds/build-scripts/cassandra-test-docker.sh apache ${branchName} ${buildsRepo} ${buildsBranch} ${testDockerImage} cqlsh-test ;
+                        echo "\${BUILD_TAG}) cassandra: `git log -1 --pretty=format:'%h %an %ad %s'`" > \${BUILD_TAG}.head ;
+                        wget --retry-connrefused --waitretry=1 "\${BUILD_URL}/timestamps/?time=HH:mm:ss&timeZone=UTC&appendLog" -qO - > console.log.xz || echo wget failed
+                        """)
                 }
                 postBuildTask {
                     // docker needs to (soon or later) prune its volumes too, but that can only be done when the agent is idle
