@@ -346,6 +346,15 @@ matrixJob('Cassandra-template-cqlsh-tests') {
             }
         }
     }
+    steps {
+        buildDescription('', buildDescStr)
+        shell("""
+                git clean -xdff ;
+                git clone --depth 1 --single-branch -b ${buildsBranch} ${buildsRepo} ;
+                echo "cassandra-builds at: `git -C cassandra-builds log -1 --pretty=format:'%h %an %ad %s'`" ;
+                echo "\${BUILD_TAG}) cassandra: `git log -1 --pretty=format:'%h %an %ad %s'`" > \${BUILD_TAG}.head
+              """)
+    }
 }
 
 ////////////////////////////////////////////////////////////
@@ -638,11 +647,8 @@ cassandraBranches.each {
                     }
                 }
                 steps {
-                    buildDescription('', buildDescStr)
                     shell("""
-                        git clean -xdff ;
                         ./cassandra-builds/build-scripts/cassandra-test-docker.sh apache ${branchName} ${buildsRepo} ${buildsBranch} ${testDockerImage} cqlsh-test ;
-                        echo "\${BUILD_TAG}) cassandra: `git log -1 --pretty=format:'%h %an %ad %s'`" > \${BUILD_TAG}.head ;
                         wget --retry-connrefused --waitretry=1 "\${BUILD_URL}/timestamps/?time=HH:mm:ss&timeZone=UTC&appendLog" -qO - > console.log.xz || echo wget failed
                         """)
                 }
@@ -1131,6 +1137,8 @@ matrixJob('Cassandra-devbranch-cqlsh-tests') {
         shell("""
                 git clean -xdff ;
                 echo "\${BUILD_TAG}) cassandra: `git log -1 --pretty=format:'%h %an %ad %s'`" > \${BUILD_TAG}.head ;
+                git clone --depth 1 --single-branch -b ${buildsBranch} ${buildsRepo} ;
+                echo "cassandra-builds at: `git -C cassandra-builds log -1 --pretty=format:'%h %an %ad %s'`" ;
                 ./cassandra-builds/build-scripts/cassandra-test-docker.sh \${REPO} \${BRANCH} ${buildsRepo} ${buildsBranch} ${testDockerImage} cqlsh-test ;
                 wget --retry-connrefused --waitretry=1 "\${BUILD_URL}/timestamps/?time=HH:mm:ss&timeZone=UTC&appendLog" -qO - > console.log.xz || echo wget failed
              """)
