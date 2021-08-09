@@ -564,13 +564,6 @@ cassandraBranches.each {
                         node / scm / branches / 'hudson.plugins.git.BranchSpec' / name(branchName)
                     }
                     steps {
-                        if (arch == "-arm64") {
-                            shell("""
-                                    # docker image has to be built on arm64 (they are not currently published to dockerhub)
-                                    cd cassandra-builds/docker/testing ;
-                                    docker build -t ${dtestDockerImage}:latest -f ubuntu2004_j11.docker .
-                                  """)
-                        }
                         shell("""
                             ./cassandra-builds/build-scripts/cassandra-dtest-pytest-docker.sh apache ${branchName} https://github.com/apache/cassandra-dtest.git trunk ${buildsRepo} ${buildsBranch} ${dtestDockerImage} ${targetName} \${split}/${splits} ;
                             wget --retry-connrefused --waitretry=1 "\${BUILD_URL}/timestamps/?time=HH:mm:ss&timeZone=UTC&appendLog" -qO - > console.log.xz || echo wget failed
@@ -1020,13 +1013,6 @@ archs.each {
                         echo "cassandra-builds at: `git -C cassandra-builds log -1 --pretty=format:'%h %an %ad %s'`" ;
                         echo "Cassandra-devbranch-${targetArchName}) cassandra: `git log -1 --pretty=format:'%h %an %ad %s'`" > Cassandra-devbranch-${targetArchName}.head ;
                       """)
-                if (arch == "-arm64") {
-                    shell("""
-                            # docker image has to be built on arm64 (they are not currently published to dockerhub)
-                            cd cassandra-builds/docker/testing ;
-                            docker build -t \$DOCKER_IMAGE:latest -f ubuntu2004_j11.docker .
-                          """)
-                }
                 shell("""
                       ./cassandra-builds/build-scripts/cassandra-dtest-pytest-docker.sh \$REPO \$BRANCH \$DTEST_REPO \$DTEST_BRANCH ${buildsRepo} ${buildsBranch} \$DOCKER_IMAGE ${targetName} \${split}/${splits} ;
                       wget --retry-connrefused --waitretry=1 "\${BUILD_URL}/timestamps/?time=HH:mm:ss&timeZone=UTC&appendLog" -qO - > console.log.xz || echo wget failed
