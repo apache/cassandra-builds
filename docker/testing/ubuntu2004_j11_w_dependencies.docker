@@ -21,9 +21,10 @@ WORKDIR /home/cassandra
 # Fetch the maven dependencies in advance since this tends to fail at runtime
 ARG CASSANDRA_GIT_URL=https://gitbox.apache.org/repos/asf/cassandra.git
 RUN /bin/bash -c "git clone ${CASSANDRA_GIT_URL} ~/cassandra && \
-    cd ~/cassandra && ant maven-ant-tasks-retrieve-build && \
-    git checkout origin/cassandra-3.11 && ant maven-ant-tasks-retrieve-build && \
-    git checkout origin/cassandra-3.0 && ant maven-ant-tasks-retrieve-build && \
+    cd ~/cassandra && ant resolver-dist-lib && \
+    git checkout origin/cassandra-4.0 && ant resolver-dist-lib && \
+    git checkout origin/cassandra-3.11 && ant resolver-dist-lib && \
+    git checkout origin/cassandra-3.0 && ant resolver-dist-lib && \
     git checkout origin/cassandra-2.2 && ant maven-ant-tasks-retrieve-build && \
     git checkout origin/cassandra-2.1 && ant maven-ant-tasks-retrieve-build && \
     rm -fr ~/cassandra"
@@ -31,6 +32,7 @@ RUN /bin/bash -c "git clone ${CASSANDRA_GIT_URL} ~/cassandra && \
 # Initialize the CCM git repo as well as this also can fail to clone
 RUN /bin/bash -c "source ~/env3.6/bin/activate && \
     ccm create -n 1 -v git:trunk test && ccm remove test && \
+    ccm create -n 1 -v git:cassandra-4.0 test && ccm remove test && \
     ccm create -n 1 -v git:cassandra-3.11 test && ccm remove test && \
     ccm create -n 1 -v git:cassandra-3.0 test && ccm remove test && \
     ccm create -n 1 -v git:cassandra-2.2 test && ccm remove test && \
