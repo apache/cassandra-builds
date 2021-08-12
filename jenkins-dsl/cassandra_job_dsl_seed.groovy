@@ -394,7 +394,8 @@ cassandraBranches.each {
         steps {
             shell("""
                     ./cassandra-builds/build-scripts/cassandra-artifacts.sh ;
-                    wget --retry-connrefused --waitretry=1 "\${BUILD_URL}/timestamps/?time=HH:mm:ss&timeZone=UTC&appendLog" -qO - > console.log.xz || echo wget failed
+                    wget --retry-connrefused --waitretry=1 "\${BUILD_URL}/timestamps/?time=HH:mm:ss&timeZone=UTC&appendLog" -qO - > console.log || echo wget failed ;
+                    xz console.log
                   """)
         }
         publishers {
@@ -473,7 +474,8 @@ cassandraBranches.each {
                             ./cassandra-builds/build-scripts/cassandra-test-docker.sh apache ${branchName} ${buildsRepo} ${buildsBranch} ${testDockerImage} ${targetName} \${split}${_testSplits} ;
                             ./cassandra-builds/build-scripts/cassandra-test-report.sh ;
                             xz TESTS-TestSuites.xml ;
-                            wget --retry-connrefused --waitretry=1 "\${BUILD_URL}/timestamps/?time=HH:mm:ss&timeZone=UTC&appendLog" -qO - > console.log.xz || echo wget failed
+                            wget --retry-connrefused --waitretry=1 "\${BUILD_URL}/timestamps/?time=HH:mm:ss&timeZone=UTC&appendLog" -qO - > console.log || echo wget failed ;
+                            xz console.log
                           """)
                 }
                 publishers {
@@ -567,7 +569,8 @@ cassandraBranches.each {
                     steps {
                         shell("""
                             ./cassandra-builds/build-scripts/cassandra-dtest-pytest-docker.sh apache ${branchName} https://github.com/apache/cassandra-dtest.git trunk ${buildsRepo} ${buildsBranch} ${dtestDockerImage} ${targetName} \${split}/${splits} ;
-                            wget --retry-connrefused --waitretry=1 "\${BUILD_URL}/timestamps/?time=HH:mm:ss&timeZone=UTC&appendLog" -qO - > console.log.xz || echo wget failed
+                            wget --retry-connrefused --waitretry=1 "\${BUILD_URL}/timestamps/?time=HH:mm:ss&timeZone=UTC&appendLog" -qO - > console.log || echo wget failed ;
+                            xz console.log
                             """)
                     }
                     publishers {
@@ -649,7 +652,8 @@ cassandraBranches.each {
                 steps {
                     shell("""
                         ./cassandra-builds/build-scripts/cassandra-test-docker.sh apache ${branchName} ${buildsRepo} ${buildsBranch} ${testDockerImage} cqlsh-test ;
-                        wget --retry-connrefused --waitretry=1 "\${BUILD_URL}/timestamps/?time=HH:mm:ss&timeZone=UTC&appendLog" -qO - > console.log.xz || echo wget failed
+                        wget --retry-connrefused --waitretry=1 "\${BUILD_URL}/timestamps/?time=HH:mm:ss&timeZone=UTC&appendLog" -qO - > console.log || echo wget failed ;
+                        xz console.log
                         """)
                 }
                 postBuildTask {
@@ -785,7 +789,8 @@ matrixJob('Cassandra-devbranch-artifacts') {
                 git clone --depth 1 --single-branch -b ${buildsBranch} ${buildsRepo} ;
                 echo "cassandra-builds at: `git -C cassandra-builds log -1 --pretty=format:'%h %an %ad %s'`" ;
                 ./cassandra-builds/build-scripts/cassandra-artifacts.sh ;
-                wget --retry-connrefused --waitretry=1 "\${BUILD_URL}/timestamps/?time=HH:mm:ss&timeZone=UTC&appendLog" -qO - > console.log.xz || echo wget failed
+                wget --retry-connrefused --waitretry=1 "\${BUILD_URL}/timestamps/?time=HH:mm:ss&timeZone=UTC&appendLog" -qO - > console.log || echo wget failed ;
+                xz console.log
                 """)
     }
     publishers {
@@ -895,7 +900,8 @@ testTargets.each {
                     ./cassandra-builds/build-scripts/cassandra-test-docker.sh \${REPO} \${BRANCH} ${buildsRepo} ${buildsBranch} ${testDockerImage} ${targetName} \${split}${_testSplits} ;
                     ./cassandra-builds/build-scripts/cassandra-test-report.sh ;
                     xz TESTS-TestSuites.xml ;
-                    wget --retry-connrefused --waitretry=1 "\${BUILD_URL}/timestamps/?time=HH:mm:ss&timeZone=UTC&appendLog" -qO - > console.log.xz || echo wget failed
+                    wget --retry-connrefused --waitretry=1 "\${BUILD_URL}/timestamps/?time=HH:mm:ss&timeZone=UTC&appendLog" -qO - > console.log || echo wget failed ;
+                    xz console.log
                 """)
         }
         publishers {
@@ -1030,7 +1036,8 @@ archs.each {
                       """)
                 shell("""
                       ./cassandra-builds/build-scripts/cassandra-dtest-pytest-docker.sh \$REPO \$BRANCH \$DTEST_REPO \$DTEST_BRANCH ${buildsRepo} ${buildsBranch} \$DOCKER_IMAGE ${targetName} \${split}/${splits} ;
-                      wget --retry-connrefused --waitretry=1 "\${BUILD_URL}/timestamps/?time=HH:mm:ss&timeZone=UTC&appendLog" -qO - > console.log.xz || echo wget failed
+                      wget --retry-connrefused --waitretry=1 "\${BUILD_URL}/timestamps/?time=HH:mm:ss&timeZone=UTC&appendLog" -qO - > console.log || echo wget failed ;
+                      xz console.log
                      """)
             }
             publishers {
@@ -1140,7 +1147,8 @@ matrixJob('Cassandra-devbranch-cqlsh-tests') {
                 git clone --depth 1 --single-branch -b ${buildsBranch} ${buildsRepo} ;
                 echo "cassandra-builds at: `git -C cassandra-builds log -1 --pretty=format:'%h %an %ad %s'`" ;
                 ./cassandra-builds/build-scripts/cassandra-test-docker.sh \${REPO} \${BRANCH} ${buildsRepo} ${buildsBranch} ${testDockerImage} cqlsh-test ;
-                wget --retry-connrefused --waitretry=1 "\${BUILD_URL}/timestamps/?time=HH:mm:ss&timeZone=UTC&appendLog" -qO - > console.log.xz || echo wget failed
+                wget --retry-connrefused --waitretry=1 "\${BUILD_URL}/timestamps/?time=HH:mm:ss&timeZone=UTC&appendLog" -qO - > console.log || echo wget failed ;
+                xz console.log
              """)
     }
     publishers {
