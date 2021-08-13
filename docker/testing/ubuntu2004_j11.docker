@@ -81,6 +81,10 @@ RUN export DEBIAN_FRONTEND=noninteractive && \
 # make Java 8 the default executable (we use to run all tests against Java 8)
 RUN update-java-alternatives --set java-1.8.0-openjdk-$(dpkg --print-architecture)
 
+# enable legacy TLSv1 and TLSv1.1 (CASSANDRA-16848)
+RUN find /etc -type f -name java.security -exec sed -i 's/TLSv1, TLSv1.1//' {} \;
+RUN find /etc -type f -name java.security -exec sed -i 's/3DES_EDE_CBC$/3DES_EDE_CBC, TLSv1, TLSv1.1/' {} \;
+
 # setup our user -- if we don't do this docker will default to root and Cassandra will fail to start
 # as we appear to have a check that the user isn't starting Cassandra as root
 RUN export DEBIAN_FRONTEND=noninteractive && \
