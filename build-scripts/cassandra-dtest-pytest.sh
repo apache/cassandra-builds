@@ -87,7 +87,8 @@ fi
 SPLIT_TESTS=""
 if [ "x${DTEST_SPLIT_CHUNK}" != "x" ] ; then
     ./run_dtests.py --cassandra-dir=$CASSANDRA_DIR ${DTEST_ARGS} --dtest-print-tests-only --dtest-print-tests-output=${WORKSPACE}/reuseClusterTests.txt --pytest-options "-m reuse_cluster" 2>&1 > ${WORKSPACE}/test_stdout_reuse.txt
-    ./run_dtests.py --cassandra-dir=$CASSANDRA_DIR ${DTEST_ARGS} --dtest-print-tests-only --dtest-print-tests-output=${WORKSPACE}/renewClusterTests.txt --pytest-options "-m \"not reuse_cluster\"" 2>&1 > ${WORKSPACE}/test_stdout_renew.txt
+    ./run_dtests.py --cassandra-dir=$CASSANDRA_DIR ${DTEST_ARGS} --dtest-print-tests-only --dtest-print-tests-output=${WORKSPACE}/allClusterTests.txt --pytest-options  2>&1 > ${WORKSPACE}/test_stdout_all.txt
+    grep -vf ${WORKSPACE}/reuseClusterTests.txt ${WORKSPACE}/allClusterTests.txt > ${WORKSPACE}/renewClusterTests.txt
     CHUNK=`echo ${DTEST_SPLIT_CHUNK}|cut -d "/" -f 1`
     SPLITS=`echo ${DTEST_SPLIT_CHUNK}|cut -d "/" -f 2`
     ./splitter.sh ${CHUNK} ${SPLITS} ${WORKSPACE}/reuseClusterTests.txt ${WORKSPACE}/renewClusterTests.txt ${WORKSPACE}/test_list.txt
