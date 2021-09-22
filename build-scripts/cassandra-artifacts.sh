@@ -46,14 +46,45 @@ fi
 
 # Loop to prevent failure due to maven-ant-tasks not downloading a jar..
 set +e # disable immediate exit from this point
+
+ARTIFACTS_BUILD_RUN=0
+ECLIPSE_WARNINGS_RUN=0
+
+HAS_DEPENDENCY_CHECK_TARGET=$(ant -p build.xml | grep "dependency-check " | wc -l)
+
 for x in $(seq 1 3); do
-    ant clean artifacts
-    RETURN="$?"
+    if [ "${ARTIFACTS_BUILD_RUN}" -eq "0" ]; then
+      ant clean artifacts
+      RETURN="$?"
+    fi
     if [ "${RETURN}" -eq "0" ]; then
-        # Run eclipse-warnings if build was successful
-        ant eclipse-warnings
-        RETURN="$?"
+        ARTIFACTS_BUILD_RUN=1
+        if [ "${ECLIPSE_WARNINGS_RUN}" -eq "0" ]; then
+          # Run eclipse-warnings if build was successful
+          ant eclipse-warnings
+          RETURN="$?"
+        fi
         if [ "${RETURN}" -eq "0" ]; then
+            ECLIPSE_WARNINGS_RUN=1
+            if [ "${HAS_DEPENDENCY_CHECK_TARGET}" -eq "1" ]; then
+                ant -Ddependency-check.home=/tmp/dependency-check dependency-check
+                RETURN="$?"
+            else
+                RETURN="0"
+            fi
+            if [ ! "${RETURN}" -eq "0" ]; then
+                if [ -f /tmp/dependency-check/dependency-check-ant/dependency-check-ant.jar ]; then
+                    # Break the build here only in case dep zip was downloaded (hence JAR was extracted) just fine
+                    # but the check itself has failed. If JAR does not exist, it is probably
+                    # because the network was down so the ant target did not download the zip in the first place.
+                    echo "Failing the build on OWASP dependency check. Run 'ant dependency-check' locally and consult build/dependency-check-report.html to see the details."
+                    break
+                else
+                    # sleep here to give the net the chance to resume after probable partition
+                    sleep 10
+                    continue
+                fi
+            fi
             set -e
             # build debian and rpm packages
             head_commit=`git log --pretty=oneline -1 | cut -d " " -f 1`
@@ -66,6 +97,8 @@ for x in $(seq 1 3); do
         fi
         break
     fi
+    # sleep here to give the net the chance to resume after probable partition
+    sleep 10
 done
 
 ################################
