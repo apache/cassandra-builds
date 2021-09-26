@@ -21,7 +21,8 @@ RUN echo 'APT::Acquire::Retries "9";' > /etc/apt/apt.conf.d/80-retries
 
 RUN export DEBIAN_FRONTEND=noninteractive && \
     apt-get update && \
-    apt-get install -y --no-install-recommends software-properties-common apt-utils vim
+    apt-get install -y --no-install-recommends software-properties-common apt-utils vim && \
+    apt-get install -y lsof
 
 RUN export DEBIAN_FRONTEND=noninteractive && \
     add-apt-repository -y ppa:deadsnakes/ppa && \

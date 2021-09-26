@@ -29,6 +29,7 @@ Caching image:
 Please make sure to always tag also by date, so we can go back to that version in case anything breaks after the next update!
 
 We are using Docker Hub for storing published images. See [Quick Start Guide](https://docs.docker.com/docker-hub/) on how to setup docker.
+To push the image you will need to use your own Docker Hub account and open an Apache Jira ticket to Infra to add your account to the apache organization.
 
 ## Updating circleci.yml
 
