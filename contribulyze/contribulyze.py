@@ -434,12 +434,12 @@ def process_aliases(aliases_input):
     line = aliases_input.readline()
 
 def process_committers():
-    committers_url = 'https://whimsy.apache.org/public/public_ldap_projects.jsonn'
+    committers_url = 'https://whimsy.apache.org/public/public_ldap_projects.json'
     names_url = 'https://whimsy.apache.org/public/icla-info.json'
     committers = json.loads(requests.get(committers_url).text)['projects']['cassandra']['members']
     names_json = json.loads(requests.get(names_url).text)['committers']
     for committer in committers:
-        name = names_json[committer]
+        name = names_json.get(committer, committer)
         if committer in Contributor.all_contributors and not name in Contributor.all_contributors:
             c = Contributor.get(committer, None)
             c.add_aliases(name)
