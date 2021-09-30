@@ -327,7 +327,7 @@ pipeline {
         }
         post {
             always {
-                sshPublisher(publishers: [sshPublisherDesc(configName: 'Nightlies', transfers: [sshTransfer(remoteDirectory: 'cassandra/devbranch/${JOB_NAME}/${BUILD_NUMBER}/', sourceFiles: 'TESTS-TestSuites.xml.xz')])])
+                sshPublisher(publishers: [sshPublisherDesc(configName: 'Nightlies', verbose: true, transfers: [sshTransfer(remoteDirectory: 'cassandra/devbranch/${JOB_NAME}/${BUILD_NUMBER}/', sourceFiles: 'TESTS-TestSuites.xml.xz')])])
             }
         }
       }
