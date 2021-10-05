@@ -50,7 +50,9 @@ set +e # disable immediate exit from this point
 ARTIFACTS_BUILD_RUN=0
 ECLIPSE_WARNINGS_RUN=0
 
-HAS_DEPENDENCY_CHECK_TARGET=$(ant -p build.xml | grep "dependency-check " | wc -l)
+# turn off dep checks until CASSANDRA-14612 is resolved
+#HAS_DEPENDENCY_CHECK_TARGET=$(ant -p build.xml | grep "dependency-check " | wc -l)
+HAS_DEPENDENCY_CHECK_TARGET=0
 
 for x in $(seq 1 3); do
     if [ "${ARTIFACTS_BUILD_RUN}" -eq "0" ]; then
