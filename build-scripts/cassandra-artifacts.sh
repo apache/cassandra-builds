@@ -50,9 +50,8 @@ set +e # disable immediate exit from this point
 ARTIFACTS_BUILD_RUN=0
 ECLIPSE_WARNINGS_RUN=0
 
-# turn off dep checks until CASSANDRA-14612 is resolved
-#HAS_DEPENDENCY_CHECK_TARGET=$(ant -p build.xml | grep "dependency-check " | wc -l)
-HAS_DEPENDENCY_CHECK_TARGET=0
+HAS_DEPENDENCY_CHECK_TARGET=$(ant -p build.xml | grep "dependency-check " | wc -l)
+DEPENDENCY_CHECK_VERSION=6.3.2
 
 for x in $(seq 1 3); do
     if [ "${ARTIFACTS_BUILD_RUN}" -eq "0" ]; then
@@ -69,13 +68,13 @@ for x in $(seq 1 3); do
         if [ "${RETURN}" -eq "0" ]; then
             ECLIPSE_WARNINGS_RUN=1
             if [ "${HAS_DEPENDENCY_CHECK_TARGET}" -eq "1" ]; then
-                ant -Ddependency-check.home=/tmp/dependency-check dependency-check
+                ant -Ddependency-check.version=${DEPENDENCY_CHECK_VERSION} -Ddependency-check.home=/tmp/dependency-check-${DEPENDENCY_CHECK_VERSION} dependency-check
                 RETURN="$?"
             else
                 RETURN="0"
             fi
             if [ ! "${RETURN}" -eq "0" ]; then
-                if [ -f /tmp/dependency-check/dependency-check-ant/dependency-check-ant.jar ]; then
+                if [ -f /tmp/dependency-check-${DEPENDENCY_CHECK_VERSION}/dependency-check-ant/dependency-check-ant.jar ]; then
                     # Break the build here only in case dep zip was downloaded (hence JAR was extracted) just fine
                     # but the check itself has failed. If JAR does not exist, it is probably
                     # because the network was down so the ant target did not download the zip in the first place.
