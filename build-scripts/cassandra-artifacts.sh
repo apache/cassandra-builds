@@ -50,10 +50,10 @@ set +e # disable immediate exit from this point
 ARTIFACTS_BUILD_RUN=0
 ECLIPSE_WARNINGS_RUN=0
 
-#HAS_DEPENDENCY_CHECK_TARGET=$(ant -p build.xml | grep "dependency-check " | wc -l)
-# OWASP dep checs are unstable in Jenkins, we are getting 503 errors every now and then from NIST CVE database
-HAS_DEPENDENCY_CHECK_TARGET=0
-DEPENDENCY_CHECK_VERSION=6.3.2
+HAS_DEPENDENCY_CHECK_TARGET=$(ant -p build.xml | grep "dependency-check " | wc -l)
+# versions starting from 6.4.1 contain "rate limiter" functionality to make builds more stable
+# https://github.com/jeremylong/DependencyCheck/pull/3725
+DEPENDENCY_CHECK_VERSION=6.4.1
 
 for x in $(seq 1 3); do
     if [ "${ARTIFACTS_BUILD_RUN}" -eq "0" ]; then
