@@ -387,9 +387,8 @@ class LogMessage(object):
     self.sha = sha
     # Map field names (e.g., "Patch", "Review") onto Field objects.
     self.fields = { }
-    if sha in LogMessage.all_logs:
-      complain("SHA '%s' seen more than once" % sha, True)
-    LogMessage.all_logs[sha] = self
+    if not sha in LogMessage.all_logs:
+      LogMessage.all_logs[sha] = self
   def add_field(self, field):
     self.fields[field.name] = field
   def accum(self, line):
