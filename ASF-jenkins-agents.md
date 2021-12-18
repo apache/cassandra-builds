@@ -100,8 +100,13 @@ ask for more in console https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/elas
 | [cassandra47](https://ci-cassandra.apache.org/computer/cassandra47)       | DataStax    |  Ubuntu 18.04 LTS amd64, 32G RAM             | 163.172.55.40   |
 | [cassandra48](https://ci-cassandra.apache.org/computer/cassandra48)       | DataStax    |  Ubuntu 18.04 LTS amd64, 32G RAM             | 163.172.55.49   |
 | [cassandra49](https://ci-cassandra.apache.org/computer/cassandra49)       | DataStax    |  Ubuntu 18.04 LTS amd64, 32G RAM             | 163.172.51.48   |
+| [cassandra50](https://ci-cassandra.apache.org/computer/cassandra50)       | DataStax    |  Ubuntu 18.04 LTS amd64, 32G RAM             | 163.172.55.57   |
 | [cassandra-arm1](https://ci-cassandra.apache.org/computer/cassandra-arm1) | Huawei      |  Ubuntu 18.04.3 LTS arm64, 32G RAM, 16 core  | 114.119.184.236 |
 | [cassandra-arm2](https://ci-cassandra.apache.org/computer/cassandra-arm2) | Huawei      |  Ubuntu 18.04.3 LTS arm64, 32G RAM, 16 core  | 94.74.91.186    |
+| [cassandra-arm3](https://ci-cassandra.apache.org/computer/cassandra-arm3) | Huawei      |  Ubuntu 18.04.3 LTS arm64, 32G RAM, 16 core  | 159.138.106.144 |
+| [cassandra-arm4](https://ci-cassandra.apache.org/computer/cassandra-arm4) | Huawei      |  Ubuntu 18.04.3 LTS arm64, 32G RAM, 16 core  | 110.238.106.76  |
+| [cassandra-arm5](https://ci-cassandra.apache.org/computer/cassandra-arm5) | Huawei      |  Ubuntu 18.04.3 LTS arm64, 32G RAM, 16 core  | 94.74.95.38     |
+| [cassandra-arm6](https://ci-cassandra.apache.org/computer/cassandra-arm6) | Huawei      |  Ubuntu 18.04.3 LTS arm64, 32G RAM, 16 core  | 119.8.163.173   |
 
 
 ----
