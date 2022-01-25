@@ -409,23 +409,31 @@ cassandraBranches.each {
                 }
                 failOnError(false)
             }
-            postBuildScripts {
-              onlyIfBuildSucceeds(false)
-              steps {
-                // docker needs to (soon or later) prune its volumes too, but that can only be done when the agent is idle
-                // if the agent is busy, just prune everything that is older than maxJobHours
-                shell("""
-                    echo "Cleaning project…"; git clean -xdff ;
-                    echo "Cleaning processes…" ;
-                    if ! pgrep -af "cassandra-builds/build-scripts" ; then pkill -9 -f org.apache.cassandra. || echo "already clean" ; fi ;
-                    echo "Pruning docker…" ;
-                    if pgrep -af "cassandra-builds/build-scripts" ; then docker system prune --all --force --filter "until=${maxJobHours}h" || true ; else  docker system prune --all --force --volumes || true ;  fi;
-                    echo "Reporting disk usage…"; df -h ;
-                    echo "Cleaning tmp…";
-                    find . -type d -name tmp -delete 2>/dev/null ;
-                    find /tmp -type f -atime +2 -user jenkins -and -not -exec fuser -s {} ';' -and -delete 2>/dev/null || echo clean tmp failed ;
-                    echo "For test report and logs see https://nightlies.apache.org/cassandra/${branchName}/${jobNamePrefix}-artifacts/\${BUILD_NUMBER}/\${JOB_NAME}/"
-                """)
+            postBuildScript {
+              buildSteps {
+                markBuildUnstable(false)
+                postBuildStep {
+                    stopOnFailure(false)
+                    results(['SUCCESS','UNSTABLE','FAILURE','NOT_BUILT','ABORTED'])
+                    buildSteps {
+                      shell {
+                        // docker needs to (soon or later) prune its volumes too, but that can only be done when the agent is idle
+                        // if the agent is busy, just prune everything that is older than maxJobHours
+                        command("""
+                            echo "Cleaning project…"; git clean -xdff ;
+                            echo "Cleaning processes…" ;
+                            if ! pgrep -af "cassandra-builds/build-scripts" ; then pkill -9 -f org.apache.cassandra. || echo "already clean" ; fi ;
+                            echo "Pruning docker…" ;
+                            if pgrep -af "cassandra-builds/build-scripts" ; then docker system prune --all --force --filter "until=${maxJobHours}h" || true ; else  docker system prune --all --force --volumes || true ;  fi;
+                            echo "Reporting disk usage…"; df -h ;
+                            echo "Cleaning tmp…";
+                            find . -type d -name tmp -delete 2>/dev/null ;
+                            find /tmp -type f -atime +2 -user jenkins -and -not -exec fuser -s {} ';' -and -delete 2>/dev/null || echo clean tmp failed ;
+                            echo "For test report and logs see https://nightlies.apache.org/cassandra/${branchName}/${jobNamePrefix}-artifacts/\${BUILD_NUMBER}/\${JOB_NAME}/"
+                        """)
+                      }
+                    }
+                }
               }
             }
         }
@@ -506,24 +514,32 @@ cassandraBranches.each {
                         }
                         failOnError(false)
                     }
-                    postBuildScripts {
-                      onlyIfBuildSucceeds(false)
-                      steps {
-                        // docker needs to (soon or later) prune its volumes too, but that can only be done when the agent is idle
-                        // if the agent is busy, just prune everything that is older than maxJobHours
-                        shell("""
-                            echo "Cleaning project…"; git clean -xdff -e build/test/jmh-result.json ;
-                            echo "Cleaning processes…" ;
-                            if ! pgrep -af "cassandra-builds/build-scripts" ; then pkill -9 -f org.apache.cassandra. || echo "already clean" ; fi ;
-                            echo "Pruning docker…" ;
-                            if pgrep -af "cassandra-builds/build-scripts" ; then docker system prune --all --force --filter "until=${maxJobHours}h" || true ; else  docker system prune --all --force --volumes || true ;  fi;
-                            echo "Reporting disk usage…"; du -xm / 2>/dev/null | sort -rn | head -n 30 ; df -h ;
-                            echo "Cleaning tmp…";
-                            find . -type d -name tmp -delete 2>/dev/null ;
-                            find /tmp -type f -atime +2 -user jenkins -and -not -exec fuser -s {} ';' -and -delete 2>/dev/null || echo clean tmp failed ;
-                            echo "For test report and logs see https://nightlies.apache.org/cassandra/${branchName}/${jobNamePrefix}-${targetName}/\${BUILD_NUMBER}/\${JOB_NAME}/"
-                        """)
-                      }
+                    postBuildScript {
+                        buildSteps {
+                          markBuildUnstable(false)
+                          postBuildStep {
+                              stopOnFailure(false)
+                              results(['SUCCESS','UNSTABLE','FAILURE','NOT_BUILT','ABORTED'])
+                              buildSteps {
+                                shell {
+                                  // docker needs to (soon or later) prune its volumes too, but that can only be done when the agent is idle
+                                  // if the agent is busy, just prune everything that is older than maxJobHours
+                                  command("""
+                                      echo "Cleaning project…"; git clean -xdff -e build/test/jmh-result.json ;
+                                      echo "Cleaning processes…" ;
+                                      if ! pgrep -af "cassandra-builds/build-scripts" ; then pkill -9 -f org.apache.cassandra. || echo "already clean" ; fi ;
+                                      echo "Pruning docker…" ;
+                                      if pgrep -af "cassandra-builds/build-scripts" ; then docker system prune --all --force --filter "until=${maxJobHours}h" || true ; else  docker system prune --all --force --volumes || true ;  fi;
+                                      echo "Reporting disk usage…"; du -xm / 2>/dev/null | sort -rn | head -n 30 ; df -h ;
+                                      echo "Cleaning tmp…";
+                                      find . -type d -name tmp -delete 2>/dev/null ;
+                                      find /tmp -type f -atime +2 -user jenkins -and -not -exec fuser -s {} ';' -and -delete 2>/dev/null || echo clean tmp failed ;
+                                      echo "For test report and logs see https://nightlies.apache.org/cassandra/${branchName}/${jobNamePrefix}-${targetName}/\${BUILD_NUMBER}/\${JOB_NAME}/"
+                                  """)
+                                }
+                              }
+                          }
+                        }
                     }
                 }
             }
@@ -600,23 +616,31 @@ cassandraBranches.each {
                                 publishTestStabilityData()
                             }
                         }
-                        postBuildScripts {
-                          onlyIfBuildSucceeds(false)
-                          steps {
-                            // docker needs to (soon or later) prune its volumes too, but that can only be done when the agent is idle
-                            // if the agent is busy, just prune everything that is older than maxJobHours
-                            shell("""
-                                echo "Cleaning project…"; git clean -xdff ;
-                                echo "Cleaning processes…" ;
-                                if ! pgrep -af "cassandra-builds/build-scripts" ; then pkill -9 -f org.apache.cassandra. || echo "already clean" ; fi ;
-                                echo "Pruning docker…" ;
-                                if pgrep -af "cassandra-builds/build-scripts" ; then docker system prune --all --force --filter "until=${maxJobHours}h" || true ; else  docker system prune --all --force --volumes || true ;  fi;
-                                echo "Reporting disk usage…"; df -h ;
-                                echo "Cleaning tmp…";
-                                find . -type d -name tmp -delete 2>/dev/null ;
-                                find /tmp -type f -atime +2 -user jenkins -and -not -exec fuser -s {} ';' -and -delete 2>/dev/null || echo clean tmp failed ;
-                                echo "For test report and logs see https://nightlies.apache.org/cassandra/${branchName}/${jobNamePrefix}-${targetArchName}/\${BUILD_NUMBER}/\${JOB_NAME}/"
-                            """)
+                        postBuildScript {
+                          buildSteps {
+                            markBuildUnstable(false)
+                            postBuildStep {
+                                stopOnFailure(false)
+                                results(['SUCCESS','UNSTABLE','FAILURE','NOT_BUILT','ABORTED'])
+                                buildSteps {
+                                  shell {
+                                    // docker needs to (soon or later) prune its volumes too, but that can only be done when the agent is idle
+                                    // if the agent is busy, just prune everything that is older than maxJobHours
+                                    command("""
+                                        echo "Cleaning project…"; git clean -xdff ;
+                                        echo "Cleaning processes…" ;
+                                        if ! pgrep -af "cassandra-builds/build-scripts" ; then pkill -9 -f org.apache.cassandra. || echo "already clean" ; fi ;
+                                        echo "Pruning docker…" ;
+                                        if pgrep -af "cassandra-builds/build-scripts" ; then docker system prune --all --force --filter "until=${maxJobHours}h" || true ; else  docker system prune --all --force --volumes || true ;  fi;
+                                        echo "Reporting disk usage…"; df -h ;
+                                        echo "Cleaning tmp…";
+                                        find . -type d -name tmp -delete 2>/dev/null ;
+                                        find /tmp -type f -atime +2 -user jenkins -and -not -exec fuser -s {} ';' -and -delete 2>/dev/null || echo clean tmp failed ;
+                                        echo "For test report and logs see https://nightlies.apache.org/cassandra/${branchName}/${jobNamePrefix}-${targetArchName}/\${BUILD_NUMBER}/\${JOB_NAME}/"
+                                    """)
+                                  }
+                                }
+                            }
                           }
                         }
                     }
@@ -665,23 +689,31 @@ cassandraBranches.each {
                         xz console.log
                         """)
                 }
-                postBuildScripts {
-                  onlyIfBuildSucceeds(false)
-                  steps {
-                    // docker needs to (soon or later) prune its volumes too, but that can only be done when the agent is idle
-                    // if the agent is busy, just prune everything that is older than maxJobHours
-                    shell("""
-                        echo "Cleaning project…"; git clean -xdff ;
-                        echo "Cleaning processes…" ;
-                        if ! pgrep -af "cassandra-builds/build-scripts" ; then pkill -9 -f org.apache.cassandra. || echo "already clean" ; fi ;
-                        echo "Pruning docker…" ;
-                        if pgrep -af "cassandra-builds/build-scripts" ; then docker system prune --all --force --filter "until=${maxJobHours}h" || true ; else  docker system prune --all --force --volumes || true ;  fi;
-                        echo "Reporting disk usage…"; df -h ;
-                        echo "Cleaning tmp…";
-                        find . -type d -name tmp -delete 2>/dev/null ;
-                        find /tmp -type f -atime +2 -user jenkins -and -not -exec fuser -s {} ';' -and -delete 2>/dev/null || echo clean tmp failed ;
-                        echo "For test report and logs see https://nightlies.apache.org/cassandra/${branchName}/${jobNamePrefix}-cqlsh-tests/\${BUILD_NUMBER}/\${JOB_NAME}/"
-                    """)
+                postBuildScript {
+                  buildSteps {
+                    markBuildUnstable(false)
+                    postBuildStep {
+                        stopOnFailure(false)
+                        results(['SUCCESS','UNSTABLE','FAILURE','NOT_BUILT','ABORTED'])
+                        buildSteps {
+                          shell {
+                            // docker needs to (soon or later) prune its volumes too, but that can only be done when the agent is idle
+                            // if the agent is busy, just prune everything that is older than maxJobHours
+                            command("""
+                                echo "Cleaning project…"; git clean -xdff ;
+                                echo "Cleaning processes…" ;
+                                if ! pgrep -af "cassandra-builds/build-scripts" ; then pkill -9 -f org.apache.cassandra. || echo "already clean" ; fi ;
+                                echo "Pruning docker…" ;
+                                if pgrep -af "cassandra-builds/build-scripts" ; then docker system prune --all --force --filter "until=${maxJobHours}h" || true ; else  docker system prune --all --force --volumes || true ;  fi;
+                                echo "Reporting disk usage…"; df -h ;
+                                echo "Cleaning tmp…";
+                                find . -type d -name tmp -delete 2>/dev/null ;
+                                find /tmp -type f -atime +2 -user jenkins -and -not -exec fuser -s {} ';' -and -delete 2>/dev/null || echo clean tmp failed ;
+                                echo "For test report and logs see https://nightlies.apache.org/cassandra/${branchName}/${jobNamePrefix}-cqlsh-tests/\${BUILD_NUMBER}/\${JOB_NAME}/"
+                            """)
+                          }
+                        }
+                    }
                   }
                 }
             }
@@ -816,23 +848,31 @@ matrixJob('Cassandra-devbranch-artifacts') {
             }
             failOnError(false)
         }
-        postBuildScripts {
-          
-          steps {
-            // docker needs to (soon or later) prune its volumes too, but that can only be done when the agent is idle
-            // if the agent is busy, just prune everything that is older than maxJobHours
-            shell("""
-                echo "Cleaning project…"; git clean -xdff ;
-                echo "Cleaning processes…" ;
-                if ! pgrep -af "cassandra-builds/build-scripts" ; then pkill -9 -f org.apache.cassandra. || echo "already clean" ; fi ;
-                echo "Pruning docker…" ;
-                if pgrep -af "cassandra-builds/build-scripts" ; then docker system prune --all --force --filter "until=${maxJobHours}h" || true ; else  docker system prune --all --force --volumes || true ;  fi;
-                echo "Reporting disk usage…"; df -h ;
-                echo "Cleaning tmp…";
-                find . -type d -name tmp -delete 2>/dev/null ;
-                find /tmp -type -f -atime +3 -user jenkins -and -not -exec fuser -s {} ';' -and -delete 2>/dev/null || echo clean tmp failed ;
-                echo "For test report and logs see https://nightlies.apache.org/cassandra/devbranch/Cassandra-devbranch-artifacts/\${BUILD_NUMBER}/\${JOB_NAME}/"
-            """)
+        postBuildScript {
+          buildSteps {
+            markBuildUnstable(false)
+            postBuildStep {
+                stopOnFailure(false)
+                results(['SUCCESS','UNSTABLE','FAILURE','NOT_BUILT','ABORTED'])
+                buildSteps {
+                  shell {
+                    // docker needs to (soon or later) prune its volumes too, but that can only be done when the agent is idle
+                    // if the agent is busy, just prune everything that is older than maxJobHours
+                    command("""
+                        echo "Cleaning project…"; git clean -xdff ;
+                        echo "Cleaning processes…" ;
+                        if ! pgrep -af "cassandra-builds/build-scripts" ; then pkill -9 -f org.apache.cassandra. || echo "already clean" ; fi ;
+                        echo "Pruning docker…" ;
+                        if pgrep -af "cassandra-builds/build-scripts" ; then docker system prune --all --force --filter "until=${maxJobHours}h" || true ; else  docker system prune --all --force --volumes || true ;  fi;
+                        echo "Reporting disk usage…"; df -h ;
+                        echo "Cleaning tmp…";
+                        find . -type d -name tmp -delete 2>/dev/null ;
+                        find /tmp -type -f -atime +3 -user jenkins -and -not -exec fuser -s {} ';' -and -delete 2>/dev/null || echo clean tmp failed ;
+                        echo "For test report and logs see https://nightlies.apache.org/cassandra/devbranch/Cassandra-devbranch-artifacts/\${BUILD_NUMBER}/\${JOB_NAME}/"
+                    """)
+                  }
+                }
+            }
           }
         }
     }
@@ -938,23 +978,31 @@ testTargets.each {
             archiveJunit('build/test/**/TEST-*.xml') {
                 allowEmptyResults()
             }
-            postBuildScripts {
-              onlyIfBuildSucceeds(false)
-              steps {
-                // docker needs to (soon or later) prune its volumes too, but that can only be done when the agent is idle
-                // if the agent is busy, just prune everything that is older than maxJobHours
-                shell("""
-                    echo "Cleaning project…"; git clean -xdff ${targetName == 'microbench' ? '-e build/test/jmh-result.json' : ''};
-                    echo "Cleaning processes…" ;
-                    if ! pgrep -af "cassandra-builds/build-scripts" ; then pkill -9 -f org.apache.cassandra. || echo "already clean" ; fi ;
-                    echo "Pruning docker…" ;
-                    if pgrep -af "cassandra-builds/build-scripts" ; then docker system prune --all --force --filter "until=${maxJobHours}h" || true ; else  docker system prune --all --force --volumes || true ;  fi;
-                    echo "Reporting disk usage…"; du -xm / 2>/dev/null | sort -rn | head -n 30 ; df -h ;
-                    echo "Cleaning tmp…";
-                    find . -type d -name tmp -delete 2>/dev/null ;
-                    find /tmp -type f -atime +2 -user jenkins -and -not -exec fuser -s {} ';' -and -delete 2>/dev/null || echo clean tmp failed ;
-                    echo "For test report and logs see https://nightlies.apache.org/cassandra/devbranch/Cassandra-devbranch-${targetName}/\${BUILD_NUMBER}/\${JOB_NAME}/"
-                """)
+            postBuildScript {
+              buildSteps {
+                markBuildUnstable(false)
+                postBuildStep {
+                    stopOnFailure(false)
+                    results(['SUCCESS','UNSTABLE','FAILURE','NOT_BUILT','ABORTED'])
+                    buildSteps {
+                      shell {
+                        // docker needs to (soon or later) prune its volumes too, but that can only be done when the agent is idle
+                        // if the agent is busy, just prune everything that is older than maxJobHours
+                        command("""
+                            echo "Cleaning project…"; git clean -xdff ${targetName == 'microbench' ? '-e build/test/jmh-result.json' : ''};
+                            echo "Cleaning processes…" ;
+                            if ! pgrep -af "cassandra-builds/build-scripts" ; then pkill -9 -f org.apache.cassandra. || echo "already clean" ; fi ;
+                            echo "Pruning docker…" ;
+                            if pgrep -af "cassandra-builds/build-scripts" ; then docker system prune --all --force --filter "until=${maxJobHours}h" || true ; else  docker system prune --all --force --volumes || true ;  fi;
+                            echo "Reporting disk usage…"; du -xm / 2>/dev/null | sort -rn | head -n 30 ; df -h ;
+                            echo "Cleaning tmp…";
+                            find . -type d -name tmp -delete 2>/dev/null ;
+                            find /tmp -type f -atime +2 -user jenkins -and -not -exec fuser -s {} ';' -and -delete 2>/dev/null || echo clean tmp failed ;
+                            echo "For test report and logs see https://nightlies.apache.org/cassandra/devbranch/Cassandra-devbranch-${targetName}/\${BUILD_NUMBER}/\${JOB_NAME}/"
+                        """)
+                      }
+                    }
+                }
               }
             }
         }
@@ -1075,23 +1123,31 @@ archs.each {
                     fingerprint()
                 }
                 archiveJunit('nosetests.xml')
-                postBuildScripts {
-                  onlyIfBuildSucceeds(false)
-                  steps {
-                    // docker needs to (soon or later) prune its volumes too, but that can only be done when the agent is idle
-                    // if the agent is busy, just prune everything that is older than maxJobHours
-                    shell("""
-                        echo "Cleaning project…" ; git clean -xdff ;
-                        echo "Cleaning processes…" ;
-                        if ! pgrep -af "cassandra-builds/build-scripts" ; then pkill -9 -f org.apache.cassandra. || echo "already clean" ; fi ;
-                        echo "Pruning docker…" ;
-                        if pgrep -af "cassandra-builds/build-scripts" ; then docker system prune --all --force --filter "until=${maxJobHours}h" || true ; else  docker system prune --all --force --volumes || true ;  fi;
-                        echo "Reporting disk usage…"; df -h ;
-                        echo "Cleaning tmp…";
-                        find . -type d -name tmp -delete 2>/dev/null ;
-                        find /tmp -type f -atime +2 -user jenkins -and -not -exec fuser -s {} ';' -and -delete 2>/dev/null || echo clean tmp failed ;
-                        echo "For test report and logs see https://nightlies.apache.org/cassandra/devbranch/Cassandra-devbranch-${targetArchName}/\${BUILD_NUMBER}/\${JOB_NAME}/"
-                    """)
+                postBuildScript {
+                  buildSteps {
+                    markBuildUnstable(false)
+                    postBuildStep {
+                        stopOnFailure(false)
+                        results(['SUCCESS','UNSTABLE','FAILURE','NOT_BUILT','ABORTED'])
+                        buildSteps {
+                          shell {
+                            // docker needs to (soon or later) prune its volumes too, but that can only be done when the agent is idle
+                            // if the agent is busy, just prune everything that is older than maxJobHours
+                            command("""
+                                echo "Cleaning project…" ; git clean -xdff ;
+                                echo "Cleaning processes…" ;
+                                if ! pgrep -af "cassandra-builds/build-scripts" ; then pkill -9 -f org.apache.cassandra. || echo "already clean" ; fi ;
+                                echo "Pruning docker…" ;
+                                if pgrep -af "cassandra-builds/build-scripts" ; then docker system prune --all --force --filter "until=${maxJobHours}h" || true ; else  docker system prune --all --force --volumes || true ;  fi;
+                                echo "Reporting disk usage…"; df -h ;
+                                echo "Cleaning tmp…";
+                                find . -type d -name tmp -delete 2>/dev/null ;
+                                find /tmp -type f -atime +2 -user jenkins -and -not -exec fuser -s {} ';' -and -delete 2>/dev/null || echo clean tmp failed ;
+                                echo "For test report and logs see https://nightlies.apache.org/cassandra/devbranch/Cassandra-devbranch-${targetArchName}/\${BUILD_NUMBER}/\${JOB_NAME}/"
+                            """)
+                          }
+                        }
+                    }
                   }
                 }
             }
@@ -1189,23 +1245,31 @@ matrixJob('Cassandra-devbranch-cqlsh-tests') {
             fingerprint()
         }
         archiveJunit('**/cqlshlib.xml')
-        postBuildScripts {
-          onlyIfBuildSucceeds(false)
-          steps {
-            // docker needs to (soon or later) prune its volumes too, but that can only be done when the agent is idle
-            // if the agent is busy, just prune everything that is older than maxJobHours
-            shell("""
-                echo "Cleaning project…"; git clean -xdff ;
-                echo "Cleaning processes…" ;
-                if ! pgrep -af "cassandra-builds/build-scripts" ; then pkill -9 -f org.apache.cassandra. || echo "already clean" ; fi ;
-                echo "Pruning docker…" ;
-                if pgrep -af "cassandra-builds/build-scripts" ; then docker system prune --all --force --filter "until=${maxJobHours}h" || true ; else  docker system prune --all --force --volumes || true ;  fi;
-                echo "Reporting disk usage…"; df -h ;
-                echo "Cleaning tmp…";
-                find . -type d -name tmp -delete 2>/dev/null ;
-                find /tmp -type f -atime +2 -user jenkins -and -not -exec fuser -s {} ';' -and -delete 2>/dev/null || echo clean tmp failed ;
-                echo "For test report and logs see https://nightlies.apache.org/cassandra/devbranch/Cassandra-devbranch-cqlsh-tests/\${BUILD_NUMBER}/\${JOB_NAME}/"
-            """)
+        postBuildScript {
+          buildSteps {
+            markBuildUnstable(false)
+            postBuildStep {
+                stopOnFailure(false)
+                results(['SUCCESS','UNSTABLE','FAILURE','NOT_BUILT','ABORTED'])
+                buildSteps {
+                  shell {
+                    // docker needs to (soon or later) prune its volumes too, but that can only be done when the agent is idle
+                    // if the agent is busy, just prune everything that is older than maxJobHours
+                    command("""
+                        echo "Cleaning project…"; git clean -xdff ;
+                        echo "Cleaning processes…" ;
+                        if ! pgrep -af "cassandra-builds/build-scripts" ; then pkill -9 -f org.apache.cassandra. || echo "already clean" ; fi ;
+                        echo "Pruning docker…" ;
+                        if pgrep -af "cassandra-builds/build-scripts" ; then docker system prune --all --force --filter "until=${maxJobHours}h" || true ; else  docker system prune --all --force --volumes || true ;  fi;
+                        echo "Reporting disk usage…"; df -h ;
+                        echo "Cleaning tmp…";
+                        find . -type d -name tmp -delete 2>/dev/null ;
+                        find /tmp -type f -atime +2 -user jenkins -and -not -exec fuser -s {} ';' -and -delete 2>/dev/null || echo clean tmp failed ;
+                        echo "For test report and logs see https://nightlies.apache.org/cassandra/devbranch/Cassandra-devbranch-cqlsh-tests/\${BUILD_NUMBER}/\${JOB_NAME}/"
+                    """)
+                  }
+                }
+            }
           }
         }
     }
