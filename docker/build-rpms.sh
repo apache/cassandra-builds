@@ -1,5 +1,5 @@
 #!/bin/bash -x
-# Expected to be run from inside cassandra-builds/docker/centos7-image.docker
+# Expected to be run from inside cassandra-builds/docker/almalinux-image.docker
 set -e
 
 if [ "$#" -lt 1 ]; then

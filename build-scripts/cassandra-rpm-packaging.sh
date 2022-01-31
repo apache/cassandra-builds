@@ -26,19 +26,19 @@ java_version=$2
 command -v docker >/dev/null 2>&1 || { echo >&2 "docker needs to be installed"; exit 1; }
 (docker info >/dev/null 2>&1) || { echo >&2 "docker needs to running"; exit 1; }
 [ -d "${cassandra_builds_dir}" ] || { echo >&2 "cassandra-builds directory must exist"; exit 1; }
-[ -f "${cassandra_builds_dir}/docker/centos8-image.docker" ] || { echo >&2 "docker/centos8-image.docker must exist"; exit 1; }
+[ -f "${cassandra_builds_dir}/docker/almalinux-image.docker" ] || { echo >&2 "docker/almalinux-image.docker must exist"; exit 1; }
 [ -f "${cassandra_builds_dir}/docker/build-rpms.sh" ] || { echo >&2 "docker/build-rpms.sh must exist"; exit 1; }
 
 # remove any previous older built images
-docker image prune --all --force --filter label=org.cassandra.buildenv=centos --filter "until=4h" || true
+docker image prune --all --force --filter label=org.cassandra.buildenv=almalinux --filter "until=4h" || true
 
 pushd $cassandra_builds_dir
 
 # Create build images containing the build tool-chain, Java and an Apache Cassandra git working directory
-docker build --build-arg CASSANDRA_GIT_URL=$CASSANDRA_GIT_URL -t cassandra-artifacts-centos8:${sha} -f docker/centos8-image.docker docker/
+docker build --build-arg CASSANDRA_GIT_URL=$CASSANDRA_GIT_URL -t cassandra-artifacts-almalinux:${sha} -f docker/almalinux-image.docker docker/
 
 # Run build script through docker (specify branch, tag, or sha)
 chmod 777 "${rpm_dir}"
-docker run --rm -v "${rpm_dir}":/dist cassandra-artifacts-centos8:${sha} /home/build/build-rpms.sh ${sha} ${java_version}
+docker run --rm -v "${rpm_dir}":/dist cassandra-artifacts-almalinux:${sha} /home/build/build-rpms.sh ${sha} ${java_version}
 
 popd
