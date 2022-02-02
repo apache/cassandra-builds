@@ -10,6 +10,10 @@ command -v ant >/dev/null 2>&1 || { echo >&2 "ant needs to be installed"; exit 1
 command -v git >/dev/null 2>&1 || { echo >&2 "git needs to be installed"; exit 1; }
 [ -f "build.xml" ] || { echo >&2 "build.xml must exist"; exit 1; }
 
+# print debug information on versions
+ant -version
+git --version
+
 # lists all tests for the specific test type
 _list_tests() {
   local -r classlistprefix="$1"

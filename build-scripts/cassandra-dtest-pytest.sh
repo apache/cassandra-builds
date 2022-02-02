@@ -31,6 +31,16 @@ if [ $? -eq 0 -a -n "$JAVA8_HOME" -a -n "$JAVA11_HOME" ]; then
    export JAVA_HOME="$JAVA11_HOME"
 fi
 
+# pre-conditions
+command -v ant >/dev/null 2>&1 || { echo >&2 "ant needs to be installed"; exit 1; }
+command -v pip3 >/dev/null 2>&1 || { echo >&2 "pip3 needs to be installed"; exit 1; }
+command -v virtualenv >/dev/null 2>&1 || { echo >&2 "virtualenv needs to be installed"; exit 1; }
+
+# print debug information on versions
+ant -version
+pip3 --version
+virtualenv --version
+
 # Loop to prevent failure due to maven-ant-tasks not downloading a jar..
 for x in $(seq 1 3); do
     ant clean jar
