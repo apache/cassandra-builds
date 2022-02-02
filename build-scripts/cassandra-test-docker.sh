@@ -35,6 +35,9 @@ else
     command -v docker >/dev/null 2>&1 || { echo >&2 "docker needs to be installed"; exit 1; }
     (docker info >/dev/null 2>&1) || { echo >&2 "docker needs to running"; exit 1; }
 
+    # print debug information on versions
+    docker --version
+
     # start the docker container
     if [ "$#" -lt 5 ]; then
        echo "Usage: cassandra-test-docker.sh REPO BRANCH BUILDS_REPO_URL BUILDS_BRANCH DOCKER_IMAGE [target] [split_chunk]"

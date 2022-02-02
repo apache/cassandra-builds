@@ -18,6 +18,11 @@ command -v docker >/dev/null 2>&1 || { echo >&2 "docker needs to be installed"; 
 [ -f "build.xml" ] || { echo >&2 "build.xml must exist"; exit 1; }
 [ -d "${cassandra_builds_dir}" ] || { echo >&2 "cassandra-builds directory must exist"; exit 1; }
 
+# print debug information on versions
+ant -version
+pip --version
+virtualenv --version
+docker --version
 
 # Sphinx is needed for the gen-doc target
 virtualenv venv

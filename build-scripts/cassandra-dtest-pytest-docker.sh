@@ -43,6 +43,12 @@ DTEST_REPO=$3
 DTEST_BRANCH=$4
 EOF
 
+    # pre-conditions
+    command -v docker >/dev/null 2>&1 || { echo >&2 "docker needs to be installed"; exit 1; }
+
+    # print debug information on versions
+    docker --version
+
     set -x # debug, sometimes ${docker_cpus} is not evaluated
     # Jenkins agents run multiple executors per machine. `jenkins_executors=1` is used for anything non-jenkins.
     jenkins_executors=1
