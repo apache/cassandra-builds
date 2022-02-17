@@ -392,11 +392,15 @@ cassandraBranches.each {
             node / scm / branches / 'hudson.plugins.git.BranchSpec' / name(branchName)
         }
         steps {
-            shell("""
-                    ./cassandra-builds/build-scripts/cassandra-artifacts.sh ;
-                    wget --retry-connrefused --waitretry=1 "\${BUILD_URL}/timestamps/?time=HH:mm:ss&timeZone=UTC&appendLog" -qO - > console.log || echo wget failed ;
-                    xz console.log
-                  """)
+            // cassandra-artifacts.sh script is the only place where ant is called directly. In all other places ant is
+            // called inside a docker container, so there is no need to specify version in the pipeline script.
+            withAnt (installation: 'ant_1.10.12') {
+                shell("""
+                        ./cassandra-builds/build-scripts/cassandra-artifacts.sh ;
+                        wget --retry-connrefused --waitretry=1 "\${BUILD_URL}/timestamps/?time=HH:mm:ss&timeZone=UTC&appendLog" -qO - > console.log || echo wget failed ;
+                        xz console.log
+                        """)
+            }
         }
         publishers {
             publishOverSsh {
@@ -828,14 +832,18 @@ matrixJob('Cassandra-devbranch-artifacts') {
     }
     steps {
         buildDescription('', buildDescStr)
-        shell("""
-                git clean -xdff ;
-                git clone --depth 1 --single-branch -b ${buildsBranch} ${buildsRepo} ;
-                echo "cassandra-builds at: `git -C cassandra-builds log -1 --pretty=format:'%h %an %ad %s'`" ;
-                ./cassandra-builds/build-scripts/cassandra-artifacts.sh ;
-                wget --retry-connrefused --waitretry=1 "\${BUILD_URL}/timestamps/?time=HH:mm:ss&timeZone=UTC&appendLog" -qO - > console.log || echo wget failed ;
-                xz console.log
-                """)
+        // cassandra-artifacts.sh script is the only place where ant is called directly. In all other places ant is
+        // called inside a docker container, so there is no need to specify version in the pipeline script.
+        withAnt (installation: 'ant_1.10.12') {
+            shell("""
+                    git clean -xdff ;
+                    git clone --depth 1 --single-branch -b ${buildsBranch} ${buildsRepo} ;
+                    echo "cassandra-builds at: `git -C cassandra-builds log -1 --pretty=format:'%h %an %ad %s'`" ;
+                    ./cassandra-builds/build-scripts/cassandra-artifacts.sh ;
+                    wget --retry-connrefused --waitretry=1 "\${BUILD_URL}/timestamps/?time=HH:mm:ss&timeZone=UTC&appendLog" -qO - > console.log || echo wget failed ;
+                    xz console.log
+                    """)
+        }
     }
     publishers {
         publishOverSsh {
