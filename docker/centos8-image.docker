@@ -11,7 +11,6 @@ VOLUME ${RPM_DIST_DIR}
 
 # install deps
 RUN yum -y install \
-   ant \
    git \
    java-1.8.0-openjdk-devel \
    java-11-openjdk-devel \
@@ -20,16 +19,20 @@ RUN yum -y install \
    sudo \
    python3-pip
 
-RUN until curl -S -s --retry 9 --retry-connrefused --retry-delay 1 http://mirror.centos.org/centos/7/os/x86_64/Packages/ant-junit-1.9.4-2.el7.noarch.rpm -o ant-junit-1.9.4-2.el7.noarch.rpm ; do echo "curl failed… trying again… " ; done
-
-RUN rpm -i --nodeps ant-junit-1.9.4-2.el7.noarch.rpm
-
 RUN pip3 install --upgrade pip
 
 # install Sphinx to generate docs
 RUN pip3 install \
    Sphinx \
    sphinx_rtd_theme
+
+# install ant
+RUN mkdir /usr/share/ant && \
+    wget --tries 9 https://dlcdn.apache.org/ant/binaries/apache-ant-1.10.12-bin.tar.gz && \
+    tar --strip-components 1 -xf apache-ant-1.10.12-bin.tar.gz -C /usr/share/ant && \
+    rm -f apache-ant-1.10.12-bin.tar.gz
+ENV ANT_HOME=/usr/share/ant
+ENV PATH="${ANT_HOME}/bin:${PATH}"
 
 # create and change to build user
 RUN adduser build
@@ -40,7 +43,7 @@ USER build
 
 RUN mkdir -p $RPM_BUILD_DIR/{BUILD,BUILDROOT,RPMS,SOURCES,SPECS,SRPMS}
 
-# Clone Cassandra and cache maven artifacts
+# clone Cassandra and cache maven artifacts
 ARG CASSANDRA_GIT_URL=https://github.com/apache/cassandra.git
 RUN git clone ${CASSANDRA_GIT_URL} ${CASSANDRA_DIR}
 WORKDIR $CASSANDRA_DIR

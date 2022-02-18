@@ -13,7 +13,6 @@ RUN echo 'APT::Acquire::Retries "9";' > /etc/apt/apt.conf.d/80-retries
 
 # install deps
 RUN apt-get update && apt-get -y install \
-   ant \
    build-essential \
    curl \
    devscripts \
@@ -28,6 +27,14 @@ RUN echo 'deb http://ftp.debian.org/debian stretch main' >> /etc/apt/sources.lis
     && sed -i '$d' /etc/apt/sources.list \
     && apt-get update \
     && update-java-alternatives --set java-1.8.0-openjdk-$(dpkg --print-architecture)
+
+# install ant
+RUN mkdir /usr/share/ant && \
+    wget --tries 9 https://dlcdn.apache.org/ant/binaries/apache-ant-1.10.12-bin.tar.gz && \
+    tar --strip-components 1 -xf apache-ant-1.10.12-bin.tar.gz -C /usr/share/ant && \
+    rm -f apache-ant-1.10.12-bin.tar.gz
+ENV ANT_HOME=/usr/share/ant
+ENV PATH="${ANT_HOME}/bin:${PATH}"
 
 # create and change to build user
 RUN adduser --disabled-login --gecos build build && gpasswd -a build sudo

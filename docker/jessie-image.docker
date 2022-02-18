@@ -16,7 +16,6 @@ RUN echo "deb [check-valid-until=no] http://archive.debian.org/debian jessie-bac
 
 # install deps
 RUN apt-get update -o Acquire::Check-Valid-Until=false && apt-get -y install \
-   ant \
    build-essential \
    curl \
    devscripts \
@@ -32,6 +31,14 @@ RUN apt-get -y -t jessie-backports install \
    python-sphinx-rtd-theme
 
 RUN update-java-alternatives --set java-1.8.0-openjdk-$(dpkg --print-architecture)
+
+# install ant
+RUN mkdir /usr/share/ant && \
+    wget --tries 9 https://dlcdn.apache.org/ant/binaries/apache-ant-1.10.12-bin.tar.gz && \
+    tar --strip-components 1 -xf apache-ant-1.10.12-bin.tar.gz -C /usr/share/ant && \
+    rm -f apache-ant-1.10.12-bin.tar.gz
+ENV ANT_HOME=/usr/share/ant
+ENV PATH="${ANT_HOME}/bin:${PATH}"
 
 # create and change to build user
 RUN adduser --disabled-login --gecos build build && gpasswd -a build sudo
