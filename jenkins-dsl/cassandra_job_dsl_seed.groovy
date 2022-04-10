@@ -272,7 +272,7 @@ matrixJob('Cassandra-template-dtest-matrix') {
                 cleanAfterCheckout()
                 cloneOption {
                     shallow(false)
-                    reference('.')
+                    reference('../1')
                     honorRefspec(true)
                     noTags(true)
                     timeout(maxJobHours * 60)
@@ -541,6 +541,7 @@ cassandraBranches.each {
                           }
                         }
                     }
+                    cleanWs()
                 }
             }
         }
@@ -643,6 +644,7 @@ cassandraBranches.each {
                             }
                           }
                         }
+                        cleanWs()
                     }
                 }
             }
@@ -716,6 +718,7 @@ cassandraBranches.each {
                     }
                   }
                 }
+                cleanWs()
             }
         }
     }
