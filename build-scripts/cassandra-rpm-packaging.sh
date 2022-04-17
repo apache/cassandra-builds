@@ -35,10 +35,9 @@ docker image prune --all --force --filter label=org.cassandra.buildenv=almalinux
 pushd $cassandra_builds_dir
 
 # Create build images containing the build tool-chain, Java and an Apache Cassandra git working directory
-docker build --build-arg CASSANDRA_GIT_URL=$CASSANDRA_GIT_URL -t cassandra-artifacts-almalinux:${sha} -f docker/almalinux-image.docker docker/
+docker build --build-arg CASSANDRA_GIT_URL=$CASSANDRA_GIT_URL --build-arg UID_ARG=`id -u` --build-arg GID_ARG=`id -g` -t cassandra-artifacts-almalinux:${sha} -f docker/almalinux-image.docker docker/
 
 # Run build script through docker (specify branch, tag, or sha)
-chmod 777 "${rpm_dir}"
-docker run --rm -v "${rpm_dir}":/dist cassandra-artifacts-almalinux:${sha} /home/build/build-rpms.sh ${sha} ${java_version}
+docker run --rm -v "${rpm_dir}":/dist -v ~/.m2/repository/:/home/build/.m2/repository/ cassandra-artifacts-almalinux:${sha} /home/build/build-rpms.sh ${sha} ${java_version}
 
 popd
