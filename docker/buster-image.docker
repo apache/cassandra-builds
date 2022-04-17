@@ -3,10 +3,19 @@ FROM debian:buster
 ENV DEB_DIST_DIR=/dist
 ENV BUILD_HOME=/home/build
 ENV CASSANDRA_DIR=$BUILD_HOME/cassandra
+ARG UID_ARG=1000
+ARG GID_ARG=1000
 
 LABEL org.cassandra.buildenv=buster
 
 VOLUME ${DEB_DIST_DIR}
+
+RUN echo "Building with arguments:" \
+    && echo " - DEB_DIST_DIR=${DEB_DIST_DIR}" \
+    && echo " - BUILD_HOME=${BUILD_HOME}" \
+    && echo " - CASSANDRA_DIR=${CASSANDRA_DIR}" \
+    && echo " - UID_ARG=${UID_ARG}" \
+    && echo " - GID_ARG=${GID_ARG}"
 
 # configure apt to retry downloads
 RUN echo 'APT::Acquire::Retries "9";' > /etc/apt/apt.conf.d/80-retries
@@ -18,9 +27,7 @@ RUN apt-get update && apt-get -y install \
    curl \
    devscripts \
    git \
-   sudo \
-   python-sphinx \
-   python-sphinx-rtd-theme
+   sudo
 
 RUN echo 'deb http://ftp.debian.org/debian stretch main' >> /etc/apt/sources.list \
     && apt-get update \
@@ -30,7 +37,10 @@ RUN echo 'deb http://ftp.debian.org/debian stretch main' >> /etc/apt/sources.lis
     && update-java-alternatives --set java-1.8.0-openjdk-$(dpkg --print-architecture)
 
 # create and change to build user
-RUN adduser --disabled-login --gecos build build && gpasswd -a build sudo
+RUN groupadd --gid ${GID_ARG} --non-unique build \
+    && adduser --uid ${UID_ARG} --gid ${GID_ARG} --disabled-login --gecos build build \
+    && gpasswd -a build sudo
+    
 RUN echo "build ALL=(root) NOPASSWD:ALL" > /etc/sudoers.d/build && \
    chmod 0440 /etc/sudoers.d/build
 
