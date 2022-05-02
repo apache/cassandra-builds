@@ -48,6 +48,7 @@ USER build
 
 # clone Cassandra and cache maven artifacts
 ARG CASSANDRA_GIT_URL=https://github.com/apache/cassandra.git
+RUN git config --global http.postBuffer 524288000
 RUN git clone ${CASSANDRA_GIT_URL} ${CASSANDRA_DIR}
 WORKDIR ${CASSANDRA_DIR}
 
