@@ -122,6 +122,31 @@ then
     exit 1
 fi
 
+if curl --output /dev/null --silent --head --fail "https://dist.apache.org/repos/dist/dev/cassandra/${release}" ; then
+    echo "The release candidate for ${release} is already staged at https://dist.apache.org/repos/dist/dev/cassandra/${release}"
+    exit 1
+fi
+
+if curl --output /dev/null --silent --head --fail "https://archive.apache.org/dist/cassandra/${release}" ; then
+    echo "A published release for ${release} is already public at https://archive.apache.org/dist/cassandra/${release}"
+    exit 1
+fi
+
+if curl --output /dev/null --silent --head --fail "https://github.com/apache/cassandra/tree/${release}-tentative" ; then
+    echo "The release candidate tag for ${release}-tentative is already at https://github.com/apache/cassandra/tree/${release}-tentative"
+    exit 1
+fi
+
+if curl --output /dev/null --silent --head --fail "https://github.com/apache/cassandra/tree/cassandra-${release}" ; then
+    echo "The published release tag for ${release} is already at https://github.com/apache/cassandra/tree/cassandra-${release}"
+    exit 1
+fi
+
+if git tag -l | grep -q "${release}-tentative"; then
+    echo "Local git tag for ${release}-tentative already exists"
+    exit 1
+fi
+
 if [ $only_deb -eq 0 ] && [ $only_rpm -eq 0 ]
 then
     head_commit=`git log --pretty=oneline -1 | cut -d " " -f 1`
