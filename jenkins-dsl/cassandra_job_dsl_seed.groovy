@@ -1356,7 +1356,7 @@ job('cassandra-website') {
         }
     }
     triggers {
-        upstream('Cassandra-3.11,Cassandra-4.0,Cassandra-trunk', 'UNSTABLE')
+        upstream('Cassandra-3.11,Cassandra-4.0,Cassandra-4.1,Cassandra-trunk', 'UNSTABLE')
         scm('H/5 * * * *')
     }
     steps {
