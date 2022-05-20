@@ -146,7 +146,7 @@ matrixJob('Cassandra-template-artifacts') {
         shell("""
                 git clean -xdff ;
                 git clone --depth 1 --single-branch -b ${buildsBranch} ${buildsRepo} ;
-                echo "cassandra-builds at: `git -C cassandra-builds log -1 --pretty=format:'%h %an %ad %s'`" ;
+                echo "cassandra-builds at: `git -C cassandra-builds log -1 --pretty=format:'%H %an %ad %s'`" ;
               """)
     }
     publishers {
@@ -223,8 +223,8 @@ matrixJob('Cassandra-template-test') {
         shell("""
                 git clean -xdff -e build/test/jmh-result.json ;
                 git clone --depth 1 --single-branch -b ${buildsBranch} ${buildsRepo} ;
-                echo "cassandra-builds at: `git -C cassandra-builds log -1 --pretty=format:'%h %an %ad %s'`" ;
-                echo "\${BUILD_TAG}) cassandra: `git log -1 --pretty=format:'%h %an %ad %s'`" > \${BUILD_TAG}.head
+                echo "cassandra-builds at: `git -C cassandra-builds log -1 --pretty=format:'%H %an %ad %s'`" ;
+                echo "\${BUILD_TAG}) cassandra: `git log -1 --pretty=format:'%H %an %ad %s'`" > \${BUILD_TAG}.head
               """)
     }
     publishers {
@@ -285,8 +285,8 @@ matrixJob('Cassandra-template-dtest-matrix') {
         shell("""
                 git clean -xdff ;
                 git clone --depth 1 --single-branch -b ${buildsBranch} ${buildsRepo} ;
-                echo "cassandra-builds at: `git -C cassandra-builds log -1 --pretty=format:'%h %an %ad %s'`" ;
-                echo "\${BUILD_TAG}) cassandra: `git log -1 --pretty=format:'%h %an %ad %s'`" > \${BUILD_TAG}.head ;
+                echo "cassandra-builds at: `git -C cassandra-builds log -1 --pretty=format:'%H %an %ad %s'`" ;
+                echo "\${BUILD_TAG}) cassandra: `git log -1 --pretty=format:'%H %an %ad %s'`" > \${BUILD_TAG}.head ;
               """)
     }
 }
@@ -351,8 +351,8 @@ matrixJob('Cassandra-template-cqlsh-tests') {
         shell("""
                 git clean -xdff ;
                 git clone --depth 1 --single-branch -b ${buildsBranch} ${buildsRepo} ;
-                echo "cassandra-builds at: `git -C cassandra-builds log -1 --pretty=format:'%h %an %ad %s'`" ;
-                echo "\${BUILD_TAG}) cassandra: `git log -1 --pretty=format:'%h %an %ad %s'`" > \${BUILD_TAG}.head
+                echo "cassandra-builds at: `git -C cassandra-builds log -1 --pretty=format:'%H %an %ad %s'`" ;
+                echo "\${BUILD_TAG}) cassandra: `git log -1 --pretty=format:'%H %an %ad %s'`" > \${BUILD_TAG}.head
               """)
     }
 }
@@ -834,7 +834,7 @@ matrixJob('Cassandra-devbranch-artifacts') {
         shell("""
                 git clean -xdff ;
                 git clone --depth 1 --single-branch -b ${buildsBranch} ${buildsRepo} ;
-                echo "cassandra-builds at: `git -C cassandra-builds log -1 --pretty=format:'%h %an %ad %s'`" ;
+                echo "cassandra-builds at: `git -C cassandra-builds log -1 --pretty=format:'%H %an %ad %s'`" ;
                 ./cassandra-builds/build-scripts/cassandra-artifacts.sh ;
                 wget --retry-connrefused --waitretry=1 "\${BUILD_URL}/timestamps/?time=HH:mm:ss&timeZone=UTC&appendLog" -qO - > console.log || echo wget failed ;
                 xz console.log
@@ -951,10 +951,10 @@ testTargets.each {
             shell("""
                     git clean -xdff ${targetName == 'microbench' ? '-e build/test/jmh-result.json' : ''};
                     git clone --depth 1 --single-branch -b ${buildsBranch} ${buildsRepo} ;
-                    echo "cassandra-builds at: `git -C cassandra-builds log -1 --pretty=format:'%h %an %ad %s'`" ;
+                    echo "cassandra-builds at: `git -C cassandra-builds log -1 --pretty=format:'%H %an %ad %s'`" ;
                     """)
             shell("""
-                    echo "Cassandra-devbranch-${targetName}) cassandra: `git log -1 --pretty=format:'%h %an %ad %s'`" > Cassandra-devbranch-${targetName}.head ;
+                    echo "Cassandra-devbranch-${targetName}) cassandra: `git log -1 --pretty=format:'%H %an %ad %s'`" > Cassandra-devbranch-${targetName}.head ;
                     ./cassandra-builds/build-scripts/cassandra-test-docker.sh \${REPO} \${BRANCH} ${buildsRepo} ${buildsBranch} ${testDockerImage} ${targetName} \${split}${_testSplits} ;
                     ./cassandra-builds/build-scripts/cassandra-test-report.sh ;
                     xz TESTS-TestSuites.xml ;
@@ -1100,8 +1100,8 @@ archs.each {
                 shell("""
                         git clean -xdff ;
                         git clone --depth 1 --single-branch -b ${buildsBranch} ${buildsRepo} ;
-                        echo "cassandra-builds at: `git -C cassandra-builds log -1 --pretty=format:'%h %an %ad %s'`" ;
-                        echo "Cassandra-devbranch-${targetArchName}) cassandra: `git log -1 --pretty=format:'%h %an %ad %s'`" > Cassandra-devbranch-${targetArchName}.head ;
+                        echo "cassandra-builds at: `git -C cassandra-builds log -1 --pretty=format:'%H %an %ad %s'`" ;
+                        echo "Cassandra-devbranch-${targetArchName}) cassandra: `git log -1 --pretty=format:'%H %an %ad %s'`" > Cassandra-devbranch-${targetArchName}.head ;
                       """)
                 shell("""
                       ./cassandra-builds/build-scripts/cassandra-dtest-pytest-docker.sh \$REPO \$BRANCH \$DTEST_REPO \$DTEST_BRANCH ${buildsRepo} ${buildsBranch} \$DOCKER_IMAGE ${targetName} \${split}/${splits} ;
@@ -1223,9 +1223,9 @@ matrixJob('Cassandra-devbranch-cqlsh-tests') {
         buildDescription('', buildDescStr)
         shell("""
                 git clean -xdff ;
-                echo "\${BUILD_TAG}) cassandra: `git log -1 --pretty=format:'%h %an %ad %s'`" > \${BUILD_TAG}.head ;
+                echo "\${BUILD_TAG}) cassandra: `git log -1 --pretty=format:'%H %an %ad %s'`" > \${BUILD_TAG}.head ;
                 git clone --depth 1 --single-branch -b ${buildsBranch} ${buildsRepo} ;
-                echo "cassandra-builds at: `git -C cassandra-builds log -1 --pretty=format:'%h %an %ad %s'`" ;
+                echo "cassandra-builds at: `git -C cassandra-builds log -1 --pretty=format:'%H %an %ad %s'`" ;
                 ./cassandra-builds/build-scripts/cassandra-test-docker.sh \${REPO} \${BRANCH} ${buildsRepo} ${buildsBranch} ${testDockerImage} cqlsh-test ;
                 wget --retry-connrefused --waitretry=1 "\${BUILD_URL}/timestamps/?time=HH:mm:ss&timeZone=UTC&appendLog" -qO - > console.log || echo wget failed ;
                 xz console.log

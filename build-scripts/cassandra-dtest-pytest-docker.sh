@@ -20,9 +20,9 @@ if [ "$#" -lt 3 ]; then
     cd cassandra
     echo "running: git clone --depth 1 --single-branch --branch=$DTEST_BRANCH $DTEST_REPO"
     git clone --quiet --depth 1 --single-branch --branch=$DTEST_BRANCH $DTEST_REPO
-    echo "cassandra-dtest-pytest.sh (${1} ${2}) cassandra: `git log -1 --pretty=format:'%h %an %ad %s'`" | tee "${1}-$(echo $2 | sed 's/\//-/')-cassandra.head"
-    echo "cassandra-dtest-pytest.sh (${1} ${2}) cassandra-dtest: `git -C cassandra-dtest log -1 --pretty=format:'%h %an %ad %s'`" | tee -a "${1}-$(echo $2 | sed 's/\//-/')-cassandra.head"
-    echo "cassandra-dtest-pytest.sh (${1} ${2}) cassandra-builds: `git -C ../cassandra-builds log -1 --pretty=format:'%h %an %ad %s'`" | tee -a "${1}-$(echo $2 | sed 's/\//-/')-cassandra.head"
+    echo "cassandra-dtest-pytest.sh (${1} ${2}) cassandra: `git log -1 --pretty=format:'%H %an %ad %s'`" | tee "${1}-$(echo $2 | sed 's/\//-/')-cassandra.head"
+    echo "cassandra-dtest-pytest.sh (${1} ${2}) cassandra-dtest: `git -C cassandra-dtest log -1 --pretty=format:'%H %an %ad %s'`" | tee -a "${1}-$(echo $2 | sed 's/\//-/')-cassandra.head"
+    echo "cassandra-dtest-pytest.sh (${1} ${2}) cassandra-builds: `git -C ../cassandra-builds log -1 --pretty=format:'%H %an %ad %s'`" | tee -a "${1}-$(echo $2 | sed 's/\//-/')-cassandra.head"
     ../cassandra-builds/build-scripts/cassandra-dtest-pytest.sh "$@"
     xz test_stdout.txt
 else
