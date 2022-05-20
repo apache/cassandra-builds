@@ -25,8 +25,8 @@ if [ "$#" -lt 3 ]; then
     echo "running: git clone --quiet --depth 1 --single-branch --branch=$BRANCH https://github.com/$REPO/cassandra.git"
     until git clone --quiet --depth 1 --single-branch --branch=$BRANCH https://github.com/$REPO/cassandra.git ; do echo "git clone failed… trying again… " ; done
     cd cassandra
-    echo "cassandra-test.sh (${1} ${2}) cassandra: `git log -1 --pretty=format:'%h %an %ad %s'`" | tee "${1}-$(echo $2 | sed 's/\//-/')-cassandra.head"
-    echo "cassandra-test.sh (${1} ${2}) cassandra-builds: `git -C ../cassandra-builds log -1 --pretty=format:'%h %an %ad %s'`" | tee -a "${1}-$(echo $2 | sed 's/\//-/')-cassandra.head"
+    echo "cassandra-test.sh (${1} ${2}) cassandra: `git log -1 --pretty=format:'%H %an %ad %s'`" | tee "${1}-$(echo $2 | sed 's/\//-/')-cassandra.head"
+    echo "cassandra-test.sh (${1} ${2}) cassandra-builds: `git -C ../cassandra-builds log -1 --pretty=format:'%H %an %ad %s'`" | tee -a "${1}-$(echo $2 | sed 's/\//-/')-cassandra.head"
     ../cassandra-builds/build-scripts/cassandra-test.sh "$@"
     if [ -d build/test/logs ]; then find build/test/logs -type f -name "*.log" | xargs xz -qq ; fi
 else

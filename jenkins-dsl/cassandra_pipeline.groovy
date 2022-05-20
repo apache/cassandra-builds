@@ -427,12 +427,12 @@ pipeline {
             junit '**/build/test/**/TEST*.xml,**/cqlshlib.xml,**/nosetests.xml'
             script {
               // env.GIT_COMMIT or changeLogSets is not defined by parameterised manual builds
-              commit_head_sha = sh(returnStdout: true, script:"(git -C cassandra log -1 --no-merges --pretty=format:'%h')").trim()
+              commit_head_sha = sh(returnStdout: true, script:"(git -C cassandra log -1 --no-merges --pretty=format:'%H')").trim()
               commit_head_msg = sh(returnStdout: true, script:"(git -C cassandra log -1 --no-merges --pretty=format:'%an %ad %s')").trim()
               echo "sha: ${commit_head_sha}; msg: ${commit_head_msg}"
             }
             slackSend channel: '#cassandra-builds-patches', message: ":apache: <${env.BUILD_URL}|${currentBuild.fullDisplayName}> completed: ${currentBuild.result}. <https://github.com/${REPO}/cassandra/commit/${commit_head_sha}|${REPO} ${commit_head_sha}>\n${commit_head_msg}"
-            sh "echo \"summary) cassandra-builds: `git -C cassandra-builds log -1 --pretty=format:'%h %an %ad %s'`\" > builds.head"
+            sh "echo \"summary) cassandra-builds: `git -C cassandra-builds log -1 --pretty=format:'%H %an %ad %s'`\" > builds.head"
             sh "./cassandra-builds/jenkins-dsl/print-shas.sh"
             sh "xz TESTS-TestSuites.xml"
             sh "wget --retry-connrefused --waitretry=1 \"\${BUILD_URL}/timestamps/?time=HH:mm:ss&timeZone=UTC&appendLog\" -qO - > console.log || echo wget failed"
