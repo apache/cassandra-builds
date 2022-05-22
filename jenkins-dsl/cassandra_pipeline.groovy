@@ -24,7 +24,16 @@ pipeline {
       }
       stage('Build') {
         steps {
-            build job: "${env.JOB_NAME}-artifacts", parameters: [string(name: 'REPO', value: params.REPO), string(name: 'BRANCH', value: params.BRANCH)]
+          script {
+            def attempt = 1
+            retry(2) {
+              if (attempt > 1) {
+                sleep(60 * attempt)
+              }
+              attempt = attempt + 1
+              build job: "${env.JOB_NAME}-artifacts", parameters: [string(name: 'REPO', value: params.REPO), string(name: 'BRANCH', value: params.BRANCH)]
+            }
+          }
         }
       }
       stage('Test') {
@@ -32,7 +41,14 @@ pipeline {
             stage('stress') {
               steps {
                 script {
-                  stress = build job: "${env.JOB_NAME}-stress-test", parameters: [string(name: 'REPO', value: params.REPO), string(name: 'BRANCH', value: params.BRANCH)], propagate: false
+                  def attempt = 1
+                  retry(2) {
+                    if (attempt > 1) {
+                      sleep(60 * attempt)
+                    }
+                    attempt = attempt + 1
+                    stress = build job: "${env.JOB_NAME}-stress-test", parameters: [string(name: 'REPO', value: params.REPO), string(name: 'BRANCH', value: params.BRANCH)], propagate: false
+                  }
                   if (stress.result != 'SUCCESS') unstable('stress test failures')
                   if (stress.result == 'FAILURE')  currentBuild.result='FAILURE'
                 }
@@ -50,7 +66,14 @@ pipeline {
             stage('fqltool') {
               steps {
                 script {
-                  fqltool = build job: "${env.JOB_NAME}-fqltool-test", parameters: [string(name: 'REPO', value: params.REPO), string(name: 'BRANCH', value: params.BRANCH)], propagate: false
+                  def attempt = 1
+                  retry(2) {
+                    if (attempt > 1) {
+                      sleep(60 * attempt)
+                    }
+                    attempt = attempt + 1
+                    fqltool = build job: "${env.JOB_NAME}-fqltool-test", parameters: [string(name: 'REPO', value: params.REPO), string(name: 'BRANCH', value: params.BRANCH)], propagate: false
+                  }
                   if (fqltool.result != 'SUCCESS') unstable('fqltool test failures')
                   if (fqltool.result == 'FAILURE')  currentBuild.result='FAILURE'
                 }
@@ -68,7 +91,14 @@ pipeline {
             stage('units') {
               steps {
                 script {
-                  test = build job: "${env.JOB_NAME}-test", parameters: [string(name: 'REPO', value: params.REPO), string(name: 'BRANCH', value: params.BRANCH)], propagate: false
+                  def attempt = 1
+                  retry(2) {
+                    if (attempt > 1) {
+                      sleep(60 * attempt)
+                    }
+                    attempt = attempt + 1
+                    test = build job: "${env.JOB_NAME}-test", parameters: [string(name: 'REPO', value: params.REPO), string(name: 'BRANCH', value: params.BRANCH)], propagate: false
+                  }
                   if (test.result != 'SUCCESS') unstable('unit test failures')
                   if (test.result == 'FAILURE')  currentBuild.result='FAILURE'
                 }
@@ -86,7 +116,14 @@ pipeline {
             stage('long units') {
               steps {
                 script {
-                  long_test = build job: "${env.JOB_NAME}-long-test", parameters: [string(name: 'REPO', value: params.REPO), string(name: 'BRANCH', value: params.BRANCH)], propagate: false
+                  def attempt = 1
+                  retry(2) {
+                    if (attempt > 1) {
+                      sleep(60 * attempt)
+                    }
+                    attempt = attempt + 1
+                    long_test = build job: "${env.JOB_NAME}-long-test", parameters: [string(name: 'REPO', value: params.REPO), string(name: 'BRANCH', value: params.BRANCH)], propagate: false
+                  }
                   if (long_test.result != 'SUCCESS') unstable('long unit test failures')
                   if (long_test.result == 'FAILURE') currentBuild.result='FAILURE'
                 }
@@ -104,7 +141,14 @@ pipeline {
             stage('burn') {
               steps {
                 script {
-                  burn = build job: "${env.JOB_NAME}-test-burn", parameters: [string(name: 'REPO', value: params.REPO), string(name: 'BRANCH', value: params.BRANCH)], propagate: false
+                  def attempt = 1
+                  retry(2) {
+                    if (attempt > 1) {
+                      sleep(60 * attempt)
+                    }
+                    attempt = attempt + 1
+                    burn = build job: "${env.JOB_NAME}-test-burn", parameters: [string(name: 'REPO', value: params.REPO), string(name: 'BRANCH', value: params.BRANCH)], propagate: false
+                  }
                   if (burn.result != 'SUCCESS') unstable('burn test failures')
                   if (burn.result == 'FAILURE')  currentBuild.result='FAILURE'
                 }
@@ -122,7 +166,14 @@ pipeline {
             stage('cdc') {
               steps {
                 script {
-                  cdc = build job: "${env.JOB_NAME}-test-cdc", parameters: [string(name: 'REPO', value: params.REPO), string(name: 'BRANCH', value: params.BRANCH)], propagate: false
+                  def attempt = 1
+                  retry(2) {
+                    if (attempt > 1) {
+                      sleep(60 * attempt)
+                    }
+                    attempt = attempt + 1
+                    cdc = build job: "${env.JOB_NAME}-test-cdc", parameters: [string(name: 'REPO', value: params.REPO), string(name: 'BRANCH', value: params.BRANCH)], propagate: false
+                  }
                   if (cdc.result != 'SUCCESS') unstable('cdc failures')
                   if (cdc.result == 'FAILURE')  currentBuild.result='FAILURE'
                 }
@@ -140,7 +191,14 @@ pipeline {
             stage('compression') {
               steps {
                 script {
-                  compression = build job: "${env.JOB_NAME}-test-compression", parameters: [string(name: 'REPO', value: params.REPO), string(name: 'BRANCH', value: params.BRANCH)], propagate: false
+                  def attempt = 1
+                  retry(2) {
+                    if (attempt > 1) {
+                      sleep(60 * attempt)
+                    }
+                    attempt = attempt + 1
+                    compression = build job: "${env.JOB_NAME}-test-compression", parameters: [string(name: 'REPO', value: params.REPO), string(name: 'BRANCH', value: params.BRANCH)], propagate: false
+                  }
                   if (compression.result != 'SUCCESS') unstable('compression failures')
                   if (compression.result == 'FAILURE')  currentBuild.result='FAILURE'
                 }
@@ -158,7 +216,14 @@ pipeline {
             stage('cqlsh') {
               steps {
                 script {
-                  cqlsh = build job: "${env.JOB_NAME}-cqlsh-tests", parameters: [string(name: 'REPO', value: params.REPO), string(name: 'BRANCH', value: params.BRANCH), string(name: 'DTEST_REPO', value: params.DTEST_REPO), string(name: 'DTEST_BRANCH', value: params.DTEST_BRANCH)], propagate: false
+                  def attempt = 1
+                  retry(2) {
+                    if (attempt > 1) {
+                      sleep(60 * attempt)
+                    }
+                    attempt = attempt + 1
+                    cqlsh = build job: "${env.JOB_NAME}-cqlsh-tests", parameters: [string(name: 'REPO', value: params.REPO), string(name: 'BRANCH', value: params.BRANCH), string(name: 'DTEST_REPO', value: params.DTEST_REPO), string(name: 'DTEST_BRANCH', value: params.DTEST_BRANCH)], propagate: false
+                  }
                   if (cqlsh.result != 'SUCCESS') unstable('cqlsh failures')
                   if (cqlsh.result == 'FAILURE') currentBuild.result='FAILURE'
                 }
@@ -180,7 +245,14 @@ pipeline {
           stage('jvm-dtest') {
             steps {
               script {
-                jvm_dtest = build job: "${env.JOB_NAME}-jvm-dtest", parameters: [string(name: 'REPO', value: params.REPO), string(name: 'BRANCH', value: params.BRANCH)], propagate: false
+                  def attempt = 1
+                  retry(2) {
+                    if (attempt > 1) {
+                      sleep(60 * attempt)
+                    }
+                    attempt = attempt + 1
+                    jvm_dtest = build job: "${env.JOB_NAME}-jvm-dtest", parameters: [string(name: 'REPO', value: params.REPO), string(name: 'BRANCH', value: params.BRANCH)], propagate: false
+                }
                 if (jvm_dtest.result != 'SUCCESS') unstable('jvm-dtest failures')
                 if (jvm_dtest.result == 'FAILURE')  currentBuild.result='FAILURE'
               }
@@ -198,7 +270,14 @@ pipeline {
           stage('jvm-dtest-upgrade') {
             steps {
               script {
-                jvm_dtest_upgrade = build job: "${env.JOB_NAME}-jvm-dtest-upgrade", parameters: [string(name: 'REPO', value: params.REPO), string(name: 'BRANCH', value: params.BRANCH)], propagate: false
+                  def attempt = 1
+                  retry(2) {
+                    if (attempt > 1) {
+                      sleep(60 * attempt)
+                    }
+                    attempt = attempt + 1
+                    jvm_dtest_upgrade = build job: "${env.JOB_NAME}-jvm-dtest-upgrade", parameters: [string(name: 'REPO', value: params.REPO), string(name: 'BRANCH', value: params.BRANCH)], propagate: false
+                }
                 if (jvm_dtest_upgrade.result != 'SUCCESS') unstable('jvm-dtest-upgrade failures')
                 if (jvm_dtest_upgrade.result == 'FAILURE') currentBuild.result='FAILURE'
               }
@@ -216,7 +295,14 @@ pipeline {
           stage('dtest') {
             steps {
               script {
-                dtest = build job: "${env.JOB_NAME}-dtest", parameters: [string(name: 'REPO', value: params.REPO), string(name: 'BRANCH', value: params.BRANCH), string(name: 'DTEST_REPO', value: params.DTEST_REPO), string(name: 'DTEST_BRANCH', value: params.DTEST_BRANCH), string(name: 'DOCKER_IMAGE', value: params.DOCKER_IMAGE)], propagate: false
+                  def attempt = 1
+                  retry(2) {
+                    if (attempt > 1) {
+                      sleep(60 * attempt)
+                    }
+                    attempt = attempt + 1
+                    dtest = build job: "${env.JOB_NAME}-dtest", parameters: [string(name: 'REPO', value: params.REPO), string(name: 'BRANCH', value: params.BRANCH), string(name: 'DTEST_REPO', value: params.DTEST_REPO), string(name: 'DTEST_BRANCH', value: params.DTEST_BRANCH), string(name: 'DOCKER_IMAGE', value: params.DOCKER_IMAGE)], propagate: false
+                }
                 if (dtest.result != 'SUCCESS') unstable('dtest failures')
                 if (dtest.result == 'FAILURE') currentBuild.result='FAILURE'
               }
@@ -234,7 +320,14 @@ pipeline {
           stage('dtest-large') {
             steps {
               script {
-                dtest_large = build job: "${env.JOB_NAME}-dtest-large", parameters: [string(name: 'REPO', value: params.REPO), string(name: 'BRANCH', value: params.BRANCH), string(name: 'DTEST_REPO', value: params.DTEST_REPO), string(name: 'DTEST_BRANCH', value: params.DTEST_BRANCH), string(name: 'DOCKER_IMAGE', value: params.DOCKER_IMAGE)], propagate: false
+                  def attempt = 1
+                  retry(2) {
+                    if (attempt > 1) {
+                      sleep(60 * attempt)
+                    }
+                    attempt = attempt + 1
+                    dtest_large = build job: "${env.JOB_NAME}-dtest-large", parameters: [string(name: 'REPO', value: params.REPO), string(name: 'BRANCH', value: params.BRANCH), string(name: 'DTEST_REPO', value: params.DTEST_REPO), string(name: 'DTEST_BRANCH', value: params.DTEST_BRANCH), string(name: 'DOCKER_IMAGE', value: params.DOCKER_IMAGE)], propagate: false
+                }
                 if (dtest_large.result != 'SUCCESS') unstable('dtest-large failures')
                 if (dtest_large.result == 'FAILURE') currentBuild.result='FAILURE'
               }
@@ -252,7 +345,14 @@ pipeline {
           stage('dtest-novnode') {
             steps {
               script {
-                dtest_novnode = build job: "${env.JOB_NAME}-dtest-novnode", parameters: [string(name: 'REPO', value: params.REPO), string(name: 'BRANCH', value: params.BRANCH), string(name: 'DTEST_REPO', value: params.DTEST_REPO), string(name: 'DTEST_BRANCH', value: params.DTEST_BRANCH), string(name: 'DOCKER_IMAGE', value: params.DOCKER_IMAGE)], propagate: false
+                  def attempt = 1
+                  retry(2) {
+                    if (attempt > 1) {
+                      sleep(60 * attempt)
+                    }
+                    attempt = attempt + 1
+                    dtest_novnode = build job: "${env.JOB_NAME}-dtest-novnode", parameters: [string(name: 'REPO', value: params.REPO), string(name: 'BRANCH', value: params.BRANCH), string(name: 'DTEST_REPO', value: params.DTEST_REPO), string(name: 'DTEST_BRANCH', value: params.DTEST_BRANCH), string(name: 'DOCKER_IMAGE', value: params.DOCKER_IMAGE)], propagate: false
+                }
                 if (dtest_novnode.result != 'SUCCESS') unstable('dtest-novnode failures')
                 if (dtest_novnode.result == 'FAILURE') currentBuild.result='FAILURE'
               }
@@ -270,7 +370,14 @@ pipeline {
           stage('dtest-large-novnode') {
             steps {
               script {
-                dtest_large_novnode = build job: "${env.JOB_NAME}-dtest-large-novnode", parameters: [string(name: 'REPO', value: params.REPO), string(name: 'BRANCH', value: params.BRANCH), string(name: 'DTEST_REPO', value: params.DTEST_REPO), string(name: 'DTEST_BRANCH', value: params.DTEST_BRANCH), string(name: 'DOCKER_IMAGE', value: params.DOCKER_IMAGE)], propagate: false
+                  def attempt = 1
+                  retry(2) {
+                    if (attempt > 1) {
+                      sleep(60 * attempt)
+                    }
+                    attempt = attempt + 1
+                    dtest_large_novnode = build job: "${env.JOB_NAME}-dtest-large-novnode", parameters: [string(name: 'REPO', value: params.REPO), string(name: 'BRANCH', value: params.BRANCH), string(name: 'DTEST_REPO', value: params.DTEST_REPO), string(name: 'DTEST_BRANCH', value: params.DTEST_BRANCH), string(name: 'DOCKER_IMAGE', value: params.DOCKER_IMAGE)], propagate: false
+                }
                 if (dtest_large_novnode.result != 'SUCCESS') unstable('dtest-large-novnode failures')
                 if (dtest_large_novnode.result == 'FAILURE') currentBuild.result='FAILURE'
               }
@@ -288,7 +395,14 @@ pipeline {
           stage('dtest-upgrade') {
             steps {
               script {
-                dtest_upgrade = build job: "${env.JOB_NAME}-dtest-upgrade", parameters: [string(name: 'REPO', value: params.REPO), string(name: 'BRANCH', value: params.BRANCH), string(name: 'DTEST_REPO', value: params.DTEST_REPO), string(name: 'DTEST_BRANCH', value: params.DTEST_BRANCH), string(name: 'DOCKER_IMAGE', value: params.DOCKER_IMAGE)], propagate: false
+                  def attempt = 1
+                  retry(2) {
+                    if (attempt > 1) {
+                      sleep(60 * attempt)
+                    }
+                    attempt = attempt + 1
+                    dtest_upgrade = build job: "${env.JOB_NAME}-dtest-upgrade", parameters: [string(name: 'REPO', value: params.REPO), string(name: 'BRANCH', value: params.BRANCH), string(name: 'DTEST_REPO', value: params.DTEST_REPO), string(name: 'DTEST_BRANCH', value: params.DTEST_BRANCH), string(name: 'DOCKER_IMAGE', value: params.DOCKER_IMAGE)], propagate: false
+                }
                 if (dtest_upgrade.result != 'SUCCESS') unstable('dtest-upgrade failures')
                 if (dtest_upgrade.result == 'FAILURE') currentBuild.result='FAILURE'
               }
