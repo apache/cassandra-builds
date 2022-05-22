@@ -732,6 +732,12 @@ cassandraBranches.each {
             numToKeep(30)
             artifactNumToKeep(10)
         }
+        if (branchName != 'cassandra-4.1') {
+          // allow one pipeline branch to "have focus" and be unthrottled, all other branches queue
+          throttleConcurrentBuilds {
+              maxTotal(1)
+          }
+        }
         properties {
             githubProjectUrl(githubRepo)
             priorityJobProperty {
@@ -1287,6 +1293,10 @@ pipelineJob('Cassandra-devbranch') {
     logRotator {
         numToKeep(90)
         artifactNumToKeep(10)
+    }
+    throttleConcurrentBuilds {
+        maxPerNode(1)
+        maxTotal(2)
     }
     parameters {
         stringParam('REPO', 'apache', 'The github user/org to clone cassandra repo from')
