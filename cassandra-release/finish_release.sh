@@ -224,13 +224,13 @@ execute "cd $redhat_dist_dir"
 
 ROOTLEN=$(( ${#redhat_dist_dir} + 1))
 
-for i in $(find ${redhat_dist_dir} -mindepth 2 -type f -mtime -10 -not -path "*/.svn/*" -printf "%T@ %p\n" | sort -n -r | cut -d' ' -f 2); do
+for i in $(find ${redhat_dist_dir} -mindepth 1 -type f -mtime -10 -not -path "*/.svn/*" -printf "%T@ %p\n" | sort -n -r | cut -d' ' -f 2); do
     IFILE=`echo $(basename -- "$i") | cut -c 1`
     if [[ $IFILE != "." ]];
     then
         FDIR=`echo $i | cut -c ${ROOTLEN}-${#i}`
         echo "Uploading $FDIR"
-        execute "curl -X PUT -T $i -u${asf_username}:${ARTIFACTORY_API_KEY} https://apache.jfrog.io/artifactory/cassandra-rpm/${FDIR}?override=1"
+        execute "curl -X PUT -T $i -u${asf_username}:${ARTIFACTORY_API_KEY} https://apache.jfrog.io/artifactory/cassandra-rpm/${repo_series}/${FDIR}?override=1"
         sleep 1
     fi
 done
