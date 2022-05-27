@@ -205,7 +205,9 @@ do
 done
 
 echo "Apache Cassandra $release debian artifacts" > "_tmp_msg_"
-execute "svn rm -F _tmp_msg_ https://dist.apache.org/repos/dist/release/cassandra/debian/dists/$repo_series"
+if curl --output /dev/null --silent --head --fail "https://dist.apache.org/repos/dist/release/cassandra/debian/dists/$repo_series" ; then
+    execute "svn rm -F _tmp_msg_ https://dist.apache.org/repos/dist/release/cassandra/debian/dists/$repo_series"
+fi
 execute "svn mv -F _tmp_msg_ https://dist.apache.org/repos/dist/release/cassandra/$release/debian/dists/$repo_series https://dist.apache.org/repos/dist/release/cassandra/debian/dists/"
 execute "svn rm -F _tmp_msg_ https://dist.apache.org/repos/dist/release/cassandra/$release/debian/dists"
 execute "svn rm -F _tmp_msg_ https://dist.apache.org/repos/dist/release/cassandra/$release/debian/pool"
@@ -238,7 +240,9 @@ cd $tmp_dir
 
 # Move to dist release top-level redhat directory
 echo "Apache Cassandra $release redhat artifacts" > "_tmp_msg_"
-execute "svn rm -F _tmp_msg_ https://dist.apache.org/repos/dist/release/cassandra/redhat/$repo_series"
+if curl --output /dev/null --silent --head --fail "https://dist.apache.org/repos/dist/release/cassandra/redhat/$repo_series" ; then
+    execute "svn rm -F _tmp_msg_ https://dist.apache.org/repos/dist/release/cassandra/redhat/$repo_series"
+fi
 execute "svn mv -F _tmp_msg_ https://dist.apache.org/repos/dist/release/cassandra/$release/redhat https://dist.apache.org/repos/dist/release/cassandra/redhat/$repo_series"
 
 # Cleaning up
