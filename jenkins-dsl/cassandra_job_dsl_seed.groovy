@@ -409,10 +409,11 @@ cassandraBranches.each {
                 }
                 failOnError(false)
             }
-            postBuildScript {
+            matrixPostBuildScript {
               buildSteps {
                 markBuildUnstable(false)
                 postBuildStep {
+                    executeOn('BOTH')
                     stopOnFailure(false)
                     results(['SUCCESS','UNSTABLE','FAILURE','NOT_BUILT','ABORTED'])
                     buildSteps {
@@ -514,10 +515,11 @@ cassandraBranches.each {
                         }
                         failOnError(false)
                     }
-                    postBuildScript {
+                    matrixPostBuildScript {
                         buildSteps {
                           markBuildUnstable(false)
                           postBuildStep {
+                              executeOn('BOTH')
                               stopOnFailure(false)
                               results(['SUCCESS','UNSTABLE','FAILURE','NOT_BUILT','ABORTED'])
                               buildSteps {
@@ -617,10 +619,11 @@ cassandraBranches.each {
                                 publishTestStabilityData()
                             }
                         }
-                        postBuildScript {
+                        matrixPostBuildScript {
                           buildSteps {
                             markBuildUnstable(false)
                             postBuildStep {
+                                executeOn('BOTH')
                                 stopOnFailure(false)
                                 results(['SUCCESS','UNSTABLE','FAILURE','NOT_BUILT','ABORTED'])
                                 buildSteps {
@@ -691,10 +694,11 @@ cassandraBranches.each {
                         xz console.log
                         """)
                 }
-                postBuildScript {
+                matrixPostBuildScript {
                   buildSteps {
                     markBuildUnstable(false)
                     postBuildStep {
+                        executeOn('BOTH')
                         stopOnFailure(false)
                         results(['SUCCESS','UNSTABLE','FAILURE','NOT_BUILT','ABORTED'])
                         buildSteps {
@@ -857,11 +861,12 @@ matrixJob('Cassandra-devbranch-artifacts') {
             }
             failOnError(false)
         }
-        postBuildScript {
+        matrixPostBuildScript {
           buildSteps {
             markBuildUnstable(false)
             postBuildStep {
                 stopOnFailure(false)
+                executeOn('BOTH')
                 results(['SUCCESS','UNSTABLE','FAILURE','NOT_BUILT','ABORTED'])
                 buildSteps {
                   shell {
@@ -987,10 +992,11 @@ testTargets.each {
             archiveJunit('build/test/**/TEST-*.xml') {
                 allowEmptyResults()
             }
-            postBuildScript {
+            matrixPostBuildScript {
               buildSteps {
                 markBuildUnstable(false)
                 postBuildStep {
+                    executeOn('BOTH')
                     stopOnFailure(false)
                     results(['SUCCESS','UNSTABLE','FAILURE','NOT_BUILT','ABORTED'])
                     buildSteps {
@@ -1132,10 +1138,11 @@ archs.each {
                     fingerprint()
                 }
                 archiveJunit('nosetests.xml')
-                postBuildScript {
+                matrixPostBuildScript {
                   buildSteps {
                     markBuildUnstable(false)
                     postBuildStep {
+                        executeOn('BOTH')
                         stopOnFailure(false)
                         results(['SUCCESS','UNSTABLE','FAILURE','NOT_BUILT','ABORTED'])
                         buildSteps {
@@ -1254,10 +1261,11 @@ matrixJob('Cassandra-devbranch-cqlsh-tests') {
             fingerprint()
         }
         archiveJunit('**/cqlshlib.xml')
-        postBuildScript {
+        matrixPostBuildScript {
           buildSteps {
             markBuildUnstable(false)
             postBuildStep {
+                executeOn('BOTH')
                 stopOnFailure(false)
                 results(['SUCCESS','UNSTABLE','FAILURE','NOT_BUILT','ABORTED'])
                 buildSteps {
