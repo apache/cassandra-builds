@@ -122,6 +122,12 @@ then
     exit 1
 fi
 
+build_xml_version="$(grep 'property\s*name=\"base.version\"' build.xml |sed -ne 's/.*value=\"\([^"]*\)\".*/\1/p')"
+if [ "${release}" != "${build_xml_version}" ] ; then
+    echo "The release requested ${release} does not match build.xml's version ${build_xml_version}"
+    exit 1
+fi
+
 if curl --output /dev/null --silent --head --fail "https://dist.apache.org/repos/dist/dev/cassandra/${release}" ; then
     echo "The release candidate for ${release} is already staged at https://dist.apache.org/repos/dist/dev/cassandra/${release}"
     exit 1
