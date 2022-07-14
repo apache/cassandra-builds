@@ -157,6 +157,21 @@ execute "svn mv -F _tmp_msg_ https://dist.apache.org/repos/dist/dev/cassandra/$r
 rm _tmp_msg_
 
 #
+# Determine deb/rpm repo series
+#
+
+idx=`expr index "$release" -`
+if [ $idx -eq 0 ]
+then
+    release_short=${release}
+else
+    release_short=${release:0:$((idx-1))}
+fi
+release_major=$(echo ${release_short} | cut -d '.' -f 1)
+release_minor=$(echo ${release_short} | cut -d '.' -f 2)
+repo_series="${release_major}${release_minor}x"
+
+#
 # Public deploy the Debian packages
 #
 
@@ -183,34 +198,9 @@ for i in $(find ${debian_dist_dir}/ -mindepth 2 -type f -mtime -10 -not -path "*
 done
 cd $tmp_dir
 
-# Move to dist release top-level debian directory
-idx=`expr index "$release" -`
-if [ $idx -eq 0 ]
-then
-    release_short=${release}
-else
-    release_short=${release:0:$((idx-1))}
-fi
-release_major=$(echo ${release_short} | cut -d '.' -f 1)
-release_minor=$(echo ${release_short} | cut -d '.' -f 2)
-repo_series="${release_major}${release_minor}x"
-
-echo "performing a server-side: svn mv ^/dist/release/cassandra/$release/debian/pool/main/c/cassandra/* ^/dist/release/cassandra/debian/pool/main/c/cassandra/"
-
-for f in $( svn list "https://dist.apache.org/repos/dist/release/cassandra/$release/debian/pool/main/c/cassandra/" )
-do
-	echo "Apache Cassandra $release debian artifact $f" > "_tmp_msg_"
-	echo "svn mv -F _tmp_msg_ https://dist.apache.org/repos/dist/release/cassandra/$release/debian/pool/main/c/cassandra/$f https://dist.apache.org/repos/dist/release/cassandra/debian/pool/main/c/cassandra/"
-	execute "svn mv -F _tmp_msg_ https://dist.apache.org/repos/dist/release/cassandra/$release/debian/pool/main/c/cassandra/$f https://dist.apache.org/repos/dist/release/cassandra/debian/pool/main/c/cassandra/"
-done
-
+# Remove dist debian directory. Official download location is https://debian.cassandra.apache.org
 echo "Apache Cassandra $release debian artifacts" > "_tmp_msg_"
-if curl --output /dev/null --silent --head --fail "https://dist.apache.org/repos/dist/release/cassandra/debian/dists/$repo_series" ; then
-    execute "svn rm -F _tmp_msg_ https://dist.apache.org/repos/dist/release/cassandra/debian/dists/$repo_series"
-fi
-execute "svn mv -F _tmp_msg_ https://dist.apache.org/repos/dist/release/cassandra/$release/debian/dists/$repo_series https://dist.apache.org/repos/dist/release/cassandra/debian/dists/"
-execute "svn rm -F _tmp_msg_ https://dist.apache.org/repos/dist/release/cassandra/$release/debian/dists"
-execute "svn rm -F _tmp_msg_ https://dist.apache.org/repos/dist/release/cassandra/$release/debian/pool"
+execute "svn rm -F _tmp_msg_ https://dist.apache.org/repos/dist/release/cassandra/$release/debian"
 
 #
 # Public deploy the RedHat packages
@@ -238,12 +228,9 @@ for i in $(find ${redhat_dist_dir} -mindepth 1 -type f -mtime -10 -not -path "*/
 done
 cd $tmp_dir
 
-# Move to dist release top-level redhat directory
+# Remove dist redhat directory. Official download location is https://redhat.cassandra.apache.org
 echo "Apache Cassandra $release redhat artifacts" > "_tmp_msg_"
-if curl --output /dev/null --silent --head --fail "https://dist.apache.org/repos/dist/release/cassandra/redhat/$repo_series" ; then
-    execute "svn rm -F _tmp_msg_ https://dist.apache.org/repos/dist/release/cassandra/redhat/$repo_series"
-fi
-execute "svn mv -F _tmp_msg_ https://dist.apache.org/repos/dist/release/cassandra/$release/redhat https://dist.apache.org/repos/dist/release/cassandra/redhat/$repo_series"
+execute "svn rm -F _tmp_msg_ https://dist.apache.org/repos/dist/release/cassandra/$release/redhat"
 
 # Cleaning up
 execute "cd $cassandra_dir"
@@ -269,6 +256,9 @@ echo " http://cassandra.apache.org/download/" >> $mail_file
 echo "" >> $mail_file
 series="${release_major}.${release_minor}"
 echo "This version is a bug fix release[1] on the $series series. As always, please pay attention to the release notes[2] and Let us know[3] if you were to encounter any problem." >> $mail_file
+echo "" >> $mail_file
+series="${release_major}.${release_minor}"
+echo "[WARNING] Debian and RedHat package repositories have moved! Debian `/etc/apt/sources.list.d/cassandra.sources.list` and RedHat `/etc/yum.repos.d/cassandra.repo` files must be updated to the new repository URLs. For Debian it is now https://debian.cassandra.apache.org . For RedHat it is now https://redhat.cassandra.apache.org/${repo_series}/ ." >> $mail_file
 echo "" >> $mail_file
 echo "Enjoy!" >> $mail_file
 echo "" >> $mail_file
