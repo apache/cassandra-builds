@@ -207,6 +207,7 @@ tmp_dir=`mktemp -d`
 build_dir=${tmp_dir}/cassandra/build
 debian_package_dir="${tmp_dir}/debian"
 rpm_package_dir="${tmp_dir}/rpm"
+rpmnoboolean_package_dir="${tmp_dir}/rpmnoboolean"
 
 idx=`expr index "$release" -`
 if [ $idx -eq 0 ]
@@ -320,6 +321,7 @@ then
     execute "cd $tmp_dir"
     execute "svn co https://dist.apache.org/repos/dist/dev/cassandra cassandra-dist-dev"
 
+    # "regular" RPMs
     execute "mkdir -p $rpm_package_dir"
     execute "cd $rpm_package_dir"
 
@@ -328,12 +330,37 @@ then
     [ ! -e "$rpm_dir" ] || rm -rf $rpm_dir
     execute "mkdir $rpm_dir"
 
-    execute "${cassandra_builds_dir}/build-scripts/cassandra-rpm-packaging.sh ${release}-tentative"
+    execute "${cassandra_builds_dir}/build-scripts/cassandra-rpm-packaging.sh ${release}-tentative 8 rpm"
 
     execute "rpmsign --addsign ${rpm_dir}/*.rpm"
 
+    # noboolean RPMs
+    if [ -d "$current_dir/redhat/noboolean" ]; then
+        execute "cd $tmp_dir"
+
+        execute "mkdir -p $rpmnoboolean_package_dir"
+        execute "cd $rpmnoboolean_package_dir"
+
+        [ $fake_mode -eq 1 ] && echo ">> declare -x rpm_dir=$rpmnoboolean_package_dir/cassandra_${release}_rpmnoboolean"
+        declare -x rpm_dir=$rpmnoboolean_package_dir/cassandra_${release}_rpmnoboolean
+        [ ! -e "$rpm_dir" ] || rm -rf $rpm_dir
+        execute "mkdir $rpm_dir"
+
+        execute "${cassandra_builds_dir}/build-scripts/cassandra-rpm-packaging.sh ${release}-tentative 8 noboolean"
+
+        execute "rpmsign --addsign ${rpm_dir}/*.rpm"
+    if
+
+    # build repositories
+    execute "cd $tmp_dir"
+
     execute "mkdir $tmp_dir/cassandra-dist-dev/${release}/redhat"
     execute "cp ${rpm_dir}/*.rpm  $tmp_dir/cassandra-dist-dev/${release}/redhat/"
+
+    if [ -d "$current_dir/redhat/noboolean" ]; then
+        execute "mkdir $tmp_dir/cassandra-dist-dev/${release}/redhat/noboolean"
+        execute "cp ${rpm_dir}/*.rpm  $tmp_dir/cassandra-dist-dev/${release}/redhat/noboolean"
+    fi
 
     echo "Building redhat repository ..." 1>&3 2>&4
 
@@ -342,6 +369,14 @@ then
 
     # FIXME - put into execute "…"
     [ $fake_mode -eq 1 ] || for f in repodata/repomd.xml repodata/*.bz2 repodata/*.gz ; do gpg --detach-sign --armor $f ; done
+
+    if [ -d "$current_dir/redhat/noboolean" ]; then
+        execute "cd $tmp_dir/cassandra-dist-dev/${release}/redhat/noboolean"
+        execute "createrepo ."
+
+        # FIXME - put into execute "…"
+        [ $fake_mode -eq 1 ] || for f in repodata/repomd.xml repodata/*.bz2 repodata/*.gz ; do gpg --detach-sign --armor $f ; done
+    fi
 
     execute "cd $tmp_dir"
     execute "svn add --force cassandra-dist-dev/${release}/redhat"

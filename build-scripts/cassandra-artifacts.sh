@@ -99,10 +99,18 @@ for x in $(seq 1 3); do
             head_commit=`git log --pretty=oneline -1 | cut -d " " -f 1`
             declare -x cassandra_builds_dir="${cassandra_builds_dir}"
             declare -x CASSANDRA_GIT_URL="`git remote get-url origin`"
+
+            mkdir -p "`pwd`/build/packages/deb"
+            mkdir -p "`pwd`/build/packages/rpm"
             # debian
-            deb_dir="`pwd`/build" ${cassandra_builds_dir}/build-scripts/cassandra-deb-packaging.sh ${head_commit} ${java_version}
+            deb_dir="`pwd`/build/packages/deb" ${cassandra_builds_dir}/build-scripts/cassandra-deb-packaging.sh ${head_commit} ${java_version}
             # rpm
-            rpm_dir="`pwd`/build" ${cassandra_builds_dir}/build-scripts/cassandra-rpm-packaging.sh ${head_commit} ${java_version}
+            rpm_dir="`pwd`/build/packages/rpm" ${cassandra_builds_dir}/build-scripts/cassandra-rpm-packaging.sh ${head_commit} ${java_version}
+            # rpm-noboolean
+            if [ -d "`pwd`/redhat/noboolean" ]; then
+                mkdir -p "`pwd`/build/packages/rpmnoboolean"
+                rpm_dir="`pwd`/build/packages/rpmnoboolean" ${cassandra_builds_dir}/build-scripts/cassandra-rpm-packaging.sh ${head_commit} ${java_version} noboolean
+            fi
         fi
         break
     fi
