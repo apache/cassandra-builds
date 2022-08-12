@@ -3,7 +3,7 @@
 set -e
 
 if [ "$#" -lt 1 ]; then
-   echo "$0 <branch|tag|sha> <java version>"
+   echo "$0 <branch|tag|sha> <java version> [dist type]"
    echo "if Java version is not set, it is set to 8 by default, choose from 8 or 11"
    exit 1
 fi
@@ -17,9 +17,18 @@ fi
 
 CASSANDRA_SHA=$1
 JAVA_VERSION=$2
+RPM_DIST=$3
 
 if [ "$JAVA_VERSION" = "" ]; then
     JAVA_VERSION=8
+fi
+
+[ "x${RPM_DIST}" != "x" ] || RPM_DIST="rpm"
+
+if [ "${RPM_DIST}" == "rpm"]; then
+    RPM_SPEC = "redhat/cassandra.spec"
+else # noboolean
+    RPM_SPEC = "redhat/noboolean/cassandra.spec"
 fi
 
 regx_java_version="(8|11)"
@@ -115,5 +124,5 @@ cp ./build/apache-cassandra-*-src.tar.gz ${RPM_BUILD_DIR}/SOURCES/
 CASSANDRA_VERSION=${CASSANDRA_VERSION/-/\~}
 
 command -v python >/dev/null 2>&1 || sudo ln -s /usr/bin/python3 /usr/bin/python
-rpmbuild --define="version ${CASSANDRA_VERSION}" --define="revision ${CASSANDRA_REVISION}" -ba ./redhat/cassandra.spec
+rpmbuild --define="version ${CASSANDRA_VERSION}" --define="revision ${CASSANDRA_REVISION}" -ba ${RPM_SPEC}
 cp $RPM_BUILD_DIR/SRPMS/*.rpm $RPM_BUILD_DIR/RPMS/noarch/*.rpm $RPM_DIST_DIR
