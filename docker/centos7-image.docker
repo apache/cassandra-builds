@@ -35,6 +35,7 @@ RUN until curl -S -s --retry 9 --retry-delay 1 http://mirror.centos.org/centos/7
 RUN rpm -i --nodeps ant-junit-1.9.4-2.el7.noarch.rpm
 
 RUN until curl -S -s --retry 9 --retry-delay 1 http://archive.apache.org/dist/ant/binaries/apache-ant-${ANT_VERSION}-bin.tar.gz -o apache-ant-${ANT_VERSION}-bin.tar.gz ; do echo "curl failed… trying again… " ; done
+RUN rm -rf /etc/ant.conf
 RUN tar xvf apache-ant-${ANT_VERSION}-bin.tar.gz -C /opt
 RUN ln -sfn /opt/apache-ant-${ANT_VERSION} /opt/ant
 RUN sh -c 'echo ANT_HOME=/opt/ant >> /etc/environment'
