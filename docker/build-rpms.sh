@@ -25,7 +25,7 @@ fi
 
 [ "x${RPM_DIST}" != "x" ] || RPM_DIST="rpm"
 
-if [ "${RPM_DIST}" == "rpm"]; then
+if [ "${RPM_DIST}" == "rpm" ]; then
     RPM_SPEC = "redhat/cassandra.spec"
 else # noboolean
     RPM_SPEC = "redhat/noboolean/cassandra.spec"
