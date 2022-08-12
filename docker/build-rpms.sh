@@ -26,9 +26,9 @@ fi
 [ "x${RPM_DIST}" != "x" ] || RPM_DIST="rpm"
 
 if [ "${RPM_DIST}" == "rpm" ]; then
-    RPM_SPEC = "redhat/cassandra.spec"
+    RPM_SPEC="redhat/cassandra.spec"
 else # noboolean
-    RPM_SPEC = "redhat/noboolean/cassandra.spec"
+    RPM_SPEC="redhat/noboolean/cassandra.spec"
 fi
 
 regx_java_version="(8|11)"
