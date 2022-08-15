@@ -49,6 +49,6 @@ pushd $cassandra_builds_dir
 docker build --build-arg CASSANDRA_GIT_URL=$CASSANDRA_GIT_URL --build-arg UID_ARG=`id -u` --build-arg GID_ARG=`id -g` -t cassandra-artifacts-${dist_name}:${sha} -f docker/${dist_name}-image.docker docker/
 
 # Run build script through docker (specify branch, tag, or sha)
-docker run --rm -v "${rpm_dir}":/dist -v ~/.m2/repository/:/home/build/.m2/repository/ cassandra-artifacts-${dist_name}:${sha} /home/build/build-rpms.sh ${sha} ${java_version} {$rpm_dist}
+docker run --rm -v "${rpm_dir}":/dist -v ~/.m2/repository/:/home/build/.m2/repository/ cassandra-artifacts-${dist_name}:${sha} /home/build/build-rpms.sh ${sha} ${java_version} ${rpm_dist}
 
 popd
