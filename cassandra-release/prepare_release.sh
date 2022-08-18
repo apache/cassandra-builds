@@ -349,7 +349,7 @@ then
         execute "${cassandra_builds_dir}/build-scripts/cassandra-rpm-packaging.sh ${release}-tentative 8 noboolean"
 
         execute "rpmsign --addsign ${rpm_dir}/*.rpm"
-    if
+    fi
 
     # build repositories
     execute "cd $tmp_dir"
