@@ -79,7 +79,7 @@ RUN pip3 install --upgrade wheel
 # openjdk + ant
 RUN export DEBIAN_FRONTEND=noninteractive && \
     apt-get update && \
-    apt-get install -y --no-install-recommends openjdk-8-jdk openjdk-11-jdk ant ant-optional
+    apt-get install -y --no-install-recommends openjdk-8-jdk openjdk-11-jdk openjdk-17-jdk ant ant-optional
 
 # make Java 8 the default executable (we use to run all tests against Java 8)
 RUN update-java-alternatives --set java-1.8.0-openjdk-$(dpkg --print-architecture)
@@ -108,6 +108,7 @@ WORKDIR /home/cassandra
 RUN echo 'export ANT_HOME=/usr/share/ant' >> /home/cassandra/.bashrc && \
     echo 'export JAVA8_HOME=/usr/lib/jvm/java-8-openjdk-$(dpkg --print-architecture)' >> /home/cassandra/.bashrc && \
     echo 'export JAVA11_HOME=/usr/lib/jvm/java-11-openjdk-$(dpkg --print-architecture)' >> /home/cassandra/.bashrc && \
+    echo 'export JAVA17_HOME=/usr/lib/jvm/java-17-openjdk-$(dpkg --print-architecture)' >> /home/cassandra/.bashrc && \
     echo 'export JAVA_HOME=$JAVA8_HOME' >> /home/cassandra/.bashrc
 
 ENV ANT_HOME=/usr/share/ant
