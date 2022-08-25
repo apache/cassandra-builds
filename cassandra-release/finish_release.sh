@@ -258,7 +258,7 @@ series="${release_major}.${release_minor}"
 echo "This version is a bug fix release[1] on the $series series. As always, please pay attention to the release notes[2] and Let us know[3] if you were to encounter any problem." >> $mail_file
 echo "" >> $mail_file
 series="${release_major}.${release_minor}"
-echo "[WARNING] Debian and RedHat package repositories have moved! Debian `/etc/apt/sources.list.d/cassandra.sources.list` and RedHat `/etc/yum.repos.d/cassandra.repo` files must be updated to the new repository URLs. For Debian it is now https://debian.cassandra.apache.org . For RedHat it is now https://redhat.cassandra.apache.org/${repo_series}/ ." >> $mail_file
+echo "[WARNING] Debian and RedHat package repositories have moved! Debian /etc/apt/sources.list.d/cassandra.sources.list and RedHat /etc/yum.repos.d/cassandra.repo files must be updated to the new repository URLs. For Debian it is now https://debian.cassandra.apache.org . For RedHat it is now https://redhat.cassandra.apache.org/${repo_series}/ ." >> $mail_file
 echo "" >> $mail_file
 echo "Enjoy!" >> $mail_file
 echo "" >> $mail_file
