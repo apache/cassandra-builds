@@ -26,18 +26,18 @@ java_version=$2
 command -v docker >/dev/null 2>&1 || { echo >&2 "docker needs to be installed"; exit 1; }
 (docker info >/dev/null 2>&1) || { echo >&2 "docker needs to running"; exit 1; }
 [ -d "${cassandra_builds_dir}" ] || { echo >&2 "cassandra-builds directory must exist"; exit 1; }
-[ -f "${cassandra_builds_dir}/docker/buster-image.docker" ] || { echo >&2 "docker/buster-image.docker must exist"; exit 1; }
+[ -f "${cassandra_builds_dir}/docker/bullseye-image.docker" ] || { echo >&2 "docker/bullseye-image.docker must exist"; exit 1; }
 [ -f "${cassandra_builds_dir}/docker/build-debs.sh" ] || { echo >&2 "docker/build-debs.sh must exist"; exit 1; }
 
 # remove any previous older built images
-docker image prune --all --force --filter label=org.cassandra.buildenv=buster --filter "until=4h" || true
+docker image prune --all --force --filter label=org.cassandra.buildenv=bullseye --filter "until=4h" || true
 
 pushd $cassandra_builds_dir
 
 # Create build images containing the build tool-chain, Java and an Apache Cassandra git working directory
-docker build --build-arg CASSANDRA_GIT_URL=$CASSANDRA_GIT_URL --build-arg UID_ARG=`id -u` --build-arg GID_ARG=`id -g` -t cassandra-artifacts-buster:${sha} -f docker/buster-image.docker docker/
+docker build --build-arg CASSANDRA_GIT_URL=$CASSANDRA_GIT_URL --build-arg UID_ARG=`id -u` --build-arg GID_ARG=`id -g` -t cassandra-artifacts-bullseye:${sha} -f docker/bullseye-image.docker docker/
 
 # Run build script through docker (specify branch, tag, or sha)
-docker run --rm -v "${deb_dir}":/dist -v ~/.m2/repository/:/home/build/.m2/repository/ cassandra-artifacts-buster:${sha} /home/build/build-debs.sh ${sha} ${java_version}
+docker run --rm -v "${deb_dir}":/dist -v ~/.m2/repository/:/home/build/.m2/repository/ cassandra-artifacts-bullseye:${sha} /home/build/build-debs.sh ${sha} ${java_version}
 
 popd

@@ -41,6 +41,12 @@ RUN ln -sfn /opt/apache-ant-${ANT_VERSION} /opt/ant
 RUN sh -c 'echo ANT_HOME=/opt/ant >> /etc/environment'
 RUN ln -sfn /opt/ant/bin/ant /usr/bin/ant
 
+RUN until curl -S -s --retry 9 --retry-delay 1 https://download.java.net/java/GA/jdk17.0.2/dfd4a8d0985749f896bed50d7138ee7f/8/GPL/openjdk-17.0.2_linux-x64_bin.tar.gz -o openjdk-17.0.2_linux-x64_bin.tar.gz ; do echo "curl failed… trying again… " ; done
+RUN tar xvf openjdk-17.0.2_linux-x64_bin.tar.gz
+RUN mv jdk-17.0.2 /opt/jdk-17
+
+
+
 RUN pip3 install --upgrade pip
 
 # create and change to build user
