@@ -325,6 +325,8 @@ then
     execute "mkdir -p $rpm_package_dir"
     execute "cd $rpm_package_dir"
 
+    echo "Building redhat packages ..." 1>&3 2>&4
+
     [ $fake_mode -eq 1 ] && echo ">> declare -x rpm_dir=$rpm_package_dir/cassandra_${release}_rpm"
     declare -x rpm_dir=$rpm_package_dir/cassandra_${release}_rpm
     [ ! -e "$rpm_dir" ] || rm -rf $rpm_dir
@@ -334,12 +336,24 @@ then
 
     execute "rpmsign --addsign ${rpm_dir}/*.rpm"
 
+    # build repositories
+    echo "Building redhat repository ..." 1>&3 2>&4
+    execute "mkdir $tmp_dir/cassandra-dist-dev/${release}/redhat"
+    execute "cp ${rpm_dir}/*.rpm  $tmp_dir/cassandra-dist-dev/${release}/redhat/"
+    execute "cd $tmp_dir/cassandra-dist-dev/${release}/redhat/"
+    execute "createrepo ."
+    # FIXME - put into execute "…"
+    [ $fake_mode -eq 1 ] || for f in repodata/repomd.xml repodata/*.bz2 repodata/*.gz ; do gpg --detach-sign --armor $f ; done
+
+
     # noboolean RPMs
     if [ -d "$current_dir/redhat/noboolean" ]; then
         execute "cd $tmp_dir"
 
         execute "mkdir -p $rpmnoboolean_package_dir"
         execute "cd $rpmnoboolean_package_dir"
+
+        echo "Building redhat noboolean packages ..." 1>&3 2>&4
 
         [ $fake_mode -eq 1 ] && echo ">> declare -x rpm_dir=$rpmnoboolean_package_dir/cassandra_${release}_rpmnoboolean"
         declare -x rpm_dir=$rpmnoboolean_package_dir/cassandra_${release}_rpmnoboolean
@@ -349,31 +363,13 @@ then
         execute "${cassandra_builds_dir}/build-scripts/cassandra-rpm-packaging.sh ${release}-tentative 8 noboolean"
 
         execute "rpmsign --addsign ${rpm_dir}/*.rpm"
-    fi
 
-    # build repositories
-    execute "cd $tmp_dir"
-
-    execute "mkdir $tmp_dir/cassandra-dist-dev/${release}/redhat"
-    execute "cp ${rpm_dir}/*.rpm  $tmp_dir/cassandra-dist-dev/${release}/redhat/"
-
-    if [ -d "$current_dir/redhat/noboolean" ]; then
+        # build repositories
+        echo "Building redhat noboolean repository ..." 1>&3 2>&4
         execute "mkdir $tmp_dir/cassandra-dist-dev/${release}/redhat/noboolean"
         execute "cp ${rpm_dir}/*.rpm  $tmp_dir/cassandra-dist-dev/${release}/redhat/noboolean"
-    fi
-
-    echo "Building redhat repository ..." 1>&3 2>&4
-
-    execute "cd $tmp_dir/cassandra-dist-dev/${release}/redhat/"
-    execute "createrepo ."
-
-    # FIXME - put into execute "…"
-    [ $fake_mode -eq 1 ] || for f in repodata/repomd.xml repodata/*.bz2 repodata/*.gz ; do gpg --detach-sign --armor $f ; done
-
-    if [ -d "$current_dir/redhat/noboolean" ]; then
         execute "cd $tmp_dir/cassandra-dist-dev/${release}/redhat/noboolean"
         execute "createrepo ."
-
         # FIXME - put into execute "…"
         [ $fake_mode -eq 1 ] || for f in repodata/repomd.xml repodata/*.bz2 repodata/*.gz ; do gpg --detach-sign --armor $f ; done
     fi
