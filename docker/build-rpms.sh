@@ -107,7 +107,8 @@ javac -version
 # Pre-download dependencies, loop to prevent failures
 set +e
 for x in $(seq 1 3); do
-    ant clean resolver-dist-lib
+    # maven-ant-tasks-retrieve-build is for cassandra-2.2 support
+    ant realclean clean resolver-dist-lib || ant realclean maven-ant-tasks-retrieve-build
     RETURN="$?"
     if [ "${RETURN}" -eq "0" ]; then break ; fi
     sleep 3
