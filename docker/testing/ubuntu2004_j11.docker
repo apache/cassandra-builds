@@ -14,7 +14,9 @@ FROM ubuntu:20.04
 MAINTAINER Apache Cassandra <dev@cassandra.apache.org>
 
 # configure apt to retry downloads
-RUN echo 'APT::Acquire::Retries "9";' > /etc/apt/apt.conf.d/80-retries
+RUN echo 'APT::Acquire::Retries "99";' > /etc/apt/apt.conf.d/80-retries
+RUN echo 'Acquire::http::Timeout "60";' > /etc/apt/apt.conf.d/80proxy.conf
+RUN echo 'Acquire::ftp::Timeout "60";' >> /etc/apt/apt.conf.d/80proxy.conf
 
 # install our python dependencies and some other stuff we need
 # libev4 libev-dev are for the python driver / libssl-dev is for python3.6
