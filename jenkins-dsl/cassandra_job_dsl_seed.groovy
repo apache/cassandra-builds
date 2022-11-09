@@ -24,7 +24,7 @@ if(binding.hasVariable("CASSANDRA_JDK_LABEL")) {
 
 // architectures. blank is amd64
 def archs = ['', '-arm64']
-arm64_enabled = false // disabled while bullseye downloading is stable again
+arm64_enabled = true
 arm64_test_label_enabled = false
 def use_arm64_test_label() { return arm64_enabled && arm64_test_label_enabled }
 
