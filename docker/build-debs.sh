@@ -126,8 +126,10 @@ for x in $(seq 1 3); do
 done
 set -e
 
-# Install build dependencies and build package
-echo "y" | sudo mk-build-deps --install
+# Install build dependencies (retry if failed)
+until ( echo "y" | sudo mk-build-deps --install ) ; do echo "mk-build-deps failed… trying again after 10s… " ; sleep 10 ; done
+
+# build package
 dpkg-buildpackage -rfakeroot -uc -us
 
 # Copy created artifacts to dist dir mapped to docker host directory (must have proper permissions)
