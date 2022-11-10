@@ -65,6 +65,7 @@ else
 REPO=$1
 BRANCH=$2
 JAVA_VERSION=${java_version}
+cython=${cython}
 EOF
 
     # Jenkins agents run multiple executors per machine. `jenkins_executors=1` is used for anything non-jenkins.
@@ -163,7 +164,7 @@ EOF
             docker cp "$docker_id:/home/cassandra/cassandra/${TARGET}-${inner_split}-${INNER_SPLITS}-cassandra.head" .
             docker cp $docker_id:/home/cassandra/cassandra/build/test/output/. build/test/output
             docker cp $docker_id:/home/cassandra/cassandra/build/test/logs/. build/test/logs
-            docker cp $docker_id:/home/cassandra/cassandra/pylib/cqlshlib/cqlshlib.xml cqlshlib.xml
+            docker cp $docker_id:/home/cassandra/cassandra/cqlshlib.xml cqlshlib.xml
         fi
         docker rm $docker_id
         ((i++))
