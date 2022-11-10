@@ -153,7 +153,7 @@ _main() {
       ant testclasslist -Dtest.classlistprefix=distributed -Dtest.timeout=$(_timeout_for "test.distributed.timeout") -Dtest.classlistfile=<(echo "${testlist}") -Dtmp.dir="${TMP_DIR}" || echo "failed $target"
       ;;
     "cqlsh-test")
-      ./pylib/cassandra-cqlsh-tests.sh .
+      ./pylib/cassandra-cqlsh-tests.sh $(pwd)
       ;;
     *)
       echo "unregconised \"$target\""
