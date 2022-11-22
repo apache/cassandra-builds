@@ -14,6 +14,9 @@ command -v git >/dev/null 2>&1 || { echo >&2 "git needs to be installed"; exit 1
 ant -version
 git --version
 
+# check arch
+arch=`uname -m`
+
 # lists all tests for the specific test type
 _list_tests() {
   local -r classlistprefix="$1"
@@ -102,7 +105,33 @@ _main() {
 
   export TMP_DIR="$(pwd)/tmp"
   mkdir -p ${TMP_DIR}
-
+ 
+ if [ "$arch" == "s390x" ]
+ then
+   case $target in
+    "stress-test")
+      # hard fail on test compilation, but dont fail the test run as unstable test reports are processed
+      ant clean jar stress-build-test
+      ant $target -Dtmp.dir="$(pwd)/tmp" || echo "failed $target"
+      ;;
+    "test")
+      _run_testlist "unit" "testclasslist-s390x" "${split_chunk}" "$(_timeout_for 'test.timeout')"
+      ;;
+    "test-cdc")
+      _run_testlist "unit" "testclasslist-cdc-s390x" "${split_chunk}" "$(_timeout_for 'test.timeout')"
+      ;;
+    "test-compression")
+      _run_testlist "unit" "testclasslist-compression-s390x" "${split_chunk}" "$(_timeout_for 'test.timeout')"
+      ;;    
+    "cqlsh-test")
+      ./pylib/cassandra-cqlsh-tests.sh $(pwd)
+      ;;
+    *)
+      echo "unregconised \"$target\""
+      exit 1
+      ;;
+  esac   
+else    
   case $target in
     "stress-test")
       # hard fail on test compilation, but dont fail the test run as unstable test reports are processed
@@ -160,6 +189,7 @@ _main() {
       exit 1
       ;;
   esac
+ fi 
 }
 
 _main "$@"
