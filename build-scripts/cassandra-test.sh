@@ -123,9 +123,6 @@ _main() {
     "test-compression")
       _run_testlist "unit" "testclasslist-compression-s390x" "${split_chunk}" "$(_timeout_for 'test.timeout')"
       ;;    
-    "cqlsh-test")
-      ./pylib/cassandra-cqlsh-tests.sh $(pwd)
-      ;;
     *)
       echo "unregconised \"$target\""
       exit 1
