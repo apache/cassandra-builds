@@ -30,18 +30,20 @@ RUN yum -y install \
    sudo \
    python3-pip
 
-RUN until curl -S -s --retry 9 --retry-delay 1 http://mirror.centos.org/centos/7/os/x86_64/Packages/ant-junit-1.9.4-2.el7.noarch.rpm -o ant-junit-1.9.4-2.el7.noarch.rpm ; do echo "curl failed… trying again… " ; done
+RUN until curl -f -S -s --retry 9 --retry-delay 1 http://mirror.centos.org/centos/7/os/x86_64/Packages/ant-junit-1.9.4-2.el7.noarch.rpm -o ant-junit-1.9.4-2.el7.noarch.rpm ; do echo "curl failed… trying again in 10s… " ; sleep 10 ; done
 
 RUN rpm -i --nodeps ant-junit-1.9.4-2.el7.noarch.rpm
 
-RUN until curl -S -s --retry 9 --retry-delay 1 http://archive.apache.org/dist/ant/binaries/apache-ant-${ANT_VERSION}-bin.tar.gz -o apache-ant-${ANT_VERSION}-bin.tar.gz ; do echo "curl failed… trying again… " ; done
+# try first downloads.a.o and then archive.a.o (as the latter has a 5GB per IP daily limit)
+RUN until curl -f -S -s --retry 9 --retry-delay 1 https://downloads.apache.org/ant/binaries/apache-ant-${ANT_VERSION}-bin.tar.gz -o apache-ant-${ANT_VERSION}-bin.tar.gz || curl -f -S -s --retry 9 --retry-delay 1 http://archive.apache.org/dist/ant/binaries/apache-ant-${ANT_VERSION}-bin.tar.gz -o apache-ant-${ANT_VERSION}-bin.tar.gz ; do echo "curl failed… trying again in 10s… " ; sleep 10 ; done
+
 RUN rm -rf /etc/ant.conf
 RUN tar xvf apache-ant-${ANT_VERSION}-bin.tar.gz -C /opt
 RUN ln -sfn /opt/apache-ant-${ANT_VERSION} /opt/ant
 RUN sh -c 'echo ANT_HOME=/opt/ant >> /etc/environment'
 RUN ln -sfn /opt/ant/bin/ant /usr/bin/ant
 
-RUN until curl -S -s --retry 9 --retry-delay 1 https://download.java.net/java/GA/jdk17.0.2/dfd4a8d0985749f896bed50d7138ee7f/8/GPL/openjdk-17.0.2_linux-x64_bin.tar.gz -o openjdk-17.0.2_linux-x64_bin.tar.gz ; do echo "curl failed… trying again… " ; done
+RUN until curl -f -S -s --retry 9 --retry-delay 1 https://download.java.net/java/GA/jdk17.0.2/dfd4a8d0985749f896bed50d7138ee7f/8/GPL/openjdk-17.0.2_linux-x64_bin.tar.gz -o openjdk-17.0.2_linux-x64_bin.tar.gz ; do echo "curl failed… trying again in 10s… " ; sleep 10 ; done
 RUN tar xvf openjdk-17.0.2_linux-x64_bin.tar.gz
 RUN mv jdk-17.0.2 /opt/jdk-17
 
