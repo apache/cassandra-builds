@@ -26,8 +26,8 @@ RUN echo 'Acquire::ftp::Timeout "60";' >> /etc/apt/apt.conf.d/80proxy.conf
 RUN until apt-get update && apt-get -y install ant build-essential curl devscripts git python2 sudo ; \
     do echo "apt failed… trying again in 10s… " ; sleep 10 ; done
 
-RUN echo 'deb http://ftp.debian.org/debian bullseye main' >> /etc/apt/sources.list \
-    && echo 'deb http://ftp.debian.org/debian stretch main' >> /etc/apt/sources.list
+RUN echo 'deb http://deb.debian.org/debian bullseye main' >> /etc/apt/sources.list \
+    && echo 'deb http://deb.debian.org/debian stretch main' >> /etc/apt/sources.list
 
 RUN until apt-get update \
     && apt-get install -y --no-install-recommends openjdk-8-jdk openjdk-11-jdk openjdk-17-jdk ; \
