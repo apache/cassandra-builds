@@ -88,6 +88,11 @@ _main() {
   local -r version=$(grep 'property\s*name=\"base.version\"' build.xml |sed -ne 's/.*value=\"\([^"]*\)\".*/\1/p')
   local -r regx_version="(2.2|3.0|3.11|4.0|4.1)(.([0-9]+))?$"
 
+  if [[ $version =~ $regx_version ]] ; then
+      echo "This script is deprecated, having been migrated to be in-tree since 5.0, see .build/run-tests.sh"
+      exit 1
+  fi
+
   if [ "$java_version" -ge 17 ]; then
     if [[ "${target}" == "jvm-dtest-upgrade" ]] ; then
         echo "Invalid JDK17 execution. Only the oldest overlapping supported JDK can be used when upgrading."
@@ -97,9 +102,6 @@ _main() {
     export CASSANDRA_USE_JDK11=true
     if ! grep -q "CASSANDRA_USE_JDK11" build.xml ; then
         echo "Skipping ${target}. JDK11 not supported against ${version}"
-        exit 0
-    elif [[ "${target}" == "jvm-dtest-upgrade"  ]] && [[ $version =~ $regx_version ]] ; then
-        echo "Skipping JDK11 execution. Only the oldest overlapping supported JDK can be used when upgrading."
         exit 0
     fi
   fi
@@ -172,12 +174,6 @@ _main() {
       ant testclasslist -Dtest.classlistprefix=distributed -Dtest.timeout=$(_timeout_for "test.distributed.timeout") -Dtest.classlistfile=<(echo "${testlist}") -Dtmp.dir="${TMP_DIR}" || echo "failed $target"
       ;;
     "cqlsh-test")
-
-      if ! [[ $version =~ $regx_version ]] ; then
-        # CASSANDRA-18133 – 5.0+ no longer does `ant jar` in cassandra-cqlsh-tests.sh
-        ant jar -Dno-checkstyle=true -Drat.skip=true -Dant.gen-doc.skip=true -Djavadoc.skip=true
-      fi
-
       ./pylib/cassandra-cqlsh-tests.sh $(pwd)
       ;;
     *)

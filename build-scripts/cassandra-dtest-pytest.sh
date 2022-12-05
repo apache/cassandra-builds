@@ -31,6 +31,12 @@ command -v virtualenv >/dev/null 2>&1 || { echo >&2 "virtualenv needs to be inst
 
 java_version=$(java -version 2>&1 | awk -F '"' '/version/ {print $2}' | awk -F. '{print $1}')
 version=$(grep 'property\s*name=\"base.version\"' build.xml |sed -ne 's/.*value=\"\([^"]*\)\".*/\1/p')
+regx_version="(2.2|3.0|3.11|4.0|4.1)(.([0-9]+))?$"
+
+if [[ $version =~ $regx_version ]] ; then
+    echo "This script is deprecated, having been migrated to be in-tree since 5.0, see .build/run-python-dtests.sh"
+    exit 1
+fi
 
 if [ "$java_version" -ge 17 ]; then
   if [[ "${target}" == "dtest-upgrade" ]] ; then
@@ -39,12 +45,8 @@ if [ "$java_version" -ge 17 ]; then
   fi
 elif [ "$java_version" -ge 11 ]; then
   export CASSANDRA_USE_JDK11=true
-  regx_version="(2.2|3.0|3.11|4.0|4.1)(.([0-9]+))?$"
   if ! grep -q "CASSANDRA_USE_JDK11" build.xml ; then
     echo "Skipping ${target}. JDK11 not supported against ${version}"
-    exit 0
-  elif [[ "${target}" == "dtest-upgrade"  ]] && [[ $version =~ $regx_version ]] ; then
-    echo "Skipping JDK11 execution. Only the oldest overlapping supported JDK can be used when upgrading."
     exit 0
   fi
 fi

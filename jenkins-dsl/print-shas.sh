@@ -3,6 +3,7 @@
 # Print the SHAs used in all the stage jobs.
 # If they all match then print just them, else print every job's used SHA
 #
+# Deprecated from 5.0 (post CASSANDRA-18594)
 
 if [ $(find . -type f -name "*.head" -exec cat {} \; | grep ") cassandra" | awk -F') cassandra' '{print $2}' | sort -u | sed -n '$=') = "3" ]; then
   echo "The folllowing SHAs were consistently used in all jobs in the pipeline…"

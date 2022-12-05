@@ -18,7 +18,10 @@ command -v docker >/dev/null 2>&1 || { echo >&2 "docker needs to be installed"; 
 [ -f "build.xml" ] || { echo >&2 "build.xml must exist"; exit 1; }
 [ -d "${cassandra_builds_dir}" ] || { echo >&2 "cassandra-builds directory must exist"; exit 1; }
 
+# This script is deprecated, having been migrated to be in-tree since 5.0
 cassandra_version="$(grep 'property\s*name=\"base.version\"' build.xml |sed -ne 's/.*value=\"\([^"]*\)\".*/\1/p')"
+cassandra_regx_supported_versions="^(2.2|3.0|3.11|4.0|4.1)(.[0-9]+)?$"
+[[ $cassandra_version =~ $cassandra_regx_supported_versions ]] || { echo "Cassandra ${cassandra_version} not supported. (This script is in-tree since 5.0)"; exit 1; }
 
 # print debug information on versions
 ant -version
