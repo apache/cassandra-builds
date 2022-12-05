@@ -15,9 +15,11 @@ if [ "$#" -lt 3 ]; then
     export LC_CTYPE=en_US.UTF-8
     export PYTHONIOENCODING=utf-8
     export PYTHONUNBUFFERED=true
-    if [ "${JAVA_VERSION}" -ge 11 ] ; then
+    if [ "${JAVA_VERSION}" -ge 17 ] ; then
+        sudo update-java-alternatives --set java-1.17.0-openjdk-$(dpkg --print-architecture)
+        export JAVA_HOME=$(sudo update-java-alternatives -l | grep "java-1.17.0-openjdk" | awk '{print $3}')
+    elif [ "${JAVA_VERSION}" -ge 11 ] ; then
         sudo update-java-alternatives --set java-1.11.0-openjdk-$(dpkg --print-architecture)
-        export CASSANDRA_USE_JDK11=true
         export JAVA_HOME=$(sudo update-java-alternatives -l | grep "java-1.11.0-openjdk" | awk '{print $3}')
     fi
     java -version
@@ -51,9 +53,11 @@ else
 
     # Setup JDK
     java_version=$(java -version 2>&1 | awk -F '"' '/version/ {print $2}' | awk -F. '{print $1}')
-    if [ "$java_version" -ge 11 ]; then
+    if [ "$java_version" -ge 17 ]; then
+        java_version="17"
+    elif [ "$java_version" -ge 11 ]; then
         java_version="11"
-        if ! grep -q CASSANDRA_USE_JDK11 build.xml ; then
+        if ! grep -q "java.version.11" build.xml ; then
             echo "Skipping build. JDK11 not supported against $(grep 'property\s*name=\"base.version\"' build.xml |sed -ne 's/.*value=\"\([^"]*\)\".*/\1/p')"
             exit 0
         fi

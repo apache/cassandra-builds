@@ -17,11 +17,6 @@ def jobDescription = '''
 <p>A basic mirror of all build summary pages (classic and blue ocean ui) is found here <a href="https://nightlies.apache.org/cassandra/ci-cassandra.apache.org/">here</a></p>
                     '''
 
-def jdkLabel = 'jdk_1.8_latest'
-if(binding.hasVariable("CASSANDRA_JDK_LABEL")) {
-    jdkLabel = "${CASSANDRA_JDK_LABEL}"
-}
-
 // architectures. blank is amd64
 def archs = ['', '-arm64']
 arm64_enabled = true
@@ -84,8 +79,47 @@ def testSplits = 8
 def dtestSplits = 64
 def dtestLargeSplits = 8
 
+def exists(branchName, targetName) {
+    switch (targetName) {
+        case 'artifact':
+            // migrated to in-pipeline stages
+            return true; // TODO CASSANDRA-18133 // return !(branchName = 'trunk' || branchName ==~ /cassandra-5.\d+/)
+        case 'test-cdc':
+        case 'stress-test':
+            // did not exist before 3.11
+            return !(branchName == 'cassandra-2.2' || branchName == 'cassandra-3.0')
+        case 'fqltool-test':
+            // did not exist before 4.0
+            return !(branchName ==~ /cassandra-[2-3].\d+/)
+        case 'cqlsh-tests':
+            // did not exist before 3.0
+            return branchName != 'cassandra-2.2'
+        case 'dtest-offheap':
+            // offheap was removed from 3.0 to 3.11
+            return branchName != 'cassandra-3.0'
+    }
+    return true
+}
+
 def isSplittableTest(targetName) {
     return targetName == 'test' || targetName == 'test-cdc' || targetName == 'test-compression' || targetName == 'test-burn' || targetName == 'long-test' || targetName == 'jvm-dtest' || targetName == 'jvm-dtest-upgrade';
+}
+
+def jdks(branchName, targetName) {
+    if (branchName == 'trunk' || branchName ==~ /cassandra-5.\d+/) {
+        if (!targetName.endsWith('dtest-upgrade')) {
+            //return ['jdk_11_latest', 'jdk_17_latest'] // CASSANDRA-18255
+            return ['jdk_1.8_latest','jdk_11_latest', 'jdk_17_latest']
+        } else {
+            // upgrade tests need an overlapping jdk
+            return ['jdk_11_latest']
+        }
+    } else if ((branchName ==~ /cassandra-[4].\d+/) && !targetName.endsWith('dtest-upgrade')) {
+        return ['jdk_1.8_latest','jdk_11_latest']
+    } else {
+        // upgrade tests need an overlapping jdk
+        return ['jdk_1.8_latest']
+    }
 }
 
 ////////////////////////////////////////////////////////////
@@ -310,15 +344,6 @@ matrixJob('Cassandra-template-cqlsh-tests') {
         }
         timestamps()
     }
-    axes {
-        text('cython', 'yes', 'no')
-        jdk(jdkLabel)
-        if (use_arm64_test_label()) {
-            label('label', slaveLabel, slaveArm64Label)
-        } else {
-            label('label', slaveLabel)
-        }
-    }
     // this should prevent long path expansion from the axis definitions
     childCustomWorkspace('.')
     properties {
@@ -370,72 +395,70 @@ cassandraBranches.each {
     def branchName = it
     def jobNamePrefix = "Cassandra-${branchName}".replaceAll('cassandra-', '')
 
-    /**
-     * Main branch artifacts and eclipse-warnings job
-     */
-    matrixJob("${jobNamePrefix}-artifacts") {
-        disabled(false)
-        using('Cassandra-template-artifacts')
-        axes {
-            if (!(branchName ==~ /cassandra-[2-3].\d+/)) {
-                jdk('jdk_1.8_latest','jdk_11_latest')
-            } else {
-                jdk('jdk_1.8_latest')
-            }
-            if (arm64_enabled) {
-                label('label', slaveLabel, slaveArm64Label)
-            } else {
-                label('label', slaveLabel)
-            }
-        }
-        configure { node ->
-            node / scm / branches / 'hudson.plugins.git.BranchSpec' / name(branchName)
-        }
-        steps {
-            shell("""
-                    ./cassandra-builds/build-scripts/cassandra-artifacts.sh ;
-                    wget --retry-connrefused --waitretry=1 "\${BUILD_URL}/timestamps/?time=HH:mm:ss&timeZone=UTC&appendLog" -qO - > console.log || echo wget failed ;
-                    xz console.log
-                  """)
-        }
-        publishers {
-            publishOverSsh {
-                server('Nightlies') {
-                    transferSet {
-                        sourceFiles("console.log.xz, build/apache-cassandra-*.tar.gz, build/apache-cassandra-*.jar, build/apache-cassandra-*.pom, build/cassandra*.deb, build/cassandra*.rpm")
-                        remoteDirectory("cassandra/${branchName}/${jobNamePrefix}-artifacts/\${BUILD_NUMBER}/\${JOB_NAME}/")
-                    }
-                    retry(9, 5000)
+    if (exists(branchName, 'artifacts')) {
+        /**
+         * Main branch artifacts and eclipse-warnings job
+         */
+        matrixJob("${jobNamePrefix}-artifacts") {
+            disabled(false)
+            using('Cassandra-template-artifacts')
+            axes {
+                jdk(jdks(branchName, 'artifacts'))
+                if (arm64_enabled) {
+                    label('label', slaveLabel, slaveArm64Label)
+                } else {
+                    label('label', slaveLabel)
                 }
-                failOnError(false)
             }
-            matrixPostBuildScript {
-              buildSteps {
-                markBuildUnstable(false)
-                postBuildStep {
-                    executeOn('BOTH')
-                    stopOnFailure(false)
-                    results(['SUCCESS','UNSTABLE','FAILURE','NOT_BUILT','ABORTED'])
-                    buildSteps {
-                      shell {
-                        // docker needs to (soon or later) prune its volumes too, but that can only be done when the agent is idle
-                        // if the agent is busy, just prune everything that is older than maxJobHours
-                        command("""
-                            echo "Cleaning project…"; git clean -xdff ;
-                            echo "Cleaning processes…" ;
-                            if ! pgrep -af "cassandra-builds/build-scripts" ; then pkill -9 -f org.apache.cassandra. || echo "already clean" ; fi ;
-                            echo "Pruning docker…" ;
-                            if pgrep -af "cassandra-builds/build-scripts" ; then docker system prune --all --force --filter "until=${maxJobHours}h" || true ; else  docker system prune --all --force --volumes || true ;  fi;
-                            echo "Reporting disk usage…"; df -h ;
-                            echo "Cleaning tmp…";
-                            find . -type d -name tmp -delete 2>/dev/null ;
-                            find /tmp -type f -atime +2 -user jenkins -and -not -exec fuser -s {} ';' -and -delete 2>/dev/null || echo clean tmp failed ;
-                            echo "For test report and logs see https://nightlies.apache.org/cassandra/${branchName}/${jobNamePrefix}-artifacts/\${BUILD_NUMBER}/\${JOB_NAME}/"
-                        """)
-                      }
+            configure { node ->
+                node / scm / branches / 'hudson.plugins.git.BranchSpec' / name(branchName)
+            }
+            steps {
+                shell("""
+                        ./cassandra-builds/build-scripts/cassandra-artifacts.sh ;
+                        wget --retry-connrefused --waitretry=1 "\${BUILD_URL}/timestamps/?time=HH:mm:ss&timeZone=UTC&appendLog" -qO - > console.log || echo wget failed ;
+                        xz -f console.log
+                      """)
+            }
+            publishers {
+                publishOverSsh {
+                    server('Nightlies') {
+                        transferSet {
+                            sourceFiles("console.log.xz, build/apache-cassandra-*.tar.gz, build/apache-cassandra-*.jar, build/apache-cassandra-*.pom, build/cassandra*.deb, build/cassandra*.rpm")
+                            remoteDirectory("cassandra/${branchName}/${jobNamePrefix}-artifacts/\${BUILD_NUMBER}/\${JOB_NAME}/")
+                        }
+                        retry(9, 5000)
                     }
+                    failOnError(false)
                 }
-              }
+                matrixPostBuildScript {
+                  buildSteps {
+                    markBuildUnstable(false)
+                    postBuildStep {
+                        executeOn('BOTH')
+                        stopOnFailure(false)
+                        results(['SUCCESS','UNSTABLE','FAILURE','NOT_BUILT','ABORTED'])
+                        buildSteps {
+                          shell {
+                            // docker needs to (soon or later) prune its volumes too, but that can only be done when the agent is idle
+                            // if the agent is busy, just prune everything that is older than maxJobHours
+                            command("""
+                                echo "Cleaning project…"; git clean -xdff ;
+                                echo "Cleaning processes…" ;
+                                if ! ( pgrep -xa docker || pgrep -af "cassandra-builds/build-scripts" ) ; then pkill -9 -f org.apache.cassandra. || echo "already clean" ; fi ;
+                                echo "Pruning docker…" ;
+                                if pgrep -xa docker || pgrep -af "cassandra-builds/build-scripts" ; then docker system prune --all --force --filter "until=${maxJobHours}h" || true ; else  docker system prune --all --force --volumes || true ;  fi;
+                                echo "Reporting disk usage…"; df -h ;
+                                echo "Cleaning tmp…";
+                                find . -type d -name tmp -delete 2>/dev/null ;
+                                find /tmp -type f -atime +2 -user jenkins -and -not -exec fuser -s {} ';' -and -delete 2>/dev/null || echo clean tmp failed ;
+                                echo "For test report and logs see https://nightlies.apache.org/cassandra/${branchName}/${jobNamePrefix}-artifacts/\${BUILD_NUMBER}/\${JOB_NAME}/"
+                            """)
+                          }
+                        }
+                    }
+                  }
+                }
             }
         }
     }
@@ -446,15 +469,7 @@ cassandraBranches.each {
     testTargets.each {
         def targetName = it
 
-        // Skip tests that don't exist before cassandra-3.11
-        if ((targetName == 'test-cdc' || targetName == 'stress-test') && ((branchName == 'cassandra-2.2') || (branchName == 'cassandra-3.0'))) {
-            println("Skipping ${targetName} on branch ${branchName}")
-
-            // Skip tests that don't exist before cassandra-4.0
-        } else if (targetName == 'fqltool-test' && branchName ==~ /cassandra-[2-3].\d+/) {
-            println("Skipping ${targetName} on branch ${branchName}")
-
-        } else {
+        if (exists(branchName, targetName)) {
             matrixJob("${jobNamePrefix}-${targetName}") {
                 disabled(false)
                 using('Cassandra-template-test')
@@ -466,12 +481,7 @@ cassandraBranches.each {
                         text('split', values)
                         _testSplits = "/${testSplits}"
                     }
-                    // jvm-dtest-upgrade would require mixed JDK compilations to support JDK11+
-                    if ((!(branchName ==~ /cassandra-[2-3].\d+/)) && targetName != 'jvm-dtest-upgrade') {
-                        jdk(jdkLabel,'jdk_11_latest')
-                    } else {
-                        jdk(jdkLabel)
-                    }
+                    jdk(jdks(branchName, targetName))
                     if (use_arm64_test_label()) {
                         label('label', slaveLabel, slaveArm64Label)
                     } else {
@@ -487,7 +497,7 @@ cassandraBranches.each {
                             ./cassandra-builds/build-scripts/cassandra-test-report.sh ;
                             xz TESTS-TestSuites.xml ;
                             wget --retry-connrefused --waitretry=1 "\${BUILD_URL}/timestamps/?time=HH:mm:ss&timeZone=UTC&appendLog" -qO - > console.log || echo wget failed ;
-                            xz console.log
+                            xz -f console.log
                           """)
                 }
                 publishers {
@@ -529,9 +539,9 @@ cassandraBranches.each {
                                   command("""
                                       echo "Cleaning project…"; git clean -xdff -e build/test/jmh-result.json ;
                                       echo "Cleaning processes…" ;
-                                      if ! pgrep -af "cassandra-builds/build-scripts" ; then pkill -9 -f org.apache.cassandra. || echo "already clean" ; fi ;
+                                        if ! ( pgrep -xa docker || pgrep -af "cassandra-builds/build-scripts" ) ; then pkill -9 -f org.apache.cassandra. || echo "already clean" ; fi ;
                                       echo "Pruning docker…" ;
-                                      if pgrep -af "cassandra-builds/build-scripts" ; then docker system prune --all --force --filter "until=${maxJobHours}h" || true ; else  docker system prune --all --force --volumes || true ;  fi;
+                                      if pgrep -xa docker || pgrep -af "cassandra-builds/build-scripts" ; then docker system prune --all --force --filter "until=${maxJobHours}h" || true ; else  docker system prune --all --force --volumes || true ;  fi;
                                       echo "Reporting disk usage…"; du -xm / 2>/dev/null | sort -rn | head -n 30 ; df -h ;
                                       echo "Cleaning tmp…";
                                       find . -type d -name tmp -delete 2>/dev/null ;
@@ -558,14 +568,12 @@ cassandraBranches.each {
             def targetName = it
             def targetArchName = targetName + arch
 
-            // Skip dtest-offheap on cassandra-3.0 branch
-            if ((targetName == 'dtest-offheap') && (branchName == 'cassandra-3.0')) {
-                println("Skipping ${targetArchName} on branch ${branchName}")
-            } else {
+            if (exists(branchName, targetName)) {
                 matrixJob("${jobNamePrefix}-${targetArchName}") {
                     disabled(false)
                     using('Cassandra-template-dtest-matrix')
                     axes {
+                        jdk(jdks(branchName, targetName))
                         List<String> values = new ArrayList<String>()
                         if (targetName == 'dtest-large' || targetName == 'dtest-large-novnode') {
                             splits = dtestLargeSplits
@@ -595,7 +603,7 @@ cassandraBranches.each {
                         shell("""
                             ./cassandra-builds/build-scripts/cassandra-dtest-pytest-docker.sh apache ${branchName} https://github.com/apache/cassandra-dtest.git trunk ${buildsRepo} ${buildsBranch} ${dtestDockerImage} ${targetName} \${split}/${splits} ;
                             wget --retry-connrefused --waitretry=1 "\${BUILD_URL}/timestamps/?time=HH:mm:ss&timeZone=UTC&appendLog" -qO - > console.log || echo wget failed ;
-                            xz console.log
+                            xz -f console.log
                             """)
                     }
                     publishers {
@@ -633,9 +641,9 @@ cassandraBranches.each {
                                     command("""
                                         echo "Cleaning project…"; git clean -xdff ;
                                         echo "Cleaning processes…" ;
-                                        if ! pgrep -af "cassandra-builds/build-scripts" ; then pkill -9 -f org.apache.cassandra. || echo "already clean" ; fi ;
+                                        if ! ( pgrep -xa docker || pgrep -af "cassandra-builds/build-scripts" ) ; then pkill -9 -f org.apache.cassandra. || echo "already clean" ; fi ;
                                         echo "Pruning docker…" ;
-                                        if pgrep -af "cassandra-builds/build-scripts" ; then docker system prune --all --force --filter "until=${maxJobHours}h" || true ; else  docker system prune --all --force --volumes || true ;  fi;
+                                        if pgrep -xa docker || pgrep -af "cassandra-builds/build-scripts" ; then docker system prune --all --force --filter "until=${maxJobHours}h" || true ; else  docker system prune --all --force --volumes || true ;  fi;
                                         echo "Reporting disk usage…"; df -h ;
                                         echo "Cleaning tmp…";
                                         find . -type d -name tmp -delete 2>/dev/null ;
@@ -657,14 +665,21 @@ cassandraBranches.each {
     /**
      * Main branch cqlsh jobs
      */
-    if (branchName == 'cassandra-2.2') {
-        println("Skipping ${jobNamePrefix}-cqlsh-tests, not supported on branch ${branchName}")
-    } else {
+    if (exists(branchName, 'cqlsh-tests')) {
         matrixJob("${jobNamePrefix}-cqlsh-tests") {
             disabled(false)
             using('Cassandra-template-cqlsh-tests')
             configure { node ->
                 node / scm / branches / 'hudson.plugins.git.BranchSpec' / name(branchName)
+            }
+            axes {
+                text('cython', 'yes', 'no')
+                jdk(jdks(branchName, 'cqlsh-tests'))
+                if (use_arm64_test_label()) {
+                    label('label', slaveLabel, slaveArm64Label)
+                } else {
+                    label('label', slaveLabel)
+                }
             }
             publishers {
                 publishOverSsh {
@@ -691,7 +706,7 @@ cassandraBranches.each {
                     shell("""
                         ./cassandra-builds/build-scripts/cassandra-test-docker.sh apache ${branchName} ${buildsRepo} ${buildsBranch} ${testDockerImage} cqlsh-test ;
                         wget --retry-connrefused --waitretry=1 "\${BUILD_URL}/timestamps/?time=HH:mm:ss&timeZone=UTC&appendLog" -qO - > console.log || echo wget failed ;
-                        xz console.log
+                        xz -f console.log
                         """)
                 }
                 matrixPostBuildScript {
@@ -708,9 +723,9 @@ cassandraBranches.each {
                             command("""
                                 echo "Cleaning project…"; git clean -xdff ;
                                 echo "Cleaning processes…" ;
-                                if ! pgrep -af "cassandra-builds/build-scripts" ; then pkill -9 -f org.apache.cassandra. || echo "already clean" ; fi ;
+                                if ! (pgrep -xa docker || pgrep -af "cassandra-builds/build-scripts") ; then pkill -9 -f org.apache.cassandra. || echo "already clean" ; fi ;
                                 echo "Pruning docker…" ;
-                                if pgrep -af "cassandra-builds/build-scripts" ; then docker system prune --all --force --filter "until=${maxJobHours}h" || true ; else  docker system prune --all --force --volumes || true ;  fi;
+                                if pgrep -xa docker || pgrep -af "cassandra-builds/build-scripts" ; then docker system prune --all --force --filter "until=${maxJobHours}h" || true ; else  docker system prune --all --force --volumes || true ;  fi;
                                 echo "Reporting disk usage…"; df -h ;
                                 echo "Cleaning tmp…";
                                 find . -type d -name tmp -delete 2>/dev/null ;
@@ -791,7 +806,7 @@ matrixJob('Cassandra-devbranch-artifacts') {
     description(jobDescription)
     concurrentBuild()
     axes {
-        jdk(jdkLabel,'jdk_11_latest')
+        jdk(jdk(jdks('cassandra-4.1', 'artifacts'))) // hack to make devbranch test both jdk8 and jdk11
         if (arm64_enabled) {
             label('label', slaveLabel, slaveArm64Label)
         } else {
@@ -875,9 +890,9 @@ matrixJob('Cassandra-devbranch-artifacts') {
                     command("""
                         echo "Cleaning project…"; git clean -xdff ;
                         echo "Cleaning processes…" ;
-                        if ! pgrep -af "cassandra-builds/build-scripts" ; then pkill -9 -f org.apache.cassandra. || echo "already clean" ; fi ;
+                        if ! (pgrep -xa docker || pgrep -af "cassandra-builds/build-scripts") ; then pkill -9 -f org.apache.cassandra. || echo "already clean" ; fi ;
                         echo "Pruning docker…" ;
-                        if pgrep -af "cassandra-builds/build-scripts" ; then docker system prune --all --force --filter "until=${maxJobHours}h" || true ; else  docker system prune --all --force --volumes || true ;  fi;
+                        if pgrep -xa docker || pgrep -af "cassandra-builds/build-scripts" ; then docker system prune --all --force --filter "until=${maxJobHours}h" || true ; else  docker system prune --all --force --volumes || true ;  fi;
                         echo "Reporting disk usage…"; df -h ;
                         echo "Cleaning tmp…";
                         find . -type d -name tmp -delete 2>/dev/null ;
@@ -909,7 +924,7 @@ testTargets.each {
                 text('split', values)
                 _testSplits = "/${testSplits}"
             }
-            jdk(jdkLabel,'jdk_11_latest')
+            jdk(jdk(jdks('cassandra-4.1', targetName))) // hack to make devbranch test both jdk8 and jdk11
             if (use_arm64_test_label()) {
                 label('label', slaveLabel, slaveArm64Label)
             } else {
@@ -1006,9 +1021,9 @@ testTargets.each {
                         command("""
                             echo "Cleaning project…"; git clean -xdff ${targetName == 'microbench' ? '-e build/test/jmh-result.json' : ''};
                             echo "Cleaning processes…" ;
-                            if ! pgrep -af "cassandra-builds/build-scripts" ; then pkill -9 -f org.apache.cassandra. || echo "already clean" ; fi ;
+                            if ! (pgrep -xa docker || pgrep -af "cassandra-builds/build-scripts") ; then pkill -9 -f org.apache.cassandra. || echo "already clean" ; fi ;
                             echo "Pruning docker…" ;
-                            if pgrep -af "cassandra-builds/build-scripts" ; then docker system prune --all --force --filter "until=${maxJobHours}h" || true ; else  docker system prune --all --force --volumes || true ;  fi;
+                            if pgrep -xa docker || pgrep -af "cassandra-builds/build-scripts" ; then docker system prune --all --force --filter "until=${maxJobHours}h" || true ; else  docker system prune --all --force --volumes || true ;  fi;
                             echo "Reporting disk usage…"; du -xm / 2>/dev/null | sort -rn | head -n 30 ; df -h ;
                             echo "Cleaning tmp…";
                             find . -type d -name tmp -delete 2>/dev/null ;
@@ -1060,6 +1075,7 @@ archs.each {
                 stringParam('DOCKER_IMAGE', "${dtestDockerImage}", 'Docker image for running dtests')
             }
             axes {
+                jdk(jdk(jdks('cassandra-4.1', targetName))) // hack to make devbranch test both jdk8 and jdk11
                 List<String> values = new ArrayList<String>()
                 if (targetName == 'dtest-large' || targetName == 'dtest-large-novnode') {
                     splits = dtestLargeSplits
@@ -1152,9 +1168,9 @@ archs.each {
                             command("""
                                 echo "Cleaning project…" ; git clean -xdff ;
                                 echo "Cleaning processes…" ;
-                                if ! pgrep -af "cassandra-builds/build-scripts" ; then pkill -9 -f org.apache.cassandra. || echo "already clean" ; fi ;
+                                if ! (pgrep -xa docker || pgrep -af "cassandra-builds/build-scripts") ; then pkill -9 -f org.apache.cassandra. || echo "already clean" ; fi ;
                                 echo "Pruning docker…" ;
-                                if pgrep -af "cassandra-builds/build-scripts" ; then docker system prune --all --force --filter "until=${maxJobHours}h" || true ; else  docker system prune --all --force --volumes || true ;  fi;
+                                if pgrep -xa docker || pgrep -af "cassandra-builds/build-scripts" ; then docker system prune --all --force --filter "until=${maxJobHours}h" || true ; else  docker system prune --all --force --volumes || true ;  fi;
                                 echo "Reporting disk usage…"; df -h ;
                                 echo "Cleaning tmp…";
                                 find . -type d -name tmp -delete 2>/dev/null ;
@@ -1198,7 +1214,7 @@ matrixJob('Cassandra-devbranch-cqlsh-tests') {
     }
     axes {
         text('cython', 'yes', 'no')
-        jdk(jdkLabel)
+        jdk(jdk(jdks('cassandra-4.1', 'cqlsh-tests'))) // hack to make devbranch test both jdk8 and jdk11
         if (use_arm64_test_label()) {
             label('label', slaveLabel, slaveArm64Label)
         } else {
@@ -1275,9 +1291,9 @@ matrixJob('Cassandra-devbranch-cqlsh-tests') {
                     command("""
                         echo "Cleaning project…"; git clean -xdff ;
                         echo "Cleaning processes…" ;
-                        if ! pgrep -af "cassandra-builds/build-scripts" ; then pkill -9 -f org.apache.cassandra. || echo "already clean" ; fi ;
+                        if ! ( pgrep -xa docker || pgrep -af "cassandra-builds/build-scripts" ) ; then pkill -9 -f org.apache.cassandra. || echo "already clean" ; fi ;
                         echo "Pruning docker…" ;
-                        if pgrep -af "cassandra-builds/build-scripts" ; then docker system prune --all --force --filter "until=${maxJobHours}h" || true ; else  docker system prune --all --force --volumes || true ;  fi;
+                        if pgrep -xa docker || pgrep -af "cassandra-builds/build-scripts" ; then docker system prune --all --force --filter "until=${maxJobHours}h" || true ; else  docker system prune --all --force --volumes || true ;  fi;
                         echo "Reporting disk usage…"; df -h ;
                         echo "Cleaning tmp…";
                         find . -type d -name tmp -delete 2>/dev/null ;

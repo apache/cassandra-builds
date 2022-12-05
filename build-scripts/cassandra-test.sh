@@ -73,13 +73,19 @@ _main() {
   local -r java_version=$(java -version 2>&1 | awk -F '"' '/version/ {print $2}' | awk -F. '{print $1}')
   local -r version=$(grep 'property\s*name=\"base.version\"' build.xml |sed -ne 's/.*value=\"\([^"]*\)\".*/\1/p')
 
-  if [ "$java_version" -ge 11 ]; then
+  if [ "$java_version" -ge 17 ]; then
+    if [[ "${target}" == "jvm-dtest-upgrade" ]] ; then
+        echo "Invalid JDK17 execution. Only the oldest overlapping supported JDK can be used when upgrading."
+        exit 1
+    fi
+  elif [ "$java_version" -ge 11 ]; then
     export CASSANDRA_USE_JDK11=true
-    if ! grep -q CASSANDRA_USE_JDK11 build.xml ; then
+    regx_version="(2.2|3.0|3.11|4.0|4.1)(.([0-9]+))?$"
+    if ! grep -q "java.version.11" build.xml ; then
         echo "Skipping ${target}. JDK11 not supported against ${version}"
         exit 0
-    elif [[ "${target}" == "jvm-dtest-upgrade" ]] ; then
-        echo "Skipping JDK11 execution. Mixed JDK compilation required for ${target}"
+    elif [[ "${target}" == "jvm-dtest-upgrade"  ]] && [[ $version =~ $regx_version ]] ; then
+        echo "Skipping JDK11 execution. Only the oldest overlapping supported JDK can be used when upgrading."
         exit 0
     fi
   fi

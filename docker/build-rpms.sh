@@ -4,7 +4,7 @@ set -e
 
 if [ "$#" -lt 1 ]; then
    echo "$0 <branch|tag|sha> <java version> [dist type]"
-   echo "if Java version is not set, it is set to 8 by default, choose from 8 or 11"
+   echo "if Java version is not set, it is set to 8 by default, choose from 8 or 11 or 17"
    exit 1
 fi
 
@@ -14,6 +14,8 @@ fi
 [ -d "${RPM_DIST_DIR}" ] || { echo >&2 "Directory ${RPM_DIST_DIR} must exist"; exit 1; }
 [ "x${CASSANDRA_DIR}" != "x" ] || { echo >&2 "CASSANDRA_DIR needs to be defined"; exit 1; }
 [ -d "${CASSANDRA_DIR}" ] || { echo >&2 "Directory ${CASSANDRA_DIR} must exist"; exit 1; }
+
+cassandra_version="$(grep 'property\s*name=\"base.version\"' \"${CASSANDRA_DIR}/build.xml\" |sed -ne 's/.*value=\"\([^"]*\)\".*/\1/p')"
 
 CASSANDRA_SHA=$1
 JAVA_VERSION=$2
@@ -31,10 +33,10 @@ else # noboolean
     RPM_SPEC="redhat/noboolean/cassandra.spec"
 fi
 
-regx_java_version="(8|11)"
+regx_java_version="(8|11|17)"
 
 if [[ ! "$JAVA_VERSION" =~ $regx_java_version ]]; then
-   echo "Error: Java version is not set to 8 nor 11, it is set to $JAVA_VERSION"
+   echo "Error: Java version is not set to 8, 11 nor 17, it is set to $JAVA_VERSION"
    exit 1
 fi
 
@@ -89,7 +91,11 @@ else
    CASSANDRA_REVISION="${dt}git${ref}"
 fi
 
-if [ $JAVA_VERSION = "11" ]; then
+if [ $JAVA_VERSION = "17" ]; then
+   sudo alternatives --set java $(alternatives --display java | grep 'family java-17-openjdk' | cut -d' ' -f1)
+   sudo alternatives --set javac $(alternatives --display javac | grep 'family java-17-openjdk' | cut -d' ' -f1)
+   echo "Cassandra will be built with Java 17"
+elif [ $JAVA_VERSION = "11" ]; then
    sudo alternatives --set java $(alternatives --display java | grep 'family java-11-openjdk' | cut -d' ' -f1)
    sudo alternatives --set javac $(alternatives --display javac | grep 'family java-11-openjdk' | cut -d' ' -f1)
    export CASSANDRA_USE_JDK11=true
