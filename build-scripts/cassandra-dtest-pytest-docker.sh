@@ -3,7 +3,7 @@
 # A wrapper script to cassandra-dtest-pytest.sh
 #  that runs it in docker, collecting results.
 #
-# The docker image used is normally based from those found in docker/testing/
+# The docker images used by default are found in docker/testing/
 #
 # Usage: cassandra-dtest-pytest-docker.sh REPO BRANCH DTEST_REPO_URL DTEST_BRANCH BUILDS_REPO_URL BUILDS_BRANCH DOCKER_IMAGE [target] [split_chunk]
 #
@@ -15,6 +15,21 @@ if [ "$#" -lt 3 ]; then
     export LC_CTYPE=en_US.UTF-8
     export PYTHONIOENCODING=utf-8
     export PYTHONUNBUFFERED=true
+    if [ "${JAVA_VERSION}" -ge 17 ] ; then
+        sudo update-java-alternatives --set java-1.17.0-openjdk-$(dpkg --print-architecture)
+        export JAVA_HOME=$(sudo update-java-alternatives -l | grep "java-1.17.0-openjdk" | awk '{print $3}')
+    elif [ "${JAVA_VERSION}" -ge 11 ] ; then
+        sudo update-java-alternatives --set java-1.11.0-openjdk-$(dpkg --print-architecture)
+        export JAVA_HOME=$(sudo update-java-alternatives -l | grep "java-1.11.0-openjdk" | awk '{print $3}')
+    fi
+
+    # TODO – remove when no longer set in docker images
+    unset JAVA8_HOME
+    unset JAVA11_HOME
+    unset JAVA17_HOME
+
+    java -version
+    javac -version
     echo "running: git clone --depth 1 --single-branch --branch=$BRANCH https://github.com/$REPO/cassandra.git"
     git clone --quiet --depth 1 --single-branch --branch=$BRANCH https://github.com/$REPO/cassandra.git
     cd cassandra
@@ -36,11 +51,27 @@ else
     DOCKER_IMAGE=$7
     TARGET=$8
     SPLIT_CHUNK=$9
+
+    # Setup JDK
+    java_version=$(java -version 2>&1 | awk -F '"' '/version/ {print $2}' | awk -F. '{print $1}')
+    if [ "$java_version" -ge 17 ]; then
+        java_version="17"
+    elif [ "$java_version" -ge 11 ]; then
+        java_version="11"
+        if ! grep -q "java.version.11" build.xml ; then
+            echo "Skipping build. JDK11 not supported against $(grep 'property\s*name=\"base.version\"' build.xml |sed -ne 's/.*value=\"\([^"]*\)\".*/\1/p')"
+            exit 0
+        fi
+    else
+        java_version="8"
+    fi
+
     cat > env.list <<EOF
 REPO=$1
 BRANCH=$2
 DTEST_REPO=$3
 DTEST_BRANCH=$4
+JAVA_VERSION=${java_version}
 EOF
 
     # pre-conditions
@@ -66,7 +97,7 @@ EOF
     [[ "$(docker images -q $DOCKER_IMAGE 2>/dev/null)" != "" ]] || docker pull -q $DOCKER_IMAGE
 
     echo "cassandra-dtest-pytest-docker.sh: running: git clone --single-branch --depth 1 --branch $BUILDSBRANCH $BUILDSREPO; sh ./cassandra-builds/build-scripts/cassandra-dtest-pytest-docker.sh $TARGET $SPLIT_CHUNK"
-    ID=$(docker run --cpus=${docker_cpus} -m 15g --memory-swap 15g --env-file env.list -dt $DOCKER_IMAGE dumb-init bash -ilc "git clone --quiet --single-branch --depth 1 --branch $BUILDSBRANCH $BUILDSREPO; sh ./cassandra-builds/build-scripts/cassandra-dtest-pytest-docker.sh $TARGET $SPLIT_CHUNK")
+    ID=$(docker run --pull=always --cpus=${docker_cpus} -m 15g --memory-swap 15g --env-file env.list -dt $DOCKER_IMAGE dumb-init bash -ilc "git clone --quiet --single-branch --depth 1 --branch $BUILDSBRANCH $BUILDSREPO; sh ./cassandra-builds/build-scripts/cassandra-dtest-pytest-docker.sh $TARGET $SPLIT_CHUNK")
 
     # use docker attach instead of docker wait to get output
     docker attach --no-stdin $ID
@@ -82,7 +113,7 @@ EOF
         echo "–––"
         docker info
         echo "–––"
-        dmesg
+        dmesg || sudo dmesg || echo "warn: couldn't dmesg"
     else
         echo "$ID done (${status}), copying files"
         # dtest.sh meta

@@ -6,7 +6,7 @@
 
 if [ "$#" -lt 1 ]; then
    echo "$0 <branch|tag|sha> <java version> [dist type]"
-   echo "if Java version is not set, it is set to 8 by default, choose from 8 or 11"
+   echo "if Java version is not set, it is set to 8 by default, choose from 8 or 11 or 17"
    echo "dist types are [rpm, noboolean] and rpm is default"
    exit 1
 fi

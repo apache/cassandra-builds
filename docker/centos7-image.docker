@@ -47,7 +47,8 @@ RUN until curl -f -S -s --retry 9 --retry-delay 1 https://download.java.net/java
 RUN tar xvf openjdk-17.0.2_linux-x64_bin.tar.gz
 RUN mv jdk-17.0.2 /opt/jdk-17
 
-
+RUN alternatives --install /usr/bin/java java /opt/jdk-17/bin/java 2 --family java-17-openjdk
+RUN alternatives --install /usr/bin/javac javac /opt/jdk-17/bin/javac 2 --family java-17-openjdk
 
 RUN pip3 install --upgrade pip
 

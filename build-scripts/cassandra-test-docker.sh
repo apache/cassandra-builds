@@ -15,11 +15,19 @@ if [ "$#" -lt 3 ]; then
     export LC_CTYPE=en_US.UTF-8
     export PYTHONIOENCODING=utf-8
     export PYTHONUNBUFFERED=true
-    if [ "${JAVA_VERSION}" -ge 11 ] ; then
+    if [ "${JAVA_VERSION}" -ge 17 ] ; then
+        sudo update-java-alternatives --set java-1.17.0-openjdk-$(dpkg --print-architecture)
+        export JAVA_HOME=$(sudo update-java-alternatives -l | grep "java-1.17.0-openjdk" | awk '{print $3}')
+    elif [ "${JAVA_VERSION}" -ge 11 ] ; then
         sudo update-java-alternatives --set java-1.11.0-openjdk-$(dpkg --print-architecture)
-        export CASSANDRA_USE_JDK11=true
         export JAVA_HOME=$(sudo update-java-alternatives -l | grep "java-1.11.0-openjdk" | awk '{print $3}')
     fi
+
+    # TODO – remove when no longer set in docker images
+    unset JAVA8_HOME
+    unset JAVA11_HOME
+    unset JAVA17_HOME
+
     java -version
     javac -version
     echo "running: git clone --quiet --depth 1 --single-branch --branch=$BRANCH https://github.com/$REPO/cassandra.git"
@@ -51,9 +59,11 @@ else
 
     # Setup JDK
     java_version=$(java -version 2>&1 | awk -F '"' '/version/ {print $2}' | awk -F. '{print $1}')
-    if [ "$java_version" -ge 11 ]; then
+    if [ "$java_version" -ge 17 ]; then
+        java_version="17"
+    elif [ "$java_version" -ge 11 ]; then
         java_version="11"
-        if ! grep -q CASSANDRA_USE_JDK11 build.xml ; then
+        if ! grep -q "java.version.11" build.xml ; then
             echo "Skipping build. JDK11 not supported against $(grep 'property\s*name=\"base.version\"' build.xml |sed -ne 's/.*value=\"\([^"]*\)\".*/\1/p')"
             exit 0
         fi
@@ -105,7 +115,7 @@ EOF
     INNER_SPLITS=$(( $(echo $SPLIT_CHUNK | cut -d"/" -f2 ) * $docker_runs ))
     INNER_SPLIT_FIRST=$(( ( $(echo $SPLIT_CHUNK | cut -d"/" -f1 ) * $docker_runs ) - ( $docker_runs - 1 ) ))
     docker_cpus=$(echo "scale=2; ${cores} / ( ${jenkins_executors} * ${docker_runs} )" | bc)
-    docker_flags="--cpus=${docker_cpus} -m 5g --memory-swap 5g --env-file env.list -dt"
+    docker_flags="--pull=always --cpus=${docker_cpus} -m 5g --memory-swap 5g --env-file env.list -dt"
 
     # hack: long-test does not handle limited CPUs
     if [ "$TARGET" == "long-test" ] ; then

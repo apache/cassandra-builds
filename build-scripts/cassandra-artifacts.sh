@@ -18,6 +18,8 @@ command -v docker >/dev/null 2>&1 || { echo >&2 "docker needs to be installed"; 
 [ -f "build.xml" ] || { echo >&2 "build.xml must exist"; exit 1; }
 [ -d "${cassandra_builds_dir}" ] || { echo >&2 "cassandra-builds directory must exist"; exit 1; }
 
+cassandra_version="$(grep 'property\s*name=\"base.version\"' build.xml |sed -ne 's/.*value=\"\([^"]*\)\".*/\1/p')"
+
 # print debug information on versions
 ant -version
 pip --version
@@ -38,11 +40,19 @@ python -m pip install "setuptools<45" Sphinx sphinx_rtd_theme
 
 # Setup JDK
 java_version=$(java -version 2>&1 | awk -F '"' '/version/ {print $2}' | awk -F. '{print $1}')
-if [ "$java_version" -ge 11 ]; then
+if [ "$java_version" -ge 17 ]; then
+    java_version="17"
+    java_version_supported=`grep 'property\s*name="java.supported"' build.xml |sed -ne 's/.*value="\([^"]*\)".*/\1/p'`
+    regx_java_version="(${java_version_supported//,/|})"
+    if [[ ! "17" =~ $regx_java_version ]]; then
+        echo "Invalid JDK17 not supported against ${cassandra_version}"
+        exit 1
+    fi
+elif [ "$java_version" -ge 11 ]; then
     java_version="11"
     export CASSANDRA_USE_JDK11=true
-    if ! grep -q CASSANDRA_USE_JDK11 build.xml ; then
-        echo "Skipping build. JDK11 not supported against $(grep 'property\s*name=\"base.version\"' build.xml |sed -ne 's/.*value=\"\([^"]*\)\".*/\1/p')"
+    if ! grep -q "java.version.11" build.xml ; then
+        echo "Skipping build. JDK11 not supported against ${cassandra_version}"
         exit 0
     fi
 else

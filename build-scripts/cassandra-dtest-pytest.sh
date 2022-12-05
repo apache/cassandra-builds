@@ -24,19 +24,33 @@ export CASSANDRA_DIR=${WORKSPACE}
 export CASSANDRA_SKIP_SYNC=true
 export TMPDIR="./tmp"
 
-# set JAVA_HOME environment to enable multi-version jar files for >4.0
-# both JAVA8/11_HOME env variables must exist
-grep -q _build_multi_java $CASSANDRA_DIR/build.xml
-if [ $? -eq 0 -a -n "$JAVA8_HOME" -a -n "$JAVA11_HOME" ]; then
-   export JAVA_HOME="$JAVA11_HOME"
-fi
-
 # pre-conditions
 command -v ant >/dev/null 2>&1 || { echo >&2 "ant needs to be installed"; exit 1; }
 command -v pip3 >/dev/null 2>&1 || { echo >&2 "pip3 needs to be installed"; exit 1; }
 command -v virtualenv >/dev/null 2>&1 || { echo >&2 "virtualenv needs to be installed"; exit 1; }
 
+java_version=$(java -version 2>&1 | awk -F '"' '/version/ {print $2}' | awk -F. '{print $1}')
+version=$(grep 'property\s*name=\"base.version\"' build.xml |sed -ne 's/.*value=\"\([^"]*\)\".*/\1/p')
+
+if [ "$java_version" -ge 17 ]; then
+  if [[ "${target}" == "dtest-upgrade" ]] ; then
+    echo "Invalid JDK17 execution. Only the oldest overlapping supported JDK can be used when upgrading."
+    exit 1
+  fi
+elif [ "$java_version" -ge 11 ]; then
+  export CASSANDRA_USE_JDK11=true
+  regx_version="(2.2|3.0|3.11|4.0|4.1)(.([0-9]+))?$"
+  if ! grep -q "java.version.11" build.xml ; then
+    echo "Skipping ${target}. JDK11 not supported against ${version}"
+    exit 0
+  elif [[ "${target}" == "dtest-upgrade"  ]] && [[ $version =~ $regx_version ]] ; then
+    echo "Skipping JDK11 execution. Only the oldest overlapping supported JDK can be used when upgrading."
+    exit 0
+  fi
+fi
+
 # print debug information on versions
+java -version
 ant -version
 pip3 --version
 virtualenv --version
@@ -54,11 +68,6 @@ done
 if [ "${RETURN}" -ne "0" ]; then
     echo "Build failed with exit code: ${RETURN}"
     exit ${RETURN}
-fi
-
-# restore JAVA_HOME to Java 8 version we intent to run tests with
-if [ -n "$JAVA8_HOME" ]; then
-   export JAVA_HOME="$JAVA8_HOME"
 fi
 
 # Set up venv with dtest dependencies
