@@ -24,7 +24,7 @@ command -v git >/dev/null 2>&1 || { echo >&2 "git needs to be installed"; exit 1
 
 ###################
 
-asf_git_repo="https://gitbox.apache.org/repos/asf"
+asf_git_repo="git@github.com:apache/cassandra.git"
 
 # Reset getopts in case it has been used previously in the shell.
 OPTIND=1
@@ -279,5 +279,5 @@ echo ' 8) tweet from @cassandra'
 echo ' 9) release version in JIRA'
 echo ' 10) remove old version (eg: `svn rm https://dist.apache.org/repos/dist/release/cassandra/<previous_version>`)'
 echo ' 11) increment build.xml base.version for the next release'
-echo ' 12) follow instructions in email you will receive from the \"Apache Reporter Service\" to update the project`s list of releases in reporter.apache.org'
+echo ' 12) Add release in https://reporter.apache.org/addrelease.html?cassandra (same as instructions in email you will receive from the \"Apache Reporter Service\")'
 echo ' 13) update current_ version in cassandra-dtest/upgrade_tests/upgrade_manifest.py'

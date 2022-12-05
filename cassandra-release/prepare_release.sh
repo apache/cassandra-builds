@@ -245,7 +245,7 @@ then
     execute "cd cassandra"
     execute "git checkout $release-tentative"
     execute "ant realclean"
-    execute "ant publish -Drelease=true -Dbase.version=$release"
+    execute "ant publish -Drelease=true -Dno-checkstyle=true -Drat.skip=true -Dant.gen-doc.skip=true"
 
     echo "Artifacts uploaded, find the staging repository on repository.apache.org, \"Close\" it, and indicate its staging number:" 1>&3 2>&4
     read -p "staging number? " staging_number 1>&3 2>&4
@@ -279,15 +279,22 @@ then
     execute "cd $deb_dir"
 
     echo "Building debian package ..." 1>&3 2>&4
+    execute "mkdir ${tmp_dir}/cassandra-dist-dev/${release}/debian"
 
-    execute "${cassandra_builds_dir}/build-scripts/cassandra-deb-packaging.sh ${release}-tentative"
+    if [ -f ${tmp_dir}/cassandra/.build/docker/build-debian.sh ] ; then
+        execute "cd ${tmp_dir}/cassandra"
+        execute "ant realclean"
+        execute ".build/docker/build-debian.sh"
+        execute "cp build/cassandra* ${tmp_dir}/cassandra-dist-dev/${release}/debian/"
+    else
+        execute "${cassandra_builds_dir}/build-scripts/cassandra-deb-packaging.sh ${release}-tentative"
+        execute "cp cassandra* ${tmp_dir}/cassandra-dist-dev/${release}/debian/"
+    fi
 
+    execute "cd ${tmp_dir}/cassandra-dist-dev/${release}/debian/"
     # Debsign might ask the passphrase on stdin so don't hide what he says even if no verbose
     # (I haven't tested carefully but I've also seen it fail unexpectedly with it's output redirected.
     execute "debsign -k$gpg_key cassandra_${deb_release}_amd64.changes" 1>&3 2>&4
-
-    execute "mkdir $tmp_dir/cassandra-dist-dev/${release}/debian"
-    execute "cp cassandra* $tmp_dir/cassandra-dist-dev/${release}/debian/"
 
     echo "Building debian repository ..." 1>&3 2>&4
     debian_series="${release_major}${release_minor}x"
@@ -300,7 +307,6 @@ then
     echo "Description: Apache Cassandra APT Repository" >> $tmp_dir/distributions
     echo "SignWith: $gpg_key" >> $tmp_dir/distributions
 
-    execute "cd $tmp_dir/cassandra-dist-dev/${release}/debian/"
     execute "mkdir conf"
     execute "mv $tmp_dir/distributions conf/"
     execute "reprepro --ignore=wrongdistribution include $debian_series cassandra_${deb_release}_*.changes"
@@ -326,21 +332,28 @@ then
     execute "cd $rpm_package_dir"
 
     echo "Building redhat packages ..." 1>&3 2>&4
+    execute "mkdir $tmp_dir/cassandra-dist-dev/${release}/redhat"
 
     [ $fake_mode -eq 1 ] && echo ">> declare -x rpm_dir=$rpm_package_dir/cassandra_${release}_rpm"
     declare -x rpm_dir=$rpm_package_dir/cassandra_${release}_rpm
     [ ! -e "$rpm_dir" ] || rm -rf $rpm_dir
     execute "mkdir $rpm_dir"
 
-    execute "${cassandra_builds_dir}/build-scripts/cassandra-rpm-packaging.sh ${release}-tentative 8 rpm"
+    if [ -f ${tmp_dir}/cassandra/.build/docker/build-redhat.sh ] ; then
+        execute "cd ${tmp_dir}/cassandra"
+        execute "ant realclean"
+        execute ".build/docker/build-redhat.sh rpm"
+        execute "cp build/*.rpm  ${tmp_dir}/cassandra-dist-dev/${release}/redhat/"
+    else
+        execute "${cassandra_builds_dir}/build-scripts/cassandra-rpm-packaging.sh ${release}-tentative 8 rpm"
+        execute "cp ${rpm_dir}/*.rpm  ${tmp_dir}/cassandra-dist-dev/${release}/redhat/"
+    fi
 
-    execute "rpmsign --addsign ${rpm_dir}/*.rpm"
+    execute "cd ${tmp_dir}/cassandra-dist-dev/${release}/redhat/"
+    execute "rpmsign --addsign *.rpm"
 
     # build repositories
     echo "Building redhat repository ..." 1>&3 2>&4
-    execute "mkdir $tmp_dir/cassandra-dist-dev/${release}/redhat"
-    execute "cp ${rpm_dir}/*.rpm  $tmp_dir/cassandra-dist-dev/${release}/redhat/"
-    execute "cd $tmp_dir/cassandra-dist-dev/${release}/redhat/"
     execute "createrepo_c ."
     # FIXME - put into execute "…"
     [ $fake_mode -eq 1 ] || for f in repodata/repomd.xml repodata/*.bz2 repodata/*.gz ; do gpg --detach-sign --armor $f ; done
@@ -354,21 +367,28 @@ then
         execute "cd $rpmnoboolean_package_dir"
 
         echo "Building redhat noboolean packages ..." 1>&3 2>&4
+        execute "mkdir ${tmp_dir}/cassandra-dist-dev/${release}/redhat/noboolean"
 
         [ $fake_mode -eq 1 ] && echo ">> declare -x rpm_dir=$rpmnoboolean_package_dir/cassandra_${release}_rpmnoboolean"
         declare -x rpm_dir=$rpmnoboolean_package_dir/cassandra_${release}_rpmnoboolean
         [ ! -e "$rpm_dir" ] || rm -rf $rpm_dir
         execute "mkdir $rpm_dir"
 
-        execute "${cassandra_builds_dir}/build-scripts/cassandra-rpm-packaging.sh ${release}-tentative 8 noboolean"
+        if [ -f ${tmp_dir}/cassandra/.build/docker/build-redhat.sh ] ; then
+            execute "cd ${tmp_dir}/cassandra"
+            execute "ant realclean"
+            execute ".build/docker/build-redhat.sh noboolean"
+            execute "cp build/*.rpm  ${tmp_dir}/cassandra-dist-dev/${release}/redhat/noboolean/"
+        else
+            execute "${cassandra_builds_dir}/build-scripts/cassandra-rpm-packaging.sh ${release}-tentative 8 noboolean"
+            execute "cp ${rpm_dir}/*.rpm  ${tmp_dir}/cassandra-dist-dev/${release}/redhat/noboolean/"
+        fi
 
-        execute "rpmsign --addsign ${rpm_dir}/*.rpm"
+        execute "cd ${tmp_dir}/cassandra-dist-dev/${release}/redhat/noboolean"
+        execute "rpmsign --addsign *.rpm"
 
         # build repositories
         echo "Building redhat noboolean repository ..." 1>&3 2>&4
-        execute "mkdir $tmp_dir/cassandra-dist-dev/${release}/redhat/noboolean"
-        execute "cp ${rpm_dir}/*.rpm  $tmp_dir/cassandra-dist-dev/${release}/redhat/noboolean"
-        execute "cd $tmp_dir/cassandra-dist-dev/${release}/redhat/noboolean"
         execute "createrepo_c ."
         # FIXME - put into execute "…"
         [ $fake_mode -eq 1 ] || for f in repodata/repomd.xml repodata/*.bz2 repodata/*.gz ; do gpg --detach-sign --armor $f ; done
