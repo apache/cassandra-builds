@@ -33,6 +33,7 @@ RUN export DEBIAN_FRONTEND=noninteractive && \
         python3.6 python3.6-venv python3.6-dev \
         python3.7 python3.7-venv python3.7-dev \
         python3.8 python3.8-venv python3.8-dev \
+        python3.11 python3.11-venv python3.11-dev \
         net-tools libev4 libev-dev wget gcc libssl-dev libxml2 libxslt1-dev
 
 # install python2-pip
@@ -44,10 +45,12 @@ RUN update-alternatives --install /usr/bin/python python /usr/bin/python2.7 1
 RUN update-alternatives --install /usr/bin/python python /usr/bin/python3.6 2
 RUN update-alternatives --install /usr/bin/python python /usr/bin/python3.7 3
 RUN update-alternatives --install /usr/bin/python python /usr/bin/python3.8 4
+RUN update-alternatives --install /usr/bin/python python /usr/bin/python3.11 5
 RUN python2.7 -m pip install --upgrade pip
 RUN python3.6 -m pip install --upgrade pip
 RUN python3.7 -m pip install --upgrade pip
 RUN python3.8 -m pip install --upgrade pip
+RUN python3.11 -m pip install --upgrade pip
 
 # solves warning: "jemalloc shared library could not be preloaded to speed up memory allocations"
 RUN export DEBIAN_FRONTEND=noninteractive && \
@@ -136,6 +139,10 @@ RUN /bin/bash -c "export CASS_DRIVER_NO_CYTHON=1 CASS_DRIVER_NO_EXTENSIONS=1 && 
 RUN virtualenv --python=python3.8 env3.8
 RUN chmod +x env3.8/bin/activate
 RUN /bin/bash -c "export CASS_DRIVER_NO_CYTHON=1 CASS_DRIVER_NO_EXTENSIONS=1 && source ~/env3.8/bin/activate && pip3 install --upgrade pip && pip3 install -r /opt/requirements.txt && pip3 freeze --user"
+
+RUN virtualenv --python=python3.11 env3.11
+RUN chmod +x env3.11/bin/activate
+RUN /bin/bash -c "export CASS_DRIVER_NO_CYTHON=1 CASS_DRIVER_NO_EXTENSIONS=1 && source ~/env3.11/bin/activate && pip3 install --upgrade pip && pip3 install -r /opt/requirements.txt && pip3 freeze --user"
 
 # we need to make SSH less strict to prevent various dtests from failing when they attempt to
 # git clone a given commit/tag/etc
