@@ -50,7 +50,8 @@ RUN python2.7 -m pip install --upgrade pip
 RUN python3.6 -m pip install --upgrade pip
 RUN python3.7 -m pip install --upgrade pip
 RUN python3.8 -m pip install --upgrade pip
-RUN python3.11 -m pip install --upgrade pip
+# 3.11 needs newer pip
+RUN curl -sS https://bootstrap.pypa.io/get-pip.py | python3.11
 
 # solves warning: "jemalloc shared library could not be preloaded to speed up memory allocations"
 RUN export DEBIAN_FRONTEND=noninteractive && \
