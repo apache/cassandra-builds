@@ -109,7 +109,7 @@ EOF
     INNER_SPLITS=$(( $(echo $SPLIT_CHUNK | cut -d"/" -f2 ) * $docker_runs ))
     INNER_SPLIT_FIRST=$(( ( $(echo $SPLIT_CHUNK | cut -d"/" -f1 ) * $docker_runs ) - ( $docker_runs - 1 ) ))
     docker_cpus=$(echo "scale=2; ${cores} / ( ${jenkins_executors} * ${docker_runs} )" | bc)
-    docker_flags="--cpus=${docker_cpus} -m 5g --memory-swap 5g --env-file env.list -dt"
+    docker_flags="--pull=always --cpus=${docker_cpus} -m 5g --memory-swap 5g --env-file env.list -dt"
 
     # hack: long-test does not handle limited CPUs
     if [ "$TARGET" == "long-test" ] ; then

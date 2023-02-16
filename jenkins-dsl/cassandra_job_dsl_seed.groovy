@@ -344,8 +344,6 @@ matrixJob('Cassandra-template-cqlsh-tests') {
         }
         timestamps()
     }
-    // this should prevent long path expansion from the axis definitions
-    childCustomWorkspace('.')
     properties {
         githubProjectUrl(githubRepo)
         priorityJobProperty {
