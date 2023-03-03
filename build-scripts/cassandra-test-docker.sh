@@ -22,6 +22,12 @@ if [ "$#" -lt 3 ]; then
         sudo update-java-alternatives --set java-1.11.0-openjdk-$(dpkg --print-architecture)
         export JAVA_HOME=$(sudo update-java-alternatives -l | grep "java-1.11.0-openjdk" | awk '{print $3}')
     fi
+
+    # TODO – remove when no longer set in docker images
+    unset JAVA8_HOME
+    unset JAVA11_HOME
+    unset JAVA17_HOME
+
     java -version
     javac -version
     echo "running: git clone --quiet --depth 1 --single-branch --branch=$BRANCH https://github.com/$REPO/cassandra.git"
