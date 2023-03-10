@@ -7,6 +7,7 @@
 # docker run -t -v`pwd`/build/html:/tmp/contribulyze-html -v`pwd`:/contribulyze apache/cassandra-testing-ubuntu2004-java11-w-dependencies bash -lc 'pip3 install --quiet python-dateutil ; cd /contribulyze ; bash contribulyze.sh '
 #
 
+set -e
 script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 mkdir -p /tmp/contribulyze-repos
 mkdir -p /tmp/contribulyze-html
