@@ -136,7 +136,7 @@ echo "git fetch $repository"
 # Get a subject from the first commit which will serve as a title to be pasted into CHANGES.txt
 first_commit="$(git log --pretty=format:%s --reverse "$apache_repository/${target_branches[0]}..$repository/${feature_branches[0]}" | head -n 1)"
 
-push_command="git push --atomic $apache_apache_repository"
+push_command="git push --atomic $apache_repository"
 skipped_branches_found=0
 for i in $(seq 0 $((${#target_branches[@]} - 1))); do
   echo ""
@@ -157,13 +157,13 @@ for i in $(seq 0 $((${#target_branches[@]} - 1))); do
   if [[ "${feature_branches[$i]}" == "" ]]; then
     skipped_branches_found=1
     # A script for the case where there is no fix for a version
-    echo "git merge -s ours --log --no-edit ${feature_branches[$((i - 1))]}"
+    echo "git merge -s ours --log --no-edit ${target_branches[$((i - 1))]}"
   else
     readarray -t commits < <(git log --reverse --oneline "$apache_repository/${target_branches[$i]}..$repository/${feature_branches[$i]}")
 
     if [[ $i != 0 ]]; then
       # When this isn't the oldest version (we want to have only the merge commit)
-      echo "git merge -s ours --log --no-edit ${feature_branches[$((i - 1))]}"
+      echo "git merge -s ours --log --no-edit ${target_branches[$((i - 1))]}"
     fi
 
     for c in $(seq 0 $((${#commits[@]} - 1))); do
@@ -203,3 +203,5 @@ echo ""
 echo ""
 echo ""
 echo "$push_command -n"
+
+
