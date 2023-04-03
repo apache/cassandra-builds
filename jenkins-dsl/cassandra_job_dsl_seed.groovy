@@ -178,7 +178,7 @@ matrixJob('Cassandra-template-artifacts') {
     steps {
         buildDescription('', buildDescStr)
         shell("""
-                git clean -xdff ;
+                git clean -xdff  || echo "failed to clean… continuing…";
                 git clone --depth 1 --single-branch -b ${buildsBranch} ${buildsRepo} ;
                 echo "cassandra-builds at: `git -C cassandra-builds log -1 --pretty=format:'%H %an %ad %s'`" ;
               """)
@@ -255,7 +255,7 @@ matrixJob('Cassandra-template-test') {
     steps {
         buildDescription('', buildDescStr)
         shell("""
-                git clean -xdff -e build/test/jmh-result.json ;
+                git clean -xdff -e build/test/jmh-result.json  || echo "failed to clean… continuing…";
                 git clone --depth 1 --single-branch -b ${buildsBranch} ${buildsRepo} ;
                 echo "cassandra-builds at: `git -C cassandra-builds log -1 --pretty=format:'%H %an %ad %s'`" ;
                 echo "\${BUILD_TAG}) cassandra: `git log -1 --pretty=format:'%H %an %ad %s'`" > \${BUILD_TAG}.head
@@ -317,7 +317,7 @@ matrixJob('Cassandra-template-dtest-matrix') {
     steps {
         buildDescription('', buildDescStr)
         shell("""
-                git clean -xdff ;
+                git clean -xdff  || echo "failed to clean… continuing…";
                 git clone --depth 1 --single-branch -b ${buildsBranch} ${buildsRepo} ;
                 echo "cassandra-builds at: `git -C cassandra-builds log -1 --pretty=format:'%H %an %ad %s'`" ;
                 echo "\${BUILD_TAG}) cassandra: `git log -1 --pretty=format:'%H %an %ad %s'`" > \${BUILD_TAG}.head ;
@@ -372,7 +372,7 @@ matrixJob('Cassandra-template-cqlsh-tests') {
     steps {
         buildDescription('', buildDescStr)
         shell("""
-                git clean -xdff ;
+                git clean -xdff  || echo "failed to clean… continuing…";
                 git clone --depth 1 --single-branch -b ${buildsBranch} ${buildsRepo} ;
                 echo "cassandra-builds at: `git -C cassandra-builds log -1 --pretty=format:'%H %an %ad %s'`" ;
                 echo "\${BUILD_TAG}) cassandra: `git log -1 --pretty=format:'%H %an %ad %s'`" > \${BUILD_TAG}.head
@@ -441,7 +441,7 @@ cassandraBranches.each {
                             // docker needs to (soon or later) prune its volumes too, but that can only be done when the agent is idle
                             // if the agent is busy, just prune everything that is older than maxJobHours
                             command("""
-                                echo "Cleaning project…"; git clean -xdff ;
+                                echo "Cleaning project…"; git clean -xdff  || echo "failed to clean… continuing…";
                                 echo "Cleaning processes…" ;
                                 if ! ( pgrep -xa docker || pgrep -af "cassandra-builds/build-scripts" ) ; then pkill -9 -f org.apache.cassandra. || echo "already clean" ; fi ;
                                 echo "Pruning docker…" ;
@@ -535,7 +535,7 @@ cassandraBranches.each {
                                   // docker needs to (soon or later) prune its volumes too, but that can only be done when the agent is idle
                                   // if the agent is busy, just prune everything that is older than maxJobHours
                                   command("""
-                                      echo "Cleaning project…"; git clean -xdff -e build/test/jmh-result.json ;
+                                      echo "Cleaning project…"; git clean -xdff -e build/test/jmh-result.json || echo "failed to clean… continuing…" ;
                                       echo "Cleaning processes…" ;
                                         if ! ( pgrep -xa docker || pgrep -af "cassandra-builds/build-scripts" ) ; then pkill -9 -f org.apache.cassandra. || echo "already clean" ; fi ;
                                       echo "Pruning docker…" ;
@@ -637,7 +637,7 @@ cassandraBranches.each {
                                     // docker needs to (soon or later) prune its volumes too, but that can only be done when the agent is idle
                                     // if the agent is busy, just prune everything that is older than maxJobHours
                                     command("""
-                                        echo "Cleaning project…"; git clean -xdff ;
+                                        echo "Cleaning project…"; git clean -xdff || echo "failed to clean… continuing…";
                                         echo "Cleaning processes…" ;
                                         if ! ( pgrep -xa docker || pgrep -af "cassandra-builds/build-scripts" ) ; then pkill -9 -f org.apache.cassandra. || echo "already clean" ; fi ;
                                         echo "Pruning docker…" ;
@@ -719,7 +719,7 @@ cassandraBranches.each {
                             // docker needs to (soon or later) prune its volumes too, but that can only be done when the agent is idle
                             // if the agent is busy, just prune everything that is older than maxJobHours
                             command("""
-                                echo "Cleaning project…"; git clean -xdff ;
+                                echo "Cleaning project…"; git clean -xdff  || echo "failed to clean… continuing…";
                                 echo "Cleaning processes…" ;
                                 if ! (pgrep -xa docker || pgrep -af "cassandra-builds/build-scripts") ; then pkill -9 -f org.apache.cassandra. || echo "already clean" ; fi ;
                                 echo "Pruning docker…" ;
