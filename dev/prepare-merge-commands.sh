@@ -202,6 +202,9 @@ done
 echo ""
 echo ""
 echo ""
+echo "python3 verify_git_history.py $apache_repository ${target_branches[0]}"
+
+echo ""
+echo ""
+echo ""
 echo "$push_command -n"
-
-
