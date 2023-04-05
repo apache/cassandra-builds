@@ -40,3 +40,15 @@ RUN /bin/bash -c "source ~/env3.6/bin/activate && \
     ccm create -n 1 -v git:cassandra-3.0 test && ccm remove test && \
     ccm create -n 1 -v git:cassandra-2.2 test && ccm remove test && \
     ccm create -n 1 -v git:cassandra-2.1 test && ccm remove test"
+
+# Initialize specific versions pulled in for testing
+RUN /bin/bash -c "source ~/env3.6/bin/activate && \
+    ccm create -n 1 -v 2.1.14 test && ccm remove test && \
+    ccm create -n 1 -v 2.1.22 test && ccm remove test && \
+    ccm create -n 1 -v 2.2.19 test && ccm remove test && \
+    ccm create -n 1 -v 3.0.17 test && ccm remove test && \
+    ccm create -n 1 -v 3.0.27 test && ccm remove test && \
+    ccm create -n 1 -v 3.11.3 test && ccm remove test && \
+    ccm create -n 1 -v 3.11.13 test && ccm remove test && \
+    ccm create -n 1 -v 4.0.4 test && ccm remove test"
+
