@@ -27,7 +27,7 @@ command -v debsign >/dev/null 2>&1 || { echo >&2 "devscripts needs to be install
 command -v reprepro >/dev/null 2>&1 || { echo >&2 "reprepro needs to be installed"; exit 1; }
 command -v rpmsign >/dev/null 2>&1 || { echo >&2 "rpmsign needs to be installed"; exit 1; }
 command -v docker >/dev/null 2>&1 || { echo >&2 "docker needs to be installed"; exit 1; }
-command -v createrepo >/dev/null 2>&1 || { echo >&2 "createrepo needs to be installed"; exit 1; }
+command -v createrepo_c >/dev/null 2>&1 || { echo >&2 "createrepo_c needs to be installed"; exit 1; }
 (docker info >/dev/null 2>&1) || { echo >&2 "docker needs to running"; exit 1; }
 
 ###################
@@ -341,7 +341,7 @@ then
     execute "mkdir $tmp_dir/cassandra-dist-dev/${release}/redhat"
     execute "cp ${rpm_dir}/*.rpm  $tmp_dir/cassandra-dist-dev/${release}/redhat/"
     execute "cd $tmp_dir/cassandra-dist-dev/${release}/redhat/"
-    execute "createrepo ."
+    execute "createrepo_c ."
     # FIXME - put into execute "…"
     [ $fake_mode -eq 1 ] || for f in repodata/repomd.xml repodata/*.bz2 repodata/*.gz ; do gpg --detach-sign --armor $f ; done
 
@@ -369,7 +369,7 @@ then
         execute "mkdir $tmp_dir/cassandra-dist-dev/${release}/redhat/noboolean"
         execute "cp ${rpm_dir}/*.rpm  $tmp_dir/cassandra-dist-dev/${release}/redhat/noboolean"
         execute "cd $tmp_dir/cassandra-dist-dev/${release}/redhat/noboolean"
-        execute "createrepo ."
+        execute "createrepo_c ."
         # FIXME - put into execute "…"
         [ $fake_mode -eq 1 ] || for f in repodata/repomd.xml repodata/*.bz2 repodata/*.gz ; do gpg --detach-sign --armor $f ; done
     fi
