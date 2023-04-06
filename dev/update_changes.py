@@ -3,7 +3,7 @@ import subprocess
 import sys
 from typing import NamedTuple, Tuple
 
-from git_utils import get_apache_branches, version_from_branch, version_from_string, version_from_re
+from git_utils import get_release_branches, version_from_branch, version_from_string, version_from_re
 
 
 class MergeSection(NamedTuple):
@@ -132,11 +132,11 @@ message = sys.argv[4]
 release_sections = read_changes_file()
 
 merge_versions = []
-for branch in get_apache_branches(repo):
-    if branch == "trunk":
+for branch in get_release_branches(repo):
+    if branch.name == "trunk":
         version = release_sections[0].version
     else:
-        version = version_from_branch(branch)
+        version = branch.version
     if version:
         merge_versions.append(version)
 

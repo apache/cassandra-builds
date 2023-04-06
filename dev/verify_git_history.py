@@ -1,6 +1,6 @@
 import sys
 
-from git_utils import get_local_branch_history, get_apache_branches, parse_merge_commit_msg, parse_push_ranges
+from git_utils import get_local_branch_history, get_release_branches, parse_merge_commit_msg, parse_push_ranges
 
 # Read the command line arguments and validate them
 
@@ -10,7 +10,7 @@ if len(sys.argv) != 3:
 
 repo = sys.argv[1]
 start_branch = sys.argv[2]
-main_branches = get_apache_branches(repo)
+main_branches = [b.name for b in get_release_branches(repo)]
 
 # check if start_branch is a valid branch
 if start_branch not in main_branches:
