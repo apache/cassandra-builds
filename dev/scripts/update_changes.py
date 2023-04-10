@@ -3,7 +3,7 @@ import subprocess
 import sys
 from typing import NamedTuple, Tuple
 
-from git_utils import get_release_branches, version_from_branch, version_from_string, version_from_re
+from lib.git_utils import *
 
 
 class MergeSection(NamedTuple):
@@ -18,7 +18,7 @@ class ReleaseSection(NamedTuple):
     merge_sections: list[MergeSection]
 
 
-def read_changes_file() -> list[ReleaseSection]:
+def read_changes_file(ticket: str) -> list[ReleaseSection]:
     """
     Read the changes file and return a list of release sections.
     :return: a list of release sections
@@ -58,7 +58,7 @@ def read_changes_file() -> list[ReleaseSection]:
                 merge_section = MergeSection(merge_version, messages)
 
             elif lines[i].strip():
-                if (ticket in lines[i] or message in lines[i]):
+                if (ticket in lines[i]):
                     print("Found duplicate message in line %d: %s" % (i + 1, lines[i]))
                     exit(1)
                 messages.append(lines[i])
@@ -82,7 +82,7 @@ def write_changes_file(release_sections: list[ReleaseSection]):
                 f.write(message)
 
             for merge_section in version_section.merge_sections:
-                f.write("Merged from %d.%d:\n" % merge_section.version)
+                f.write("Merged from %s:\n" % version_as_string(merge_section.version))
                 for message in merge_section.messages:
                     f.write(message)
 
@@ -120,60 +120,42 @@ def get_or_insert_merge_section(target_section: ReleaseSection, target_version: 
 
 # check if the commond line args contain the message and a list of branches
 if len(sys.argv) < 5:
-    print("Usage: %s <repo> <version> <ticket> <message>" % sys.argv[0])
+    print("Adds a change info to the CHANGES.txt file.")
+    print("Usage: %s <ticket> <version_section> <list of merged from versions> <title>" % sys.argv[0])
+    print("")
+    print("Example: %s CASSANDRA-12345 '4.1' '3.11,4.0' 'Some awesome change'" % sys.argv[0])
+    print("It adds a change info to the top of 'Merged from 3.11' section for the latest '4.1' section, ensuring that 'Merged from 4.0' is there as well.")
     exit(1)
 
-repo = sys.argv[1]
-target_branch = sys.argv[2]
-target_version = version_from_string(target_branch)
-ticket = sys.argv[3]
-message = sys.argv[4]
+ticket = sys.argv[1]
+target_version_section_str = sys.argv[2]
+target_merge_sections_strs = [s.strip() for s in sys.argv[3].split(",") if s.strip()]
+title = sys.argv[4]
 
-release_sections = read_changes_file()
+release_sections = read_changes_file(ticket)
 
-merge_versions = []
-for branch in get_release_branches(repo):
-    if branch.name == "trunk":
-        version = release_sections[0].version
-    else:
-        version = branch.version
-    if version:
-        merge_versions.append(version)
-
-merge_versions = merge_versions[merge_versions.index(target_version):]
-current_branch = subprocess.check_output(["git", "branch", "--show-current"], shell=False).decode("utf-8").strip()
-
-target_section = None
-target_merge_section = None
-new_message = " * %s (%s)\n" % (message, ticket)
-
-if current_branch == "trunk":
-    current_version = release_sections[0].version
-    if current_version == target_version:
-        # if we are on trunk and the target version is also trunk, we prepend the message to the first encountered version
-        target_section = release_sections[0]
-    else:
-        # if we are on trunk, but the target version is older, we prepend the message to the appropriate merge section
-        # (which may be created if it does not exist) in the second encountered version
-        target_section = release_sections[1]
-        for merge_version in merge_versions[1:-1]:
-            get_or_insert_merge_section(target_section, merge_version)
-        target_merge_section = get_or_insert_merge_section(target_section, target_version)
-else:
-    current_version = version_from_branch(current_branch)
-    merge_versions = merge_versions[:merge_versions.index(current_version)]
+if target_version_section_str == version_as_string(TRUNK_VERSION):
+    # if the target version is trunk, we prepend the message to the first encountered version
     target_section = release_sections[0]
-    if current_version != target_version:
-        for merge_version in merge_versions[1:-1]:
-            get_or_insert_merge_section(target_section, merge_version)
-        target_merge_section = get_or_insert_merge_section(target_section, target_version)
-
-if target_merge_section:
-    target_merge_section.messages.insert(0, new_message)
-elif target_section:
-    target_section.messages.insert(0, new_message)
 else:
-    print("Could not find target section")
-    exit(1)
+    target_section = None
+    for section in release_sections:
+        if version_as_string(section.version) == target_version_section_str:
+            target_section = section
+            break
+
+assert target_section, "Could not find target version section %s" % target_version_section_str
+
+merge_section = None
+for merge_section_str in target_merge_sections_strs:
+    print("Looking for merge section %d" % len(target_merge_sections_strs))
+    merge_section = get_or_insert_merge_section(target_section, version_from_string(merge_section_str))
+
+new_message = " * %s (%s)\n" % (title, ticket)
+
+if merge_section:
+    merge_section.messages.insert(0, new_message)
+else:
+    target_section.messages.insert(0, new_message)
 
 write_changes_file(release_sections)
