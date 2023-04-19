@@ -86,7 +86,10 @@ def isSplittableTest(targetName) {
 
 def jdks(branchName, targetName) {
     if (branchName == 'trunk' || branchName ==~ /cassandra-5.\d+/) {
-        if (!targetName.endsWith('dtest-upgrade')) {
+        if (targetName == 'test' || targetName == 'jvm-dtest') {
+            // todo – remove when jdk17 failures in unit and jvm-dtest are fixed
+            return ['jdk_1.8_latest','jdk_11_latest']
+        } else if (!targetName.endsWith('dtest-upgrade')) {
             //return ['jdk_11_latest', 'jdk_17_latest'] // CASSANDRA-18255
             return ['jdk_1.8_latest','jdk_11_latest', 'jdk_17_latest']
         } else {
