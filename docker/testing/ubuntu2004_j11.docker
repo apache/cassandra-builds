@@ -34,7 +34,7 @@ RUN export DEBIAN_FRONTEND=noninteractive && \
         python3.7 python3.7-venv python3.7-dev \
         python3.8 python3.8-venv python3.8-dev \
         python3.11 python3.11-venv python3.11-dev \
-        net-tools libev4 libev-dev wget gcc libssl-dev libxml2 libxslt1-dev
+        virtualenv net-tools libev4 libev-dev wget gcc libssl-dev libxml2 libxslt1-dev
 
 # install python2-pip
 RUN curl https://bootstrap.pypa.io/pip/2.7/get-pip.py -o get-pip.py
@@ -50,6 +50,7 @@ RUN python2.7 -m pip install --upgrade pip
 RUN python3.6 -m pip install --upgrade pip
 RUN python3.7 -m pip install --upgrade pip
 RUN python3.8 -m pip install --upgrade pip
+
 # 3.11 needs newer pip
 RUN curl -sS https://bootstrap.pypa.io/get-pip.py | python3.11
 
@@ -125,9 +126,10 @@ ENV ANT_HOME=/usr/share/ant
 # default in test jobs using the CASS_DRIVER_X env vars below. However, if the extensions are
 # included in the base image, the compiled objects are not updated by pip at run time, which can
 # cause errors if the tests rely on new driver functionality or bug fixes.
+
 RUN virtualenv --python=python2.7 env2.7
 RUN chmod +x env2.7/bin/activate
-RUN /bin/bash -c "export CASS_DRIVER_NO_CYTHON=1 CASS_DRIVER_NO_EXTENSIONS=1 && source ~/env2.7/bin/activate && pip2 install --upgrade pip && pip2 install -r /opt/requirements.txt && pip2 freeze --user"
+RUN /bin/bash -c "export CASS_DRIVER_NO_CYTHON=1 CASS_DRIVER_NO_EXTENSIONS=1 && source ~/env2.7/bin/activate && pip2 install --upgrade pip && pip2 install -e git+https://github.com/datastax/python-driver.git@cassandra-test#egg=cassandra-driver && pip2 freeze --user"
 
 RUN virtualenv --python=python3.6 env3.6
 RUN chmod +x env3.6/bin/activate
