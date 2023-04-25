@@ -124,7 +124,7 @@ set -e
 # javadoc target is broken in docker without this mkdir
 mkdir -p ./build/javadoc
 # Artifact will only be used internally for build process and won't be found with snapshot suffix
-ant artifacts -Drelease=true
+ant artifacts -Drelease=true -Dno-checkstyle=true -Drat.skip=true
 cp ./build/apache-cassandra-*-src.tar.gz ${RPM_BUILD_DIR}/SOURCES/
 
 # if CASSANDRA_VERSION is -alphaN, -betaN, -rcN, then rpmbuild fails on the '-' char; replace with '~'

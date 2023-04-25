@@ -43,9 +43,22 @@ RUN ln -sfn /opt/apache-ant-${ANT_VERSION} /opt/ant
 RUN sh -c 'echo ANT_HOME=/opt/ant >> /etc/environment'
 RUN ln -sfn /opt/ant/bin/ant /usr/bin/ant
 
-RUN until curl -f -S -s --retry 9 --retry-delay 1 https://download.java.net/java/GA/jdk17.0.2/dfd4a8d0985749f896bed50d7138ee7f/8/GPL/openjdk-17.0.2_linux-x64_bin.tar.gz -o openjdk-17.0.2_linux-x64_bin.tar.gz ; do echo "curl failed… trying again in 10s… " ; sleep 10 ; done
-RUN tar xvf openjdk-17.0.2_linux-x64_bin.tar.gz
-RUN mv jdk-17.0.2 /opt/jdk-17
+# jdk17 latest on x64
+RUN  if [ "$(arch)" == "x86_64" ] ; then \
+      until curl -f -S -s --retry 9 --retry-delay 1 https://download.oracle.com/java/17/latest/jdk-17_linux-x64_bin.tar.gz -o openjdk-17_bin.tar.gz ; do \
+        echo "curl failed… trying again in 10s… " ; sleep 10 ; \
+      done \
+    fi
+
+# jdk17 latest on arm
+RUN if [ "$(arch)" == "aarch64" ] ; then \
+      until curl -f -S -s --retry 9 --retry-delay 1 https://download.oracle.com/java/17/latest/jdk-17_linux-aarch64_bin.tar.gz -o openjdk-17_bin.tar.gz ; do \
+        echo "curl failed… trying again in 10s… " ; sleep 10 ; \
+      done \
+    fi
+
+RUN tar xvf openjdk-17_bin.tar.gz
+RUN mv jdk-17* /opt/jdk-17
 
 RUN alternatives --install /usr/bin/java java /opt/jdk-17/bin/java 2 --family java-17-openjdk
 RUN alternatives --install /usr/bin/javac javac /opt/jdk-17/bin/javac 2 --family java-17-openjdk
