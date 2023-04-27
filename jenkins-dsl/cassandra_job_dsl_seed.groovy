@@ -107,7 +107,7 @@ def isSplittableTest(targetName) {
 
 def jdks(branchName, targetName) {
     if (branchName == 'trunk' || branchName ==~ /cassandra-5.\d+/) {
-        if (targetName == 'test' || targetName == 'jvm-dtest') {
+        if (targetName == 'test' || targetName == 'test-cdc' || targetName == 'test-compression' || targetName == 'long-test' || targetName == 'jvm-dtest') {
             // todo – remove when jdk17 failures in unit and jvm-dtest are fixed
             return ['jdk_1.8_latest','jdk_11_latest']
         } else if (!targetName.endsWith('dtest-upgrade')) {
@@ -149,7 +149,7 @@ matrixJob('Cassandra-template-artifacts') {
     }
     wrappers {
         timeout {
-            noActivity(300)
+            noActivity(600)
         }
         timestamps()
     }
@@ -807,7 +807,7 @@ matrixJob('Cassandra-devbranch-artifacts') {
     description(jobDescription)
     concurrentBuild()
     axes {
-        jdk(jdk(jdks('cassandra-4.1', 'artifacts'))) // hack to make devbranch test both jdk8 and jdk11
+        jdk(jdks('cassandra-4.1', 'artifacts')) // hack to make devbranch test both jdk8 and jdk11
         if (arm64_enabled) {
             label('label', slaveLabel, slaveArm64Label)
         } else {
@@ -822,7 +822,7 @@ matrixJob('Cassandra-devbranch-artifacts') {
     }
     wrappers {
         timeout {
-            noActivity(300)
+            noActivity(600)
         }
         timestamps()
     }
@@ -925,7 +925,7 @@ testTargets.each {
                 text('split', values)
                 _testSplits = "/${testSplits}"
             }
-            jdk(jdk(jdks('cassandra-4.1', targetName))) // hack to make devbranch test both jdk8 and jdk11
+            jdk(jdks('cassandra-4.1', targetName)) // hack to make devbranch test both jdk8 and jdk11
             if (use_arm64_test_label()) {
                 label('label', slaveLabel, slaveArm64Label)
             } else {
@@ -1076,7 +1076,7 @@ archs.each {
                 stringParam('DOCKER_IMAGE', "${dtestDockerImage}", 'Docker image for running dtests')
             }
             axes {
-                jdk(jdk(jdks('cassandra-4.1', targetName))) // hack to make devbranch test both jdk8 and jdk11
+                jdk(jdks('cassandra-4.1', targetName)) // hack to make devbranch test both jdk8 and jdk11
                 List<String> values = new ArrayList<String>()
                 if (targetName == 'dtest-large' || targetName == 'dtest-large-novnode') {
                     splits = dtestLargeSplits
@@ -1215,7 +1215,7 @@ matrixJob('Cassandra-devbranch-cqlsh-tests') {
     }
     axes {
         text('cython', 'yes', 'no')
-        jdk(jdk(jdks('cassandra-4.1', 'cqlsh-tests'))) // hack to make devbranch test both jdk8 and jdk11
+        jdk(jdks('cassandra-4.1', 'cqlsh-tests')) // hack to make devbranch test both jdk8 and jdk11
         if (use_arm64_test_label()) {
             label('label', slaveLabel, slaveArm64Label)
         } else {
@@ -1365,7 +1365,7 @@ job('cassandra-website') {
     wrappers {
         preBuildCleanup()
         timeout {
-            noActivity(300)
+            noActivity(600)
         }
         timestamps()
     }
