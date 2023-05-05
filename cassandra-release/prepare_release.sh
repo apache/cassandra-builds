@@ -403,15 +403,15 @@ then
     echo "The test build of Cassandra ${release} is available." >> $mail_test_announce_file
     echo "" >> $mail_test_announce_file
     echo "sha1: $head_commit" >> $mail_test_announce_file
-    echo "Git: $asf_git_repo?p=cassandra.git;a=shortlog;h=refs/tags/$release-tentative" >> $mail_test_announce_file
+    echo "Git: https://github.com/apache/cassandra/tree/$release-tentative" >> $mail_test_announce_file
     echo "Maven Artifacts: $staging_repo/orgapachecassandra-$staging_number/org/apache/cassandra/cassandra-all/$release/" >> $mail_test_announce_file
     echo "" >> $mail_test_announce_file
     echo "The Source and Build Artifacts, and the Debian and RPM packages and repositories, are available here: https://dist.apache.org/repos/dist/dev/cassandra/$release/" >> $mail_test_announce_file
     echo "" >> $mail_test_announce_file
     echo "A vote of this test build will be initiated within the next couple of days." >> $mail_test_announce_file
     echo "" >> $mail_test_announce_file
-    echo "[1]: CHANGES.txt: $asf_git_repo?p=cassandra.git;a=blob_plain;f=CHANGES.txt;hb=refs/tags/$release-tentative" >> $mail_test_announce_file
-    echo "[2]: NEWS.txt: $asf_git_repo?p=cassandra.git;a=blob_plain;f=NEWS.txt;hb=refs/tags/$release-tentative" >> $mail_test_announce_file
+    echo "[1]: CHANGES.txt: https://github.com/apache/cassandra/blob/$release-tentative/CHANGES.txt" >> $mail_test_announce_file
+    echo "[2]: NEWS.txt: https://github.com/apache/cassandra/blob/$release-tentative/NEWS.txt" >> $mail_test_announce_file
 
     echo "Test announcement mail written to $mail_test_announce_file"
 
@@ -421,15 +421,15 @@ then
     echo "Proposing the test build of Cassandra ${release} for release." >> $mail_vote_file
     echo "" >> $mail_vote_file
     echo "sha1: $head_commit" >> $mail_vote_file
-    echo "Git: $asf_git_repo?p=cassandra.git;a=shortlog;h=refs/tags/$release-tentative" >> $mail_vote_file
+    echo "Git: https://github.com/apache/cassandra/tree/$release-tentative" >> $mail_vote_file
     echo "Maven Artifacts: $staging_repo/orgapachecassandra-$staging_number/org/apache/cassandra/cassandra-all/$release/" >> $mail_vote_file
     echo "" >> $mail_vote_file
     echo "The Source and Build Artifacts, and the Debian and RPM packages and repositories, are available here: https://dist.apache.org/repos/dist/dev/cassandra/$release/" >> $mail_vote_file
     echo "" >> $mail_vote_file
     echo "The vote will be open for 72 hours (longer if needed). Everyone who has tested the build is invited to vote. Votes by PMC members are considered binding. A vote passes if there are at least three binding +1s and no -1's." >> $mail_vote_file
     echo "" >> $mail_vote_file
-    echo "[1]: CHANGES.txt: $asf_git_repo?p=cassandra.git;a=blob_plain;f=CHANGES.txt;hb=refs/tags/$release-tentative" >> $mail_vote_file
-    echo "[2]: NEWS.txt: $asf_git_repo?p=cassandra.git;a=blob_plain;f=NEWS.txt;hb=refs/tags/$release-tentative" >> $mail_vote_file
+    echo "[1]: CHANGES.txt: https://github.com/apache/cassandra/blob/$release-tentative/CHANGES.txt" >> $mail_vote_file
+    echo "[2]: NEWS.txt: https://github.com/apache/cassandra/blob/$release-tentative/NEWS.txt" >> $mail_vote_file
 
     echo "Vote mail written to $mail_vote_file"
 fi

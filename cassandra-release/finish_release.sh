@@ -262,8 +262,8 @@ echo "[WARNING] Debian and RedHat package repositories have moved! Debian /etc/a
 echo "" >> $mail_file
 echo "Enjoy!" >> $mail_file
 echo "" >> $mail_file
-echo "[1]: CHANGES.txt $asf_git_repo?p=cassandra.git;a=blob_plain;f=CHANGES.txt;hb=refs/tags/cassandra-$release" >> $mail_file
-echo "[2]: NEWS.txt $asf_git_repo?p=cassandra.git;a=blob_plain;f=NEWS.txt;hb=refs/tags/cassandra-$release" >> $mail_file
+echo "[1]: CHANGES.txt https://github.com/apache/cassandra/blob/cassandra-$release/CHANGES.txt" >> $mail_file
+echo "[2]: NEWS.txt https://github.com/apache/cassandra/blob/cassandra-$release/NEWS.txt" >> $mail_file
 echo "[3]: https://issues.apache.org/jira/browse/CASSANDRA" >> $mail_file
 
 
