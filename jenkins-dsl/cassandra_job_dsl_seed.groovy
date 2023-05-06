@@ -10,7 +10,7 @@
 ////////////////////////////////////////////////////////////
 
 def jobDescription = '''
-<p><img src="http://cassandra.apache.org/img/cassandra_logo.png" />
+<p><img src="http://cassandra.apache.org/assets/img/logo-white.svg" />
 <br/>Apache Cassandra DSL-generated job - DSL git repo: <a href="https://github.com/apache/cassandra-builds">cassandra-builds</a></p>
 <p>Logs and test results are archived in <a href="https://nightlies.apache.org/cassandra/">nightlies.apache.org</a>
 <br/><i>protip: it is required to look in the pipeline's console log to find the stage build numbers for a specific pipeline run</i></p>
