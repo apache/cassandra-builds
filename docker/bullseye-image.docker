@@ -1,4 +1,4 @@
-FROM debian:bullseye-backports
+FROM debian:bullseye
 
 ENV DEB_DIST_DIR=/dist
 ENV BUILD_HOME=/home/build
@@ -15,15 +15,16 @@ RUN apt-get update && apt-get -y install \
    devscripts \
    git \
    wget \
-   sudo \
-   python3-dev
+   sudo
 
-RUN apt-get -y -t bullseye-backports --no-install-recommends install \
+RUN apt-get -y -t bullseye --no-install-recommends install \
    sphinx-doc \
    sphinx-common \
    sphinx-rtd-theme-common \
    debhelper
 
+# dh-python is incompatible with python-is-python2, so we'll link it ourselves
+RUN ln -s /usr/bin/python2 /usr/bin/python
 
 RUN echo 'deb https://archive.debian.org/debian/ stretch main' >> /etc/apt/sources.list
 
@@ -44,6 +45,9 @@ ENV PATH="${ANT_HOME}/bin:${PATH}"
 RUN adduser --disabled-login --gecos build build && gpasswd -a build sudo
 RUN echo "build ALL=(root) NOPASSWD:ALL" > /etc/sudoers.d/build && \
    chmod 0440 /etc/sudoers.d/build
+
+RUN sed -i '/deb https:\/\/archive.debian.org\/debian\/ stretch main/d' /etc/apt/sources.list
+RUN apt-get update
 
 USER build
 
