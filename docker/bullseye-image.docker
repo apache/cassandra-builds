@@ -30,7 +30,7 @@ RUN echo 'deb http://deb.debian.org/debian bullseye main' >> /etc/apt/sources.li
     && echo 'deb http://deb.debian.org/debian sid main' >> /etc/apt/sources.list
 
 RUN until apt-get update \
-    && apt-get install -y --no-install-recommends openjdk-8-jdk openjdk-11-jdk openjdk-17-jdk ; \
+    && apt-get install -y --no-install-recommends openjdk-8-jdk openjdk-11-jdk openjdk-17-jdk fakeroot; \
     do echo "apt failed… trying again in 10s… " ; sleep 10 ; done
 
 RUN sed -i '$d' /etc/apt/sources.list \
@@ -51,7 +51,7 @@ RUN echo "build ALL=(root) NOPASSWD:ALL" > /etc/sudoers.d/build && \
 USER build
 
 # clone Cassandra and cache maven artifacts
-ARG CASSANDRA_GIT_URL=https://github.com/apache/cassandra.git
+ARG CASSANDRA_GIT_URL=https://github.com/instaclustr/cassandra.git
 RUN git config --global http.postBuffer 524288000
 RUN git clone ${CASSANDRA_GIT_URL} ${CASSANDRA_DIR}
 WORKDIR ${CASSANDRA_DIR}
