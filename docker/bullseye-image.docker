@@ -19,11 +19,15 @@ RUN apt-get update && apt-get -y install \
    python3-dev
 
 RUN apt-get -y -t bullseye-backports --no-install-recommends install \
-   openjdk-8-jdk \
    sphinx-doc \
    sphinx-common \
    sphinx-rtd-theme-common \
    debhelper
+
+
+RUN echo 'deb http://deb.debian.org/debian sid main' >> /etc/apt/sources.list
+
+RUN apt-get update && apt-get -y install openjdk-8-jdk
 
 RUN update-java-alternatives --set java-1.8.0-openjdk-$(dpkg --print-architecture)
 
