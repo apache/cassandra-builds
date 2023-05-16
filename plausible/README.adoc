@@ -1,0 +1,151 @@
+== Analytics for Cassandra Web
+
+This document serves as a guide for anybody who wants to re/deploy https://plausible.io/[Plausible].
+
+=== Overview of the current deployment
+
+Plausible is currently deployed on t2.medium instance in AWS EC2, it runs on Debian 10 Buster and
+it has Elastic IP 3.124.255.5 (stays after restarts). Plausible runs in Docker Compose and it is
+secured by HTTPS. Certificates for HTTPS are obtained from Let's Encrypt and they are
+automatically renewed after expiration. There is nginx reverse proxy in front of Plausible as
+the other Docker Compose deployment.
+
+Plausible service is hosted under https://www.instaclustr.com[Instaclustr]'s account. Please contact
+stefan dot miklosovic at instaclustr dot com for any related questions / issues.
+
+Domain `plausible.cassandra.apache.org` points to 3.124.255.5. Please contact gmcdonald at apache dot org for
+any related questions / issues.
+
+For the access to all credentials (PEM to ssh to that box, logins to Plausible etc), please contact
+someone on the PMC, as credentials are stored in the private subversion repository.
+
+=== Setup of Plausible from scratch
+
+Please be sure that before proceeding, your box has these services / software installed:
+
+* docker
+* docker-compose
+* git
+
+The deployment consists of these logical steps:
+
+* setup HTTPS for nginx proxy
+* setup & run self-hosted Plausible
+* setup & run reverse nginx proxy talking to Plausible
+
+==== Setup of HTTP for nginx proxy
+
+First we generate HTTPS certificates:
+
+----
+$ git clone https://github.com/wmnnd/nginx-certbot.git
+$ cd nginx-certbox
+----
+
+Follow the https://github.com/wmnnd/nginx-certbot[readme] of nginx-certbox repo. You need to change
+`domains` in `init-letsencrypt.sh` script to `domains=(plausible.cassandra.apache.org)`.
+
+Next, modify `data/nginx/app.conf`, change `server_name` to `plausible.cassandra.apache.org` for
+both 80 and 443 case and change paths to certificates.
+
+`proxy_pass` field of `location /` for server listening to port 443 should be set to `http://plausible:8000/;`.
+`plausible` in this address points to name of a service of Docker compose we will setup afterwards.
+
+This will generate HTTPS certificates, please be sure that you have 80 and 443 port open.
+
+----
+$ ./init-letsencrypt.sh
+$ docker-compose up -d
+----
+
+`data/nginx/app.conf` file with described changes is also in the same directory as this document for reference.
+
+==== Setup of Plausible
+
+----
+$ git clone https://github.com/plausible/hosting
+$ cd hosting
+----
+
+The main configuration file is `plausible-conf.env`
+
+----
+ADMIN_USER_EMAIL=stefan.miklosovic@instaclustr.com
+ADMIN_USER_NAME=admin
+ADMIN_USER_PWD=you will log in with this password under ADMIN_USER_EMAIL
+BASE_URL=https://plausible.cassandra.apache.org/
+SECRET_KEY_BASE=see for the explanation below
+PORT=8000
+DISABLE_AUTH=false
+DISABLE_REGISTRATION=false
+GEOLITE2_COUNTRY_DB=/geoip/GeoLite2-Country.mmdb
+----
+
+`SECRET_KEY_BASE` is an internal secret key used by Phoenix Framework which Plausible builds on.
+Follow the https://hexdocs.pm/phoenix/Mix.Tasks.Phx.Gen.Secret.html#content[instructions] to generate one.
+The setup to generate such a secret is very long as it requires you to setup Erlang OTP, Phoenix etc etc and it seems
+to me that the value of `SECRET_KEY_BASE` needs to be some random string so https://github.com/plausible/analytics/discussions/824[anything sensible will do].
+
+For GeoIP (seeing a world map with hits from countries), you need to https://dev.maxmind.com/geoip/geoip2/geolite2/[create an account here].
+Then provide credentials in `geopip/geoip.conf`.
+
+`DISABLE_REGISTRATION` might be set to `true` after all accounts are created as we will prevent everybody to
+try to create accounts and potentially abuse this service.
+
+You do not need to do anything for SMTP to work, all default values are just fine in order to be able to
+send transactional emails. Please consult SMTP setup in FAQ section to know more if you happen to run on AWS.
+
+For more details, follow the https://plausible.io/docs/self-hosting-configuration[official docs].
+
+For simplicity, you will find unified Docker compose file with Plausible as well as with GeoLite
+integration in `docker-compose.yaml` in this directory.
+
+Do `docker-compose up -d` to start and move it to background.
+
+=== FAQ
+
+==== When I do docker-compose down, does it remove data of Plausible?
+
+No, unless you delete them by `-v` flag. This means that normal down / up will keep data / statistics
+from the last run. Some browsers might cache older stats, the rule of thumb is to open analytics dashboard
+in a private tab.
+
+==== How to lift limits on SMTP on AWS?
+
+By default, AWS blocks any SMTP traffic outside (e.g. to prevent spamming) so Plausible's mail c
+container will not be able to send anything. You need to send an email to AWS support to lift these
+restrictions. Submit https://aws.amazon.com/forms/ec2-email-limit-rdns-request[this form] to resolve this.
+
+You may check if your hosting is preventing the box to e.g. contact SMTP servers like this:
+
+----
+$ sudo traceroute -n -T -p 25 gmail-smtp-in.l.google.com
+----
+
+==== How two verify email in Plausible when e-mails do not work?
+
+----
+$ docker exec -ti hosting_plausible_db_1 psql -U postgres plausible_db
+----
+
+After getting into Postgres shell:
+
+----
+UPDATE users set email_verified=true;
+----
+
+==== How much disk space I should specify upon box provisioning?
+
+40G is more you will ever need. 20G is fine too.
+
+==== How do I restart everything?
+
+----
+$ cd ~/hosting
+$ docker-compose down && docker compose up -d
+$ cd ~/ngxin-certbot
+$ docker-compose down && docker-compose up -d
+----
+
+It might take some time to start Plausible especially when it is for the first time as DB has to be
+created etc.

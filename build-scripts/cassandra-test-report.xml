@@ -1,0 +1,11 @@
+ <project name="generate_test_report" default="generate_test_report" basedir=".">
+    <target name="generate_test_report">
+        <junitreport todir="${user.dir}">
+            <fileset dir="${user.dir}">
+                <include name="**/TEST*.xml"/>
+                <include name="**/cqlshlib.xml"/>
+                <include name="**/nosetests.xml"/>
+            </fileset>
+        </junitreport>
+    </target>
+</project>

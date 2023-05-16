@@ -1,0 +1,59 @@
+FROM debian:bullseye
+
+ENV DEB_DIST_DIR=/dist
+ENV BUILD_HOME=/home/build
+ENV CASSANDRA_DIR=$BUILD_HOME/cassandra
+ARG UID_ARG=1000
+ARG GID_ARG=1000
+
+LABEL org.cassandra.buildenv=bullseye
+
+VOLUME ${DEB_DIST_DIR}
+
+RUN echo "Building with arguments:" \
+    && echo " - DEB_DIST_DIR=${DEB_DIST_DIR}" \
+    && echo " - BUILD_HOME=${BUILD_HOME}" \
+    && echo " - CASSANDRA_DIR=${CASSANDRA_DIR}" \
+    && echo " - UID_ARG=${UID_ARG}" \
+    && echo " - GID_ARG=${GID_ARG}"
+
+# configure apt to retry downloads
+RUN echo 'APT::Acquire::Retries "99";' > /etc/apt/apt.conf.d/80-retries
+RUN echo 'Acquire::http::Timeout "60";' > /etc/apt/apt.conf.d/80proxy.conf
+RUN echo 'Acquire::ftp::Timeout "60";' >> /etc/apt/apt.conf.d/80proxy.conf
+
+# install deps
+RUN until apt-get update && apt-get -y install ant build-essential curl devscripts git python2 sudo ; \
+    do echo "apt failed… trying again in 10s… " ; sleep 10 ; done
+
+RUN echo 'deb http://deb.debian.org/debian bullseye main' >> /etc/apt/sources.list \
+    && echo 'deb http://deb.debian.org/debian sid main' >> /etc/apt/sources.list
+
+RUN until apt-get update \
+    && apt-get install -y --no-install-recommends openjdk-8-jdk openjdk-11-jdk openjdk-17-jdk ; \
+    do echo "apt failed… trying again in 10s… " ; sleep 10 ; done
+
+RUN sed -i '$d' /etc/apt/sources.list \
+    && apt-get update \
+    && update-java-alternatives --set java-1.8.0-openjdk-$(dpkg --print-architecture)
+
+# dh-python is incompatible with python-is-python2, so we'll link it ourselves
+RUN ln -s /usr/bin/python2 /usr/bin/python
+
+# create and change to build user
+RUN groupadd --gid ${GID_ARG} --non-unique build \
+    && adduser --uid ${UID_ARG} --gid ${GID_ARG} --disabled-login --gecos build build \
+    && gpasswd -a build sudo
+    
+RUN echo "build ALL=(root) NOPASSWD:ALL" > /etc/sudoers.d/build && \
+   chmod 0440 /etc/sudoers.d/build
+
+USER build
+
+# clone Cassandra and cache maven artifacts
+ARG CASSANDRA_GIT_URL=https://github.com/apache/cassandra.git
+RUN git config --global http.postBuffer 524288000
+RUN git clone ${CASSANDRA_GIT_URL} ${CASSANDRA_DIR}
+WORKDIR ${CASSANDRA_DIR}
+
+COPY build-debs.sh $BUILD_HOME/
