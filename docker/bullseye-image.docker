@@ -25,7 +25,7 @@ RUN apt-get -y -t bullseye-backports --no-install-recommends install \
    debhelper
 
 
-RUN echo 'deb http://deb.debian.org/debian sid main' >> /etc/apt/sources.list
+RUN echo 'deb http://archive.debian.org/debian/ stretch main' >> /etc/apt/sources.list
 
 RUN apt-get update && apt-get -y install openjdk-8-jdk
 
