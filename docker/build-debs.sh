@@ -136,7 +136,7 @@ set -e
 until ( echo "y" | sudo mk-build-deps --install ) ; do echo "mk-build-deps failed… trying again after 10s… " ; sleep 10 ; done
 
 # build package
-dpkg-buildpackage -rfakeroot -uc -us
+dpkg-buildpackage -rfakeroot -uc -us --source-option=--tar-ignore=.git
 
 # Copy created artifacts to dist dir mapped to docker host directory (must have proper permissions)
 cp ../cassandra[-_]* $DEB_DIST_DIR
