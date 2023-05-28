@@ -70,6 +70,6 @@ for group in ${groups[*]} ; do
       ;;
     esac
 
-    ( for d in ${groupings[*]} ; do cd /tmp/contribulyze-repos/${d} ; git log --no-merges --since="${git_since}" . ; cd - ; done  ) | ${script_dir}/contribulyze.py -t "${group//../} ${period//_/ }"
+    ( for d in ${groupings[*]} ; do cd /tmp/contribulyze-repos/${d} ; git log --no-merges --since="${git_since}" . ; cd - ; done  ) | awk NF | ${script_dir}/contribulyze.py -t "${group//../} ${period//_/ }"
   done
 done
