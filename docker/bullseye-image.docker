@@ -18,7 +18,7 @@ RUN apt-get update && apt-get -y install \
    sudo \
    python3-dev
 
-RUN apt-get -y -t bullseye-backports --no-install-recommends install \
+RUN apt-get -y -t bullseye --no-install-recommends install \
    openjdk-11-jdk \
    sphinx-doc \
    sphinx-common \
