@@ -15,9 +15,8 @@ RUN apt-get update && apt-get -y install \
    devscripts \
    git \
    wget \
-   sudo \
-   python3-dev
-
+   sudo
+   
 RUN apt-get -y -t bullseye --no-install-recommends install \
    openjdk-11-jdk \
    sphinx-doc \
