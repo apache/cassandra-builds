@@ -77,6 +77,7 @@ _main() {
 
   local -r java_version=$(java -version 2>&1 | awk -F '"' '/version/ {print $2}' | awk -F. '{print $1}')
   local -r version=$(grep 'property\s*name=\"base.version\"' build.xml |sed -ne 's/.*value=\"\([^"]*\)\".*/\1/p')
+  local -r regx_version="(2.2|3.0|3.11|4.0|4.1)(.([0-9]+))?$"
 
   if [ "$java_version" -ge 17 ]; then
     if [[ "${target}" == "jvm-dtest-upgrade" ]] ; then
@@ -85,7 +86,6 @@ _main() {
     fi
   elif [ "$java_version" -ge 11 ]; then
     export CASSANDRA_USE_JDK11=true
-    regx_version="(2.2|3.0|3.11|4.0|4.1)(.([0-9]+))?$"
     if ! grep -q "java.version.11" build.xml ; then
         echo "Skipping ${target}. JDK11 not supported against ${version}"
         exit 0
@@ -164,6 +164,12 @@ _main() {
       ant testclasslist -Dtest.classlistprefix=distributed -Dtest.timeout=$(_timeout_for "test.distributed.timeout") -Dtest.classlistfile=<(echo "${testlist}") -Dtmp.dir="${TMP_DIR}" || echo "failed $target"
       ;;
     "cqlsh-test")
+
+      if ! [[ $version =~ $regx_version ]] ; then
+        # CASSANDRA-18133 – 5.0+ no longer does `ant jar` in cassandra-cqlsh-tests.sh
+        ant jar -Dno-checkstyle=true -Drat.skip=true -Dant.gen-doc.skip=true -Djavadoc.skip=true
+      fi
+
       ./pylib/cassandra-cqlsh-tests.sh $(pwd)
       ;;
     *)
