@@ -101,8 +101,7 @@ _main() {
       ant -projecthelp | grep -q " $target " || { echo "Skipping ${target}. It does not exist in ${version}"; exit 0; }
       ;;
     "test-cdc")
-      regx_version="(2.2|3.0).([0-9]+)$"
-      ! [[ $version =~ $regx_version ]] || { echo "Skipping ${target}. It does not exist in ${version}"; exit 0; }
+      ! [[ $version =~ "(2.2|3.0).([0-9]+)$" ]] || { echo "Skipping ${target}. It does not exist in ${version}"; exit 0; }
       ;;
     "cqlsh-test")
       [[ -f "./pylib/cassandra-cqlsh-tests.sh" ]] || { echo "Skipping ${target}. It does not exist in ${version}"; exit 0; }
