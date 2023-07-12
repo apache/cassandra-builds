@@ -58,7 +58,7 @@ else
         java_version="17"
     elif [ "$java_version" -ge 11 ]; then
         java_version="11"
-        if ! grep -q "java.version.11" build.xml ; then
+        if ! grep -q "CASSANDRA_USE_JDK11" build.xml ; then
             echo "Skipping build. JDK11 not supported against $(grep 'property\s*name=\"base.version\"' build.xml |sed -ne 's/.*value=\"\([^"]*\)\".*/\1/p')"
             exit 0
         fi

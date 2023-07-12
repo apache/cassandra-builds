@@ -41,7 +41,7 @@ _build_all_dtest_jars() {
     cd cassandra-dtest-jars
     for branch in cassandra-2.2 cassandra-3.0 cassandra-3.11 cassandra-4.0 cassandra-4.1 trunk; do
         git checkout $branch
-        if [ "$java_version" -eq 11 ] && ! grep -q "java.version.11" build.xml ; then
+        if [ "$java_version" -eq 11 ] && ! grep -q "CASSANDRA_USE_JDK11" build.xml ; then
             echo "Skipping dtest-jar jdk11 build  of ${branch}."
         else
             ant realclean
@@ -86,7 +86,7 @@ _main() {
     fi
   elif [ "$java_version" -ge 11 ]; then
     export CASSANDRA_USE_JDK11=true
-    if ! grep -q "java.version.11" build.xml ; then
+    if ! grep -q "CASSANDRA_USE_JDK11" build.xml ; then
         echo "Skipping ${target}. JDK11 not supported against ${version}"
         exit 0
     elif [[ "${target}" == "jvm-dtest-upgrade"  ]] && [[ $version =~ $regx_version ]] ; then

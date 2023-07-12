@@ -40,7 +40,7 @@ if [ "$java_version" -ge 17 ]; then
 elif [ "$java_version" -ge 11 ]; then
   export CASSANDRA_USE_JDK11=true
   regx_version="(2.2|3.0|3.11|4.0|4.1)(.([0-9]+))?$"
-  if ! grep -q "java.version.11" build.xml ; then
+  if ! grep -q "CASSANDRA_USE_JDK11" build.xml ; then
     echo "Skipping ${target}. JDK11 not supported against ${version}"
     exit 0
   elif [[ "${target}" == "dtest-upgrade"  ]] && [[ $version =~ $regx_version ]] ; then

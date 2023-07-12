@@ -51,7 +51,7 @@ if [ "$java_version" -ge 17 ]; then
 elif [ "$java_version" -ge 11 ]; then
     java_version="11"
     export CASSANDRA_USE_JDK11=true
-    if ! grep -q "java.version.11" build.xml ; then
+    if ! grep -q "CASSANDRA_USE_JDK11" build.xml ; then
         echo "Skipping build. JDK11 not supported against ${cassandra_version}"
         exit 0
     fi
