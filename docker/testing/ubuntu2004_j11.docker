@@ -26,6 +26,7 @@ RUN export DEBIAN_FRONTEND=noninteractive && \
     apt-get install -y --no-install-recommends software-properties-common apt-utils vim && \
     apt-get install -y lsof
 
+# We need git 2.30.0+ to support --merge-base in diff command; Ubuntu 20.04 has 2.25.1
 RUN export DEBIAN_FRONTEND=noninteractive && \
     add-apt-repository ppa:git-core/ppa && \
     apt-get update && \
