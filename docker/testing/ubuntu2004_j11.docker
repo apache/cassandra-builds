@@ -167,6 +167,12 @@ RUN chown cassandra:cassandra ~/.ssh
 RUN chown cassandra:cassandra ~/.ssh/config
 RUN chmod 600 ~/.ssh/config
 
+# Fetch the OWASP database
+RUN mkdir -p /home/cassandra/dependency-check
+COPY build-owasp-db.xml /home/cassandra/dependency-check/build.xml
+RUN cd /home/cassandra/dependency-check && ant -f build.xml -Dowasp.data.dir=/home/cassandra/.cache/cassandra-owasp/dependency-check-ant && chown -R cassandra:cassandra /home/cassandra/.cache
+RUN rm -rf /home/cassandra/dependency-check
+
 # mark "/tmp" as a volume so it will get mounted as an ext4 mount and not
 # the stupid aufs/CoW stuff that the actual docker container mounts will have.
 # we've been seeing 3+ minute hangs when calling sync on an aufs backed mount
