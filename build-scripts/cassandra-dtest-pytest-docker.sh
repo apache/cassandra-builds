@@ -63,7 +63,17 @@ else
             exit 0
         fi
     else
-        java_version="8"
+        java_version_supported=`grep 'property\s*name="java.supported"' build.xml |sed -ne 's/.*value="\([^"]*\)".*/\1/p'`
+        if [[ -z "$java_version_supported" ]]; then
+            echo "java.supported property not found in build.xml"
+            java_version="8"
+        else
+            regx_java_version="(${java_version_supported//,/|})"
+            if [[ ! $java_version =~ $regx_java_version ]]; then
+                echo "Invalid JDK 1.8 not supported against ${cassandra_version}"
+                exit 1
+            fi
+        fi
     fi
 
     cat > env.list <<EOF
