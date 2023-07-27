@@ -43,11 +43,20 @@ _build_all_dtest_jars() {
         git checkout $branch
         if [ "$java_version" -eq 11 ] && ! grep -q "CASSANDRA_USE_JDK11" build.xml ; then
             echo "Skipping dtest-jar jdk11 build  of ${branch}."
-        else
-            ant realclean
-            ant jar dtest-jar
-            cp build/dtest*.jar ../../build/
+            continue
         fi
+        if grep -q 'property\s*name="java.supported"' build.xml ; then
+          # check if the branch supports the java version (when "java.supported" is set in build.xml)
+          java_version_supported=`grep 'property\s*name="java.supported"' build.xml |sed -ne 's/.*value="\([^"]*\)".*/\1/p'`
+          regx_java_version="(${java_version_supported//,/|})"
+          if [[ ! "$java_version" =~ $regx_java_version  ]] ; then
+            echo "Skipping dtest-jar jdk${java_version} build of ${branch}."
+            continue
+          fi
+        fi
+        ant realclean
+        ant jar dtest-jar
+        cp build/dtest*.jar ../../build/
     done
     cd ../..
     rm -fR ${TMP_DIR}/cassandra-dtest-jars
