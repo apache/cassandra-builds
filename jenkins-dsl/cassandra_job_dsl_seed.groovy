@@ -50,7 +50,7 @@ if(binding.hasVariable("CASSANDRA_DTEST_GIT_URL")) {
 }
 def buildDescStr = 'REF = ${GIT_BRANCH} <br /> COMMIT = ${GIT_COMMIT}'
 // Cassandra active branches
-def cassandraBranches = ['cassandra-2.2', 'cassandra-3.0', 'cassandra-3.11', 'cassandra-4.0', 'cassandra-4.1', 'trunk']
+def cassandraBranches = ['cassandra-2.2', 'cassandra-3.0', 'cassandra-3.11', 'cassandra-4.0', 'cassandra-4.1', 'cassandra-5.0', 'trunk']
 if(binding.hasVariable("CASSANDRA_BRANCHES")) {
     cassandraBranches = "${CASSANDRA_BRANCHES}".split(",")
 }
@@ -1354,7 +1354,7 @@ job('cassandra-website') {
         }
     }
     triggers {
-        upstream('Cassandra-3.11,Cassandra-4.0,Cassandra-4.1,Cassandra-trunk', 'UNSTABLE')
+        upstream('Cassandra-3.11,Cassandra-4.0,Cassandra-4.1,Cassandra-5.0,Cassandra-trunk', 'UNSTABLE')
         scm('H/5 * * * *')
     }
     steps {

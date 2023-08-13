@@ -39,7 +39,7 @@ _build_all_dtest_jars() {
     cd $TMP_DIR
     until git clone --quiet --depth 1 --no-single-branch https://github.com/apache/cassandra.git cassandra-dtest-jars ; do echo "git clone failed… trying again… " ; done
     cd cassandra-dtest-jars
-    for branch in cassandra-2.2 cassandra-3.0 cassandra-3.11 cassandra-4.0 cassandra-4.1 trunk; do
+    for branch in cassandra-2.2 cassandra-3.0 cassandra-3.11 cassandra-4.0 cassandra-4.1 cassandra-5.0 trunk; do
         git checkout $branch
         if [ "$java_version" -eq 11 ] && ! grep -q "CASSANDRA_USE_JDK11" build.xml ; then
             echo "Skipping dtest-jar jdk11 build  of ${branch}."
