@@ -94,7 +94,7 @@ def generate_script(ticket_merge_info: TicketMergeInfo):
                                                                                 ticket_merge_info.title))
 
             script.append("git add CHANGES.txt")
-            script.append("git commit --amend --no-edit")
+        script.append("git commit --amend --no-edit")
 
         if not ticket_merge_info.keep_changes_in_circleci:
             script.append("[[ -n \"$(git diff --name-only %s/%s..HEAD -- .circleci/)\" ]] && (git diff %s/%s..HEAD -- .circleci/ | git apply -R --index) && git commit -a --amend --no-edit # Remove all changes in .circleci directory if you need to" % (ticket_merge_info.upstream_repo, merge.release_branch.name, ticket_merge_info.upstream_repo, merge.release_branch.name))
