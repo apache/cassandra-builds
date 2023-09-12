@@ -1,3 +1,5 @@
+import os
+
 from lib.script_generator import generate_script
 from lib.git_utils import *
 
@@ -14,7 +16,7 @@ upstream_repo = read_remote_repository("Enter the name of the remote repository 
 feature_repo, ticket_number = guess_feature_repo_and_ticket()
 feature_repo = read_remote_repository("Enter the name of the remote repository that points to the upstream feature branch", feature_repo)
 
-ticket_number = read_positive_int("Enter the ticket number: ", ticket_number)
+ticket_number = read_positive_int("Enter the ticket number (for example: '12345'): ", ticket_number)
 ticket = "CASSANDRA-%s" % ticket_number
 
 print("")
@@ -76,24 +78,40 @@ for release_branch in target_release_branches:
 
 ### Read the change title ###
 
-print("")
-print("Commits:")
-# zip commits with their index
-commits = list(zip(range(1, len(merges[0].commits) + 1), merges[0].commits))
-for i, commit in commits:
-    print("%d: %s" % (i, str(commit)))
-print("")
-commit_idx = read_positive_int("Enter the number of the commit whose message should be used as a title in CHANGES.txt or leave empty to enter a custom title: ", None)
-change_title = None
-if commit_idx and commit_idx <= len(commits):
-    change_title = commits[commit_idx - 1][1].title
+need_changes_txt_entry = False
+response = None
+while response not in ["yes", "no"]:
+    response = read_with_default("Do you want the script to add a line to CHANGES.txt? (yes/no)", "yes")
+if response == "yes":
+    need_changes_txt_entry = True
+    print("")
+    print("Commits:")
+    # zip commits with their index
+    commits = list(zip(range(1, len(merges[0].commits) + 1), merges[0].commits))
+    for i, commit in commits:
+        print("%d: %s" % (i, str(commit)))
+    print("")
+    commit_idx = read_positive_int("Enter the number of the commit whose message should be used as a title in CHANGES.txt or leave empty to enter a custom title: ", None)
+    change_title = None
+    if commit_idx and commit_idx <= len(commits):
+        change_title = commits[commit_idx - 1][1].title
+    else:
+        while not change_title:
+            change_title = read_with_default("Enter the title", commits[0][1].title).strip()
 else:
-    while not change_title:
-        change_title = read_with_default("Enter the title", commits[0][1].title).strip()
+    change_title = None
+
+### Keep the circleci config changes? ###
+keep_changes_in_circleci = False
+response = None
+while response not in ["yes", "no"]:
+    response = read_with_default("Do you want to keep changes in .circleci directory? (yes/no)", "no")
+if response == "yes":
+    keep_changes_in_circleci = True
 
 ### Generate the script ###
 
-ticket_merge_info = TicketMergeInfo(ticket, change_title, upstream_repo, feature_repo, merges)
+ticket_merge_info = TicketMergeInfo(ticket, change_title, upstream_repo, feature_repo, merges, keep_changes_in_circleci)
 
 script = generate_script(ticket_merge_info)
 
@@ -101,9 +119,12 @@ script = generate_script(ticket_merge_info)
 if len(sys.argv) > 1:
     filename = sys.argv[1]
 else:
-    filename = read_with_default("Enter the filename to save the script to", "merge_%s.sh" % ticket)
+    filename = read_with_default("Enter the filename to save the script to", "../merge_%s.sh" % ticket)
 
 # Save the script to the file
 with open(filename, "w") as f:
     for s in script:
         f.write(s + "\n")
+
+# make the script executable
+os.chmod(filename, 0o755)

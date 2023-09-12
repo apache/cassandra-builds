@@ -86,7 +86,7 @@ def generate_script(ticket_merge_info: TicketMergeInfo):
                 script.append("git cherry-pick -n %s # %s - %s" % (commit.sha, commit.author, commit.title))
 
         version_section, merge_sections = resolve_version_and_merge_sections(idx, [(m.release_branch, m.feature_branch is not None) for m in merges])
-        if version_section:
+        if ticket_merge_info.title and version_section:
             script.append("python3 %s/update_changes.py '%s' '%s' '%s' '%s'" % (script_dir,
                                                                                 ticket_merge_info.ticket,
                                                                                 version_as_string(version_section.version),
@@ -96,7 +96,8 @@ def generate_script(ticket_merge_info: TicketMergeInfo):
             script.append("git add CHANGES.txt")
             script.append("git commit --amend --no-edit")
 
-        script.append("[[ -n \"$(git diff --name-only %s/%s..HEAD -- .circleci/)\" ]] && (git diff %s/%s..HEAD -- .circleci/ | git apply -R --index) && git commit -a --amend --no-edit # Remove all changes in .circleci directory if you need to" % (ticket_merge_info.upstream_repo, merge.release_branch.name, ticket_merge_info.upstream_repo, merge.release_branch.name))
+        if not ticket_merge_info.keep_changes_in_circleci:
+            script.append("[[ -n \"$(git diff --name-only %s/%s..HEAD -- .circleci/)\" ]] && (git diff %s/%s..HEAD -- .circleci/ | git apply -R --index) && git commit -a --amend --no-edit # Remove all changes in .circleci directory if you need to" % (ticket_merge_info.upstream_repo, merge.release_branch.name, ticket_merge_info.upstream_repo, merge.release_branch.name))
         script.append("git diff --name-only %s/%s..HEAD # print a list of all changes files" % (ticket_merge_info.upstream_repo, merge.release_branch.name))
 
     script.append("")

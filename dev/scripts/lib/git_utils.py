@@ -25,6 +25,7 @@ class TicketMergeInfo(NamedTuple):
     upstream_repo: str
     feature_repo: str
     merges: list[BranchMergeInfo]
+    keep_changes_in_circleci: bool
 
 NO_VERSION = (-1, -1)
 TRUNK_VERSION = (255, 255)
@@ -99,7 +100,7 @@ def guess_feature_repo_and_ticket():
         ticket_regex = re.compile(r"CASSANDRA-(\d+)", flags=re.IGNORECASE)
         ticket_match = ticket_regex.search(match.group(2))
         if ticket_match:
-            return (match.group(1), ticket_match.group(1))
+            return (match.group(1), int(ticket_match.group(1)))
         return (match.group(1), None)
     return (None, None)
 
@@ -241,7 +242,10 @@ def read_positive_int(prompt, default):
     value = None
     while not value:
         try:
-            value = input(prompt)
+            if default:
+                value = input("%s [default: %s]: " % (prompt, default))
+            else:
+                value = input(prompt)
             if value:
                 v = int(value)
                 if v > 0:
