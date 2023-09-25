@@ -1,7 +1,9 @@
 import os
+import tempfile
 
 from lib.script_generator import generate_script
 from lib.git_utils import *
+from lib.jira_utils import *
 
 ensure_clean_git_tree()
 
@@ -83,23 +85,9 @@ response = None
 while response not in ["yes", "no"]:
     response = read_with_default("Do you want the script to add a line to CHANGES.txt? (yes/no)", "yes")
 if response == "yes":
-    need_changes_txt_entry = True
-    print("")
-    print("Commits:")
-    # zip commits with their index
-    commits = list(zip(range(1, len(merges[0].commits) + 1), merges[0].commits))
-    for i, commit in commits:
-        print("%d: %s" % (i, str(commit)))
-    print("")
-    commit_idx = read_positive_int("Enter the number of the commit whose message should be used as a title in CHANGES.txt or leave empty to enter a custom title: ", None)
-    change_title = None
-    if commit_idx and commit_idx <= len(commits):
-        change_title = commits[commit_idx - 1][1].title
-    else:
-        while not change_title:
-            change_title = read_with_default("Enter the title", commits[0][1].title).strip()
+    update_changes = True
 else:
-    change_title = None
+    update_changes = False
 
 ### Keep the circleci config changes? ###
 keep_changes_in_circleci = False
@@ -109,9 +97,30 @@ while response not in ["yes", "no"]:
 if response == "yes":
     keep_changes_in_circleci = True
 
+### Generate commit message ###
+commit_msg = merges[0].commits[0].title + "\n\n"
+commit_msg = commit_msg + merges[0].commits[0].body + "\n\n"
+for commit in merges[0].commits[1:]:
+    commit_msg = commit_msg + " - " + commit.title + "\n" + commit.body + "\n\n"
+
+assignee = get_assignee_from_jira(ticket)
+reviewers = get_reviewers_from_jira(ticket)
+if assignee:
+    commit_msg = commit_msg + "Patch by %s" % assignee
+if reviewers:
+    commit_msg = commit_msg + "; reviewed by %s" % ", ".join(reviewers)
+commit_msg = commit_msg + " for %s" % ticket
+
+temp_dir = tempfile.gettempdir()
+commit_msg_file = tempfile.NamedTemporaryFile(dir=temp_dir, delete=False)
+commit_msg_file.write(commit_msg.encode('utf-8'))
+
+print("")
+print("Commit message saved to %s - you will be asked to edit" % commit_msg_file.name)
+
 ### Generate the script ###
 
-ticket_merge_info = TicketMergeInfo(ticket, change_title, upstream_repo, feature_repo, merges, keep_changes_in_circleci)
+ticket_merge_info = TicketMergeInfo(ticket, update_changes, upstream_repo, feature_repo, merges, keep_changes_in_circleci, commit_msg_file.name)
 
 script = generate_script(ticket_merge_info)
 

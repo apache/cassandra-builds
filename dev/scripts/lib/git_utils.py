@@ -13,6 +13,7 @@ class Commit(NamedTuple):
     sha: str
     author: str
     title: str
+    body: str
 
 class BranchMergeInfo(NamedTuple):
     release_branch: VersionedBranch
@@ -21,11 +22,12 @@ class BranchMergeInfo(NamedTuple):
 
 class TicketMergeInfo(NamedTuple):
     ticket: str
-    title: str
+    update_changes: bool
     upstream_repo: str
     feature_repo: str
     merges: list[BranchMergeInfo]
     keep_changes_in_circleci: bool
+    commit_msg_file: str
 
 NO_VERSION = (-1, -1)
 TRUNK_VERSION = (255, 255)
@@ -156,13 +158,13 @@ def get_commits(from_repo, from_branch, to_repo, to_branch):
             return "%s/%s" % (repo, branch)
         else:
             return branch
-    output = subprocess.check_output(["git", "log", "--pretty=format:%h%x00%aN%x00%s", "--reverse", "%s..%s" % (coordinates(from_repo, from_branch), coordinates(to_repo, to_branch))], text=True)
+    output = subprocess.check_output(["git", "log", "--pretty=format:%h%n%aN%n%s%n%b%n%x00", "--reverse", "%s..%s" % (coordinates(from_repo, from_branch), coordinates(to_repo, to_branch))], text=True)
     commits = []
-    for line in output.split("\n"):
-        if not line.strip():
+    for commit_block in output.split("\0"):
+        if not commit_block:
             continue
-        match = line.split("\0")
-        commits.append(Commit(match[0], match[1], match[2]))
+        match = commit_block.strip("\n").split(sep = "\n", maxsplit = 3)
+        commits.append(Commit(match[0], match[1], match[2], match[3] if len(match) > 3 else ""))
     return commits
 
 

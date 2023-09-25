@@ -49,6 +49,14 @@ def generate_script(ticket_merge_info: TicketMergeInfo):
 
     script = ["#!/bin/bash", "", "set -xe", "", "[[ -z $(git status --porcelain) ]] # worktree must be clean"]
 
+    script.append("")
+    if ticket_merge_info.update_changes:
+        script.append("# Edit the commit message, the first will be used as the change title to update CHNAGES.txt")
+    else:
+        script.append("# Edit the commit message")
+    script.append("$(git config --get core.editor) %s" % ticket_merge_info.commit_msg_file)
+    script.append("")
+
     merges = ticket_merge_info.merges
     # index of first merge with undefined feature branch
     for idx in range(0, len(merges)):
@@ -66,6 +74,7 @@ def generate_script(ticket_merge_info: TicketMergeInfo):
             # ensure that there is at least one non-merge commit in the feature branch
             assert len([c for c in merge.commits if parse_merge_commit_msg(c.title) is None]) > 0
 
+        closed = True
         script.append("git switch %s" % merge.release_branch.name)
         script.append("git reset --hard %s/%s" % (ticket_merge_info.upstream_repo, merge.release_branch.name))
         commits = []
@@ -84,17 +93,24 @@ def generate_script(ticket_merge_info: TicketMergeInfo):
                 script.append("# skipping merge commit %s %s - %s" % (commit.sha, commit.author, commit.title))
             else:
                 script.append("git cherry-pick -n %s # %s - %s" % (commit.sha, commit.author, commit.title))
+                closed = False
 
         version_section, merge_sections = resolve_version_and_merge_sections(idx, [(m.release_branch, m.feature_branch is not None) for m in merges])
-        if ticket_merge_info.title and version_section:
-            script.append("python3 %s/update_changes.py '%s' '%s' '%s' '%s'" % (script_dir,
+        if ticket_merge_info.update_changes and version_section:
+            script.append("python3 %s/update_changes.py '%s' '%s' '%s' %s" % (script_dir,
                                                                                 ticket_merge_info.ticket,
                                                                                 version_as_string(version_section.version),
                                                                                 ",".join([version_as_string(m.version) for m in merge_sections]),
-                                                                                ticket_merge_info.title))
+                                                                                '"$(head -n 1 %s)"' % ticket_merge_info.commit_msg_file))
 
             script.append("git add CHANGES.txt")
-        script.append("git commit --amend --no-edit")
+            closed = False
+
+        if not closed:
+            script.append("git commit --amend --no-edit")
+
+        if idx == 0:
+            script.append("git commit --allow-empty --amend --file %s" % ticket_merge_info.commit_msg_file)
 
         if not ticket_merge_info.keep_changes_in_circleci:
             script.append("[[ -n \"$(git diff --name-only %s/%s..HEAD -- .circleci/)\" ]] && (git diff %s/%s..HEAD -- .circleci/ | git apply -R --index) && git commit -a --amend --no-edit # Remove all changes in .circleci directory if you need to" % (ticket_merge_info.upstream_repo, merge.release_branch.name, ticket_merge_info.upstream_repo, merge.release_branch.name))
