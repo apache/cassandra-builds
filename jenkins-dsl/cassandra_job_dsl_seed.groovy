@@ -383,10 +383,8 @@ matrixJob('Cassandra-template-cqlsh-tests') {
 
 cassandraBranchesInTreeScript.each {
     def branchName = it
-    
-    // FIXME testing before merge
-    def jobNamePrefix = "Cassandra-intree-${branchName}".replaceAll('cassandra-', '')
-    //def jobNamePrefix = "Cassandra-${branchName}".replaceAll('cassandra-', '')
+
+    def jobNamePrefix = "Cassandra-${branchName}".replaceAll('cassandra-', '')
 
     matrixJob("${jobNamePrefix}-artifacts") {
         description(jobDescription)
