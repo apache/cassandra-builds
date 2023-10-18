@@ -18,7 +18,7 @@ fi
 # This script is deprecated, having been migrated to be in-tree since 5.0, see .build/docker/_build-redhat.sh
 cassandra_version="$(grep 'property\s*name=\"base.version\"' \"${CASSANDRA_DIR}/build.xml\" |sed -ne 's/.*value=\"\([^"]*\)\".*/\1/p')"
 cassandra_regx_supported_versions="^(2.2|3.0|3.11|4.0|4.1)(.[0-9]+)?$"
-[[ $cassandra_version =~ $cassandra_regx_supported_versions ]] || { echo "Cassandra ${cassandra_version} not supported. (This script is in-tree since 5.0)"; exit 1; }
+#[[ $cassandra_version =~ $cassandra_regx_supported_versions ]] || { echo "Cassandra ${cassandra_version} not supported. (This script is in-tree since 5.0)"; exit 1; }
 
 CASSANDRA_SHA=$1
 JAVA_VERSION=$2
