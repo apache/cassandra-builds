@@ -88,7 +88,7 @@ _main() {
   local -r version=$(grep 'property\s*name=\"base.version\"' build.xml |sed -ne 's/.*value=\"\([^"]*\)\".*/\1/p')
   local -r regx_version="(2.2|3.0|3.11|4.0|4.1)(.([0-9]+))?$"
 
-  if [[ $version =~ $regx_version ]] ; then
+  if [[ ! $version =~ $regx_version ]] ; then
       echo "This script is deprecated, having been migrated to be in-tree since 5.0, see .build/run-tests.sh"
       exit 1
   fi
