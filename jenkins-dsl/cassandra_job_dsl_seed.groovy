@@ -917,6 +917,9 @@ cassandraBranchesInTreeScript.each {
             numToKeep(30)
             artifactNumToKeep(10)
         }
+        throttleConcurrentBuilds {
+            maxTotal(1)
+        }
         properties {
             githubProjectUrl(mainRepo)
             priority(1)
@@ -943,6 +946,9 @@ cassandraBranchesInTreeScript.each {
                 }
                 scriptPath('.jenkins/Jenkinsfile')
             }
+        }
+        triggers {
+            scm('H/5 * * * *')
         }
     }
 }
@@ -1317,12 +1323,8 @@ cassandraBranches.each {
             numToKeep(30)
             artifactNumToKeep(10)
         }
-        if (branchName != 'cassandra-5.0') {
-          // allow one pipeline branch to "have focus" and be unthrottled, all other branches queue
-          throttleConcurrentBuilds {
-              maxTotal(1)
-              categories(['cassandra'])
-          }
+        throttleConcurrentBuilds {
+            maxTotal(1)
         }
         properties {
             githubProjectUrl(mainRepo)
@@ -1871,8 +1873,7 @@ pipelineJob('Cassandra-devbranch') {
         artifactNumToKeep(10)
     }
     throttleConcurrentBuilds {
-        maxPerNode(1)
-        maxTotal(2)
+        maxTotal(1)
     }
     parameters {
         stringParam('REPO', 'apache', 'The github user/org to clone cassandra repo from')
