@@ -72,6 +72,7 @@ def dtestDockerImage = 'apache/cassandra-testing-ubuntu2004-java11'
 
 // tmp for CASSANDRA-18665
 def cassandraBranchesInTreeScript = ['cassandra-5.0', 'trunk']
+def testTargetsInTreeScript = ['test', 'test-burn', 'test-cdc', 'test-compression', 'test-oa', 'test-system-keyspace-directory', 'test-trie', 'stress-test', 'fqltool-test', 'long-test', 'jvm-dtest', 'jvm-dtest-upgrade', 'jvm-dtest-novnode', 'jvm-dtest-upgrade-novnode', 'microbench', 'simulator-dtest']
 def dtestTargetsInTreeScript = ['dtest', 'dtest-novnode', 'dtest-offheap', 'dtest-large', 'dtest-large-novnode', 'dtest-upgrade', 'dtest-upgrade-novnode', 'dtest-upgrade-large', 'dtest-upgrade-novnode-large']
 
 // expected longest job runtime
@@ -108,7 +109,7 @@ def exists(branchName, targetName) {
 }
 
 def isSplittableTest(targetName) {
-    return targetName == 'test' || targetName == 'test-cdc' || targetName == 'test-compression' || targetName == 'test-burn' || targetName == 'long-test' || targetName == 'jvm-dtest' || targetName == 'jvm-dtest-upgrade';
+    return targetName == 'test' || targetName == 'test-cdc' || targetName == 'test-compression' || targetName == 'test-oa' || targetName == 'test-system-keyspace-directory' || targetName == 'test-trie' || targetName == 'test-burn' || targetName == 'long-test' || targetName == 'jvm-dtest' || targetName == 'jvm-dtest-upgrade' || targetName == 'jvm-dtest-novnode' || targetName == 'jvm-dtest-upgrade-novnode';
 }
 
 def jdks(branchName, targetName) {
@@ -514,7 +515,7 @@ cassandraBranchesInTreeScript.each {
     /**
     * Main branch ant test target jobs
     */
-    testTargets.each {
+    testTargetsInTreeScript.each {
         def targetName = it
 
         if (exists(branchName, targetName)) {
