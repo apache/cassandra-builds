@@ -114,11 +114,12 @@ def isSplittableTest(targetName) {
 
 def jdks(branchName, targetName) {
     if (branchName == 'trunk' || branchName ==~ /cassandra-5.\d+/) {
-        if (!targetName.contains('dtest-upgrade')) {
-            return ['jdk_11_latest', 'jdk_17_latest']
-        } else {
-            // upgrade tests need an overlapping jdk
+        if (targetName.contains('dtest-upgrade') || targetName == 'simulator-dtest') {
+            // upgrade tests need an overlapping jdk, and
+            // simulator-dtests don't support jdk17 yet, see CASSANDRA-18831
             return ['jdk_11_latest']
+        } else {
+            return ['jdk_11_latest', 'jdk_17_latest']
         }
     } else if ((branchName ==~ /cassandra-[4].\d+/) && !targetName.contains('dtest-upgrade')) {
         return ['jdk_1.8_latest','jdk_11_latest']
