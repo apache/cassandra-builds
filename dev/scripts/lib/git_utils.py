@@ -55,15 +55,52 @@ def version_from_string(version_string):
 def version_as_string(version):
     if version is None:
         return None
+    if version == NO_VERSION:
+        return None
     if version == TRUNK_VERSION:
         return "trunk"
     return "%s.%s" % version
 
 
 ### GIT functions ###
+def guess_base_version(repo, remote_repo, branch):
+    version = NO_VERSION
+
+    merge_base = None
+    for l in subprocess.check_output(["git", "log", "--decorate", "--simplify-by-decoration", "--oneline", "%s/%s" % (repo, branch)], text=True).split("\n"):
+        if "(HEAD" not in l and "(%s/%s" % (repo, branch) not in l:
+            merge_base = l.split(" ")[0]
+            break
+
+    matching_versions = []
+    if merge_base:
+        branch_regex = re.compile(r"\s*" + re.escape(remote_repo) + r"/((cassandra-(\d+)\.(\d+))|(trunk))$")
+        for l in subprocess.check_output(["git", "branch", "-r", "--contains", merge_base], text=True).split("\n"):
+            match = branch_regex.match(l)
+            if match:
+                if match.group(5):
+                    matching_versions.append(TRUNK_VERSION)
+                elif match.group(2):
+                    matching_versions.append((int(match.group(3)), int(match.group(4))))
+        matching_versions.sort()
+
+    if len(matching_versions) == 1:
+        version = matching_versions[0]
+    else:
+        branch_regex = re.compile(r".*?(-((\d+)\.(\d+))|(trunk))?$", flags=re.IGNORECASE)
+        match = branch_regex.match(branch)
+        if match:
+            if match.group(5) == "trunk":
+                version = TRUNK_VERSION
+            elif match.group(2):
+                version = (int(match.group(3)), int(match.group(4)))
+        else:
+            print("No match for %s" % branch)
+
+    return version
 
 
-def guess_feature_branches(repo, ticket):
+def guess_feature_branches(repo, remote_repo, ticket):
     """
     Get the list of branches from the given repository that contain the given ticket, sorted by version ascending.
     :param repo: configured apache repository name
@@ -78,12 +115,7 @@ def guess_feature_branches(repo, ticket):
         match = branch_regex.match(line)
         if match:
             branch = match.group(1)
-            if branch == ticket:
-                version = TRUNK_VERSION
-            elif match.group(2):
-                version = (int(match.group(3)), int(match.group(4)))
-            else:
-                version = NO_VERSION
+            version = guess_base_version(repo, remote_repo, branch)
             matching_branches.append(VersionedBranch(version, match.group(2), branch))
 
     matching_branches.sort(key=lambda x: x.version)

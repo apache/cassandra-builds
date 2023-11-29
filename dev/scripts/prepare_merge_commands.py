@@ -38,7 +38,7 @@ if len(release_branches) == 0:
 print("Found the following release branches:\n%s" % "\n".join(["%s: %s" % (version_as_string(b.version), b.name) for b in release_branches]))
 print("")
 
-feature_branches = guess_feature_branches(feature_repo, ticket)
+feature_branches = guess_feature_branches(feature_repo, upstream_repo, ticket)
 print("Found the following feature branches:\n%s" % "\n".join(["%s: %s" % (version_as_string(b.version), b.name) for b in feature_branches]))
 print("")
 
