@@ -103,6 +103,9 @@ commit_msg = commit_msg + merges[0].commits[0].body + "\n\n"
 for commit in merges[0].commits[1:]:
     commit_msg = commit_msg + " - " + commit.title + "\n" + commit.body + "\n\n"
 
+authors = ["%s <%s>" % (c.author, c.email) for c in merges[0].commits]
+authors = list(set(authors))
+authors.sort()
 assignee = get_assignee_from_jira(ticket)
 reviewers = get_reviewers_from_jira(ticket)
 if assignee:
@@ -110,6 +113,9 @@ if assignee:
 if reviewers:
     commit_msg = commit_msg + "; reviewed by %s" % ", ".join(reviewers)
 commit_msg = commit_msg + " for %s" % ticket
+commit_msg = commit_msg + "\n\n"
+for author in authors:
+    commit_msg = commit_msg + "Co-authored-by: %s\n" % author
 
 temp_dir = tempfile.gettempdir()
 commit_msg_file = tempfile.NamedTemporaryFile(dir=temp_dir, delete=False)

@@ -12,6 +12,7 @@ class VersionedBranch(NamedTuple):
 class Commit(NamedTuple):
     sha: str
     author: str
+    email: str
     title: str
     body: str
 
@@ -190,13 +191,13 @@ def get_commits(from_repo, from_branch, to_repo, to_branch):
             return "%s/%s" % (repo, branch)
         else:
             return branch
-    output = subprocess.check_output(["git", "log", "--pretty=format:%h%n%aN%n%s%n%b%n%x00", "--reverse", "%s..%s" % (coordinates(from_repo, from_branch), coordinates(to_repo, to_branch))], text=True)
+    output = subprocess.check_output(["git", "log", "--pretty=format:%h%n%aN%n%ae%n%s%n%b%n%x00", "--reverse", "%s..%s" % (coordinates(from_repo, from_branch), coordinates(to_repo, to_branch))], text=True)
     commits = []
     for commit_block in output.split("\0"):
         if not commit_block:
             continue
-        match = commit_block.strip("\n").split(sep = "\n", maxsplit = 3)
-        commits.append(Commit(match[0], match[1], match[2], match[3] if len(match) > 3 else ""))
+        match = commit_block.strip("\n").split(sep = "\n", maxsplit = 4)
+        commits.append(Commit(match[0], match[1], match[2], match[3], match[4] if len(match) > 4 else ""))
     return commits
 
 
