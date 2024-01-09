@@ -1,0 +1,11 @@
+* do not include commented-out lines in the commit message (like #Conflict...)
+* validate commit message - validate the expected format and whether people can be found in github
+* let the user edit the CHANGES message, make sure it is one line message
+
+* prepare commit message
+- list of commit messages
+- * use GPT to summarize the changes
+- list all users who interacted on any of the PRs or reviewers from Jira
+- get the current user
+- prepare the message
+- open editor with tmp file containing the message
