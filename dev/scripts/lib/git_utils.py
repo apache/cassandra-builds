@@ -88,7 +88,7 @@ def guess_base_version(repo, remote_repo, branch):
     if len(matching_versions) == 1:
         version = matching_versions[0]
     else:
-        branch_regex = re.compile(r".*?(-((\d+)\.(\d+))|(trunk))?$", flags=re.IGNORECASE)
+        branch_regex = re.compile(r".*?([-/]((\d+)\.(\d+))|(trunk))?$", flags=re.IGNORECASE)
         match = branch_regex.match(branch)
         if match:
             if match.group(5) == "trunk":
@@ -97,6 +97,8 @@ def guess_base_version(repo, remote_repo, branch):
                 version = (int(match.group(3)), int(match.group(4)))
         else:
             print("No match for %s" % branch)
+            if len(matching_versions) > 0:
+                version = matching_versions[0]
 
     return version
 
