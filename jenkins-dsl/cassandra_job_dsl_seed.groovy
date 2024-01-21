@@ -29,11 +29,11 @@ slaveDtestLargeLabel = 'cassandra-dtest-large'
 slaveArm64Label = 'cassandra-arm64'
 slaveArm64DtestLabel = 'cassandra-arm64-dtest'
 slaveArm64DtestLargeLabel = 'cassandra-arm64-dtest-large'
-def mainRepo = "https://github.com/apache/cassandra.git"
+def mainRepo = "https://github.com/apache/cassandra"
 if(binding.hasVariable("CASSANDRA_GIT_URL")) {
     mainRepo = "${CASSANDRA_GIT_URL}"
 }
-def buildsRepo = "https://github.com/apache/cassandra-builds.git"
+def buildsRepo = "https://github.com/apache/cassandra-builds"
 if(binding.hasVariable("CASSANDRA_BUILDS_GIT_URL")) {
     buildsRepo = "${CASSANDRA_BUILDS_GIT_URL}"
 }
@@ -41,7 +41,7 @@ def buildsBranch = "trunk"
 if(binding.hasVariable("CASSANDRA_BUILDS_BRANCH")) {
     buildsBranch = "${CASSANDRA_BUILDS_BRANCH}"
 }
-def dtestRepo = "https://github.com/apache/cassandra-dtest.git"
+def dtestRepo = "https://github.com/apache/cassandra-dtest"
 if(binding.hasVariable("CASSANDRA_DTEST_GIT_URL")) {
     dtestRepo = "${CASSANDRA_DTEST_GIT_URL}"
 }
@@ -498,7 +498,8 @@ cassandraBranchesInTreeScript.each {
                                 echo "Cleaning processes…" ;
                                 if ! ( pgrep -xa docker || pgrep -af "cassandra-builds/build-scripts" ) ; then pkill -9 -f org.apache.cassandra. || echo "already clean" ; fi ;
                                 echo "Pruning docker…" ;
-                                if pgrep -xa docker || pgrep -af "cassandra-builds/build-scripts" ; then docker system prune --all --force --filter "until=${maxJobHours}h" || true ; else  docker system prune --all --force --volumes || true ;  fi;
+                                docker volume ls -qf dangling=true | xargs -r docker rm -v ;
+                                if pgrep -xa docker || pgrep -af "cassandra-builds/build-scripts" ; then docker system prune --force --filter "until=${maxJobHours}h" || true ; else  docker system prune --all --force --volumes || true ;  fi;
                                 echo "Reporting disk usage…"; df -h ;
                                 echo "Cleaning tmp…";
                                 find . -type d -name tmp -delete 2>/dev/null ;
@@ -635,7 +636,8 @@ cassandraBranchesInTreeScript.each {
                                             echo "Cleaning processes…" ;
                                             if ! ( pgrep -xa docker || pgrep -af "cassandra-builds/build-scripts" ) ; then pkill -9 -f org.apache.cassandra. || echo "already clean" ; fi ;
                                             echo "Pruning docker…" ;
-                                            if pgrep -xa docker || pgrep -af "cassandra-builds/build-scripts" ; then docker system prune --all --force --filter "until=${maxJobHours}h" || true ; else  docker system prune --all --force --volumes || true ;  fi;
+                                            docker volume ls -qf dangling=true | xargs -r docker rm -v ;
+                                            if pgrep -xa docker || pgrep -af "cassandra-builds/build-scripts" ; then docker system prune --force --filter "until=${maxJobHours}h" || true ; else  docker system prune --all --force --volumes || true ;  fi;
                                             echo "Reporting disk usage…"; du -xm / 2>/dev/null | sort -rn | head -n 30 ; df -h ;
                                             echo "Cleaning tmp…";
                                             find . -type d -name tmp -delete 2>/dev/null ;
@@ -729,7 +731,7 @@ cassandraBranchesInTreeScript.each {
                     shell("""
                         git clean -qxdff  || echo "failed to clean… continuing…";
 
-                        export python_version="3.7" ;
+                        export python_version="3.8" ;
                         export cassandra_dtest_dir="\$(pwd)/build/cassandra-dtest" ;
                         mkdir -p build ;
                         until git clone --quiet --depth 1 -b ${dtestBranch} ${dtestRepo} "\${cassandra_dtest_dir}" ; do echo "git clone failed… trying again… " ; done
@@ -780,7 +782,8 @@ cassandraBranchesInTreeScript.each {
                                         echo "Cleaning processes…" ;
                                         if ! ( pgrep -xa docker || pgrep -af "cassandra-builds/build-scripts" ) ; then pkill -9 -f org.apache.cassandra. || echo "already clean" ; fi ;
                                         echo "Pruning docker…" ;
-                                        if pgrep -xa docker || pgrep -af "cassandra-builds/build-scripts" ; then docker system prune --all --force --filter "until=${maxJobHours}h" || true ; else  docker system prune --all --force --volumes || true ;  fi;
+                                        docker volume ls -qf dangling=true | xargs -r docker rm -v ;
+                                        if pgrep -xa docker || pgrep -af "cassandra-builds/build-scripts" ; then docker system prune --force --filter "until=${maxJobHours}h" || true ; else  docker system prune --all --force --volumes || true ;  fi;
                                         echo "Reporting disk usage…"; df -h ;
                                         echo "Cleaning tmp…";
                                         find . -type d -name tmp -delete 2>/dev/null ;
@@ -894,7 +897,8 @@ cassandraBranchesInTreeScript.each {
                                 echo "Cleaning processes…" ;
                                 if ! (pgrep -xa docker || pgrep -af "cassandra-builds/build-scripts") ; then pkill -9 -f org.apache.cassandra. || echo "already clean" ; fi ;
                                 echo "Pruning docker…" ;
-                                if pgrep -xa docker || pgrep -af "cassandra-builds/build-scripts" ; then docker system prune --all --force --filter "until=${maxJobHours}h" || true ; else  docker system prune --all --force --volumes || true ;  fi;
+                                docker volume ls -qf dangling=true | xargs -r docker rm -v ;
+                                if pgrep -xa docker || pgrep -af "cassandra-builds/build-scripts" ; then docker system prune --force --filter "until=${maxJobHours}h" || true ; else  docker system prune --all --force --volumes || true ;  fi;
                                 echo "Reporting disk usage…"; df -h ;
                                 echo "Cleaning tmp…";
                                 find . -type d -name tmp -delete 2>/dev/null ;
@@ -1021,7 +1025,8 @@ cassandraBranches.each {
                                 echo "Cleaning processes…" ;
                                 if ! ( pgrep -xa docker || pgrep -af "cassandra-builds/build-scripts" ) ; then pkill -9 -f org.apache.cassandra. || echo "already clean" ; fi ;
                                 echo "Pruning docker…" ;
-                                if pgrep -xa docker || pgrep -af "cassandra-builds/build-scripts" ; then docker system prune --all --force --filter "until=${maxJobHours}h" || true ; else  docker system prune --all --force --volumes || true ;  fi;
+                                docker volume ls -qf dangling=true | xargs -r docker rm -v ;
+                                if pgrep -xa docker || pgrep -af "cassandra-builds/build-scripts" ; then docker system prune --force --filter "until=${maxJobHours}h" || true ; else  docker system prune --all --force --volumes || true ;  fi;
                                 echo "Reporting disk usage…"; df -h ;
                                 echo "Cleaning tmp…";
                                 find . -type d -name tmp -delete 2>/dev/null ;
@@ -1113,9 +1118,10 @@ cassandraBranches.each {
                                   command("""
                                       echo "Cleaning project…"; git clean -qxdff -e build/test/jmh-result.json || echo "failed to clean… continuing…" ;
                                       echo "Cleaning processes…" ;
-                                        if ! ( pgrep -xa docker || pgrep -af "cassandra-builds/build-scripts" ) ; then pkill -9 -f org.apache.cassandra. || echo "already clean" ; fi ;
+                                      if ! ( pgrep -xa docker || pgrep -af "cassandra-builds/build-scripts" ) ; then pkill -9 -f org.apache.cassandra. || echo "already clean" ; fi ;
                                       echo "Pruning docker…" ;
-                                      if pgrep -xa docker || pgrep -af "cassandra-builds/build-scripts" ; then docker system prune --all --force --filter "until=${maxJobHours}h" || true ; else  docker system prune --all --force --volumes || true ;  fi;
+                                      docker volume ls -qf dangling=true | xargs -r docker rm -v ;
+                                      if pgrep -xa docker || pgrep -af "cassandra-builds/build-scripts" ; then docker system prune --force --filter "until=${maxJobHours}h" || true ; else  docker system prune --all --force --volumes || true ;  fi;
                                       echo "Reporting disk usage…"; du -xm / 2>/dev/null | sort -rn | head -n 30 ; df -h ;
                                       echo "Cleaning tmp…";
                                       find . -type d -name tmp -delete 2>/dev/null ;
@@ -1175,7 +1181,7 @@ cassandraBranches.each {
                     }
                     steps {
                         shell("""
-                            ./cassandra-builds/build-scripts/cassandra-dtest-pytest-docker.sh apache ${branchName} https://github.com/apache/cassandra-dtest.git trunk ${buildsRepo} ${buildsBranch} ${dtestDockerImage} ${targetName} \${split}/${splits} ;
+                            ./cassandra-builds/build-scripts/cassandra-dtest-pytest-docker.sh apache ${branchName} https://github.com/apache/cassandra-dtest trunk ${buildsRepo} ${buildsBranch} ${dtestDockerImage} ${targetName} \${split}/${splits} ;
                             wget --retry-connrefused --waitretry=1 "\${BUILD_URL}/timestamps/?time=HH:mm:ss&timeZone=UTC&appendLog" -qO - > console.log || echo wget failed ;
                             xz -f console.log
                             """)
@@ -1217,7 +1223,8 @@ cassandraBranches.each {
                                         echo "Cleaning processes…" ;
                                         if ! ( pgrep -xa docker || pgrep -af "cassandra-builds/build-scripts" ) ; then pkill -9 -f org.apache.cassandra. || echo "already clean" ; fi ;
                                         echo "Pruning docker…" ;
-                                        if pgrep -xa docker || pgrep -af "cassandra-builds/build-scripts" ; then docker system prune --all --force --filter "until=${maxJobHours}h" || true ; else  docker system prune --all --force --volumes || true ;  fi;
+                                        docker volume ls -qf dangling=true | xargs -r docker rm -v ;
+                                        if pgrep -xa docker || pgrep -af "cassandra-builds/build-scripts" ; then docker system prune --force --filter "until=${maxJobHours}h" || true ; else  docker system prune --all --force --volumes || true ;  fi;
                                         echo "Reporting disk usage…"; df -h ;
                                         echo "Cleaning tmp…";
                                         find . -type d -name tmp -delete 2>/dev/null ;
@@ -1299,7 +1306,8 @@ cassandraBranches.each {
                                 echo "Cleaning processes…" ;
                                 if ! (pgrep -xa docker || pgrep -af "cassandra-builds/build-scripts") ; then pkill -9 -f org.apache.cassandra. || echo "already clean" ; fi ;
                                 echo "Pruning docker…" ;
-                                if pgrep -xa docker || pgrep -af "cassandra-builds/build-scripts" ; then docker system prune --all --force --filter "until=${maxJobHours}h" || true ; else  docker system prune --all --force --volumes || true ;  fi;
+                                docker volume ls -qf dangling=true | xargs -r docker rm -v ;
+                                if pgrep -xa docker || pgrep -af "cassandra-builds/build-scripts" ; then docker system prune --force --filter "until=${maxJobHours}h" || true ; else  docker system prune --all --force --volumes || true ;  fi;
                                 echo "Reporting disk usage…"; df -h ;
                                 echo "Cleaning tmp…";
                                 find . -type d -name tmp -delete 2>/dev/null ;
@@ -1404,7 +1412,7 @@ matrixJob('Cassandra-devbranch-artifacts') {
     scm {
         git {
             remote {
-                url('https://github.com/${REPO}/cassandra.git')
+                url('https://github.com/${REPO}/cassandra')
             }
             branch('${BRANCH}')
             extensions {
@@ -1457,7 +1465,8 @@ matrixJob('Cassandra-devbranch-artifacts') {
                         echo "Cleaning processes…" ;
                         if ! (pgrep -xa docker || pgrep -af "cassandra-builds/build-scripts") ; then pkill -9 -f org.apache.cassandra. || echo "already clean" ; fi ;
                         echo "Pruning docker…" ;
-                        if pgrep -xa docker || pgrep -af "cassandra-builds/build-scripts" ; then docker system prune --all --force --filter "until=${maxJobHours}h" || true ; else  docker system prune --all --force --volumes || true ;  fi;
+                        docker volume ls -qf dangling=true | xargs -r docker rm -v ;
+                        if pgrep -xa docker || pgrep -af "cassandra-builds/build-scripts" ; then docker system prune --force --filter "until=${maxJobHours}h" || true ; else  docker system prune --all --force --volumes || true ;  fi;
                         echo "Reporting disk usage…"; df -h ;
                         echo "Cleaning tmp…";
                         find . -type d -name tmp -delete 2>/dev/null ;
@@ -1519,7 +1528,7 @@ testTargets.each {
         scm {
             git {
                 remote {
-                    url('https://github.com/${REPO}/cassandra.git')
+                    url('https://github.com/${REPO}/cassandra')
                 }
                 branch('${BRANCH}')
                 extensions {
@@ -1584,8 +1593,9 @@ testTargets.each {
                             echo "Cleaning project…"; git clean -qxdff ${targetName == 'microbench' ? '-e build/test/jmh-result.json' : ''};
                             echo "Cleaning processes…" ;
                             if ! (pgrep -xa docker || pgrep -af "cassandra-builds/build-scripts") ; then pkill -9 -f org.apache.cassandra. || echo "already clean" ; fi ;
-                            echo "Pruning docker…" ;
-                            if pgrep -xa docker || pgrep -af "cassandra-builds/build-scripts" ; then docker system prune --all --force --filter "until=${maxJobHours}h" || true ; else  docker system prune --all --force --volumes || true ;  fi;
+                            echo "Pruning docker…" ;\n\
+                            docker volume ls -qf dangling=true | xargs -r docker rm -v ;
+                            if pgrep -xa docker || pgrep -af "cassandra-builds/build-scripts" ; then docker system prune --force --filter "until=${maxJobHours}h" || true ; else  docker system prune --all --force --volumes || true ;  fi;
                             echo "Reporting disk usage…"; du -xm / 2>/dev/null | sort -rn | head -n 30 ; df -h ;
                             echo "Cleaning tmp…";
                             find . -type d -name tmp -delete 2>/dev/null ;
@@ -1667,7 +1677,7 @@ archs.each {
             scm {
                 git {
                     remote {
-                        url('https://github.com/${REPO}/cassandra.git')
+                        url('https://github.com/${REPO}/cassandra')
                     }
                     branch('${BRANCH}')
                     extensions {
@@ -1729,7 +1739,8 @@ archs.each {
                                 echo "Cleaning processes…" ;
                                 if ! (pgrep -xa docker || pgrep -af "cassandra-builds/build-scripts") ; then pkill -9 -f org.apache.cassandra. || echo "already clean" ; fi ;
                                 echo "Pruning docker…" ;
-                                if pgrep -xa docker || pgrep -af "cassandra-builds/build-scripts" ; then docker system prune --all --force --filter "until=${maxJobHours}h" || true ; else  docker system prune --all --force --volumes || true ;  fi;
+                                docker volume ls -qf dangling=true | xargs -r docker rm -v ;
+                                if pgrep -xa docker || pgrep -af "cassandra-builds/build-scripts" ; then docker system prune --force --filter "until=${maxJobHours}h" || true ; else  docker system prune --all --force --volumes || true ;  fi;
                                 echo "Reporting disk usage…"; df -h ;
                                 echo "Cleaning tmp…";
                                 find . -type d -name tmp -delete 2>/dev/null ;
@@ -1789,7 +1800,7 @@ matrixJob('Cassandra-devbranch-cqlsh-tests') {
     scm {
         git {
             remote {
-                url('https://github.com/${REPO}/cassandra.git')
+                url('https://github.com/${REPO}/cassandra')
             }
             branch('${BRANCH}')
             extensions {
@@ -1849,7 +1860,8 @@ matrixJob('Cassandra-devbranch-cqlsh-tests') {
                         echo "Cleaning processes…" ;
                         if ! ( pgrep -xa docker || pgrep -af "cassandra-builds/build-scripts" ) ; then pkill -9 -f org.apache.cassandra. || echo "already clean" ; fi ;
                         echo "Pruning docker…" ;
-                        if pgrep -xa docker || pgrep -af "cassandra-builds/build-scripts" ; then docker system prune --all --force --filter "until=${maxJobHours}h" || true ; else  docker system prune --all --force --volumes || true ;  fi;
+                        docker volume ls -qf dangling=true | xargs -r docker rm -v ;
+                        if pgrep -xa docker || pgrep -af "cassandra-builds/build-scripts" ; then docker system prune --force --filter "until=${maxJobHours}h" || true ; else  docker system prune --all --force --volumes || true ;  fi;
                         echo "Reporting disk usage…"; df -h ;
                         echo "Cleaning tmp…";
                         find . -type d -name tmp -delete 2>/dev/null ;
@@ -1927,7 +1939,7 @@ job('cassandra-website') {
     scm {
         git {
             remote {
-                url('https://gitbox.apache.org/repos/asf/cassandra-website.git')
+                url('https://gitbox.apache.org/repos/asf/cassandra-website')
                 credentials('9b041bd0-aea9-4498-a576-9eeb771411dd') // "jenkins"
             }
             branch('*/trunk')
@@ -1985,7 +1997,7 @@ job('contribulyze') {
     scm {
         git {
             remote {
-                url('https://gitbox.apache.org/repos/asf/cassandra-builds.git')
+                url('https://github.com/apache/cassandra-builds')
             }
             branch('*/trunk')
             extensions {
