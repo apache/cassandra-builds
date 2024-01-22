@@ -335,7 +335,7 @@ class Contributor(object):
       out.write('<hr />\n')
       out.write('<div class="h3" id="%s" title="%s">\n' % (log.sha, log.sha))
       out.write('<pre>\n')
-      sha = '<a href="https://github.com/apache/cassandra/commit/%s">%s</a>' % (log.sha, log.sha)
+      sha = '<a href="https://github.com/search?q=org:apache+%s+repo:apache/cassandra*&type=commits&ref=advsearch">%s</a>' % (log.sha, log.sha)
       out.write('<b>%s | %s | %s</b>\n\n' % (sha, escape_html(log.author), log.date))
       out.write(spam_guard_in_html_block(re.sub(r'for CASSANDRA-([0-9]+)', r'for <a href="https://issues.apache.org/jira/browse/CASSANDRA-\1">CASSANDRA-\1</a>', escape_html(log.message))))
       out.write('</pre>\n')
@@ -453,6 +453,7 @@ log_header_re = re.compile('^commit ([0-9a-z]+)$')
 patch_by_re = re.compile('(?:.*\n)*.*patch by ([^;]+)(;|,)', flags=re.IGNORECASE | re.MULTILINE)
 reviewed_by_re = re.compile('(?:.*\n)*.*[;, ](?:review|test)(?:ed)? by ((?:.|\n)+?)(?=(?: |\n)+for(?: |\n)+(?:cassandra-|#[0-9]+))', flags=re.IGNORECASE | re.MULTILINE)
 coauthored_by_re = re.compile(' *co-authored-by: ([^<]+)', re.IGNORECASE)
+author_re = re.compile('^Author: ([^<]+)')
 
 def graze(input):
   line = input.readline()
@@ -471,12 +472,19 @@ def graze(input):
       if LogMessage.latest is None: LogMessage.latest = log.date
       patch_field = Field("Patch")
       review_field = Field("Review")
+      m = author_re.match(log.author)
+      if m:
+          c = Contributor.get(" ".join(m.group(1).strip().split()), None)
+          patch_field.add_contributor(c)
+          log.add_field(patch_field)
+          c.add_activity(patch_field, log)
       # Parse the log message.
       while line != '':
         line = input.readline()
         if line == '\n': continue
         m = log_header_re.match(line)
-        if m: 
+        if m:
+            # found a new commit, do regexp against existing log.message
             m = patch_by_re.match(log.message)
             if m:
                 authors = re.split(',|&|( |\n)and( |\n)(by( |\n))?', m.group(1))
@@ -502,13 +510,13 @@ def graze(input):
                 c.add_collaboration(patch_field)
                 c.add_collaboration(review_field)
             break
-        log.accum(line)
         m = coauthored_by_re.match(line)
         if m:
             c = Contributor.get(" ".join(m.group(1).strip().split()), None)
             patch_field.add_contributor(c)
             log.add_field(patch_field)
             c.add_activity(patch_field, log)
+        log.accum(line)
 
 #
 # HTML output stuff.

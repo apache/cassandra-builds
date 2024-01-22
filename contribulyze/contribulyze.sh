@@ -13,10 +13,10 @@ mkdir -p /tmp/contribulyze-repos
 mkdir -p /tmp/contribulyze-html
 cd /tmp/contribulyze-repos
 
-repos=("https://github.com/apache/cassandra.git" "https://github.com/apache/cassandra-dtest.git" "https://github.com/apache/cassandra-builds.git" "https://github.com/apache/cassandra-in-jvm-dtest-api.git" "https://github.com/apache/cassandra-harry.git" "https://github.com/apache/cassandra-website.git" "https://github.com/datastax/java-driver.git" "https://github.com/datastax/python-driver.git")
+repos=("https://github.com/apache/cassandra.git" "https://github.com/apache/cassandra-dtest.git" "https://github.com/apache/cassandra-builds.git" "https://github.com/apache/cassandra-in-jvm-dtest-api.git" "https://github.com/apache/cassandra-harry.git" "https://github.com/apache/cassandra-website.git" "https://github.com/apache/cassandra-java-driver.git" "https://github.com/datastax/python-driver.git" "https://github.com/apache/cassandra-sidecar.git" "https://github.com/apache/cassandra-analytics.git" "https://github.com/apache/cassandra-accord.git")
 
 # the different groups we want separate contribulyze reports on. note '..' refers to everything.
-groups=('..' 'website_and_docs' 'build_and_tools' 'packaging_and_release' 'test_and_ci' 'cassandra_src' 'java-driver' 'python-driver')
+groups=('..' 'website_and_docs' 'build_and_tools' 'packaging_and_release' 'test_and_ci' 'cassandra_src' 'cassandra-java-driver' 'python-driver' 'cassandra-sidecar' 'cassandra-analytics' 'cassandra-accord')
 
 for repo in ${repos[*]} ; do
     git clone --quiet ${repo}
@@ -55,9 +55,9 @@ for group in ${groups[*]} ; do
       groupings=("cassandra/src")
      ;;
 
-     "java-driver")
-      groupings=("java-driver")
-      continue # FIXME commit messages in java-driver do not follow the "patch by …; reviewed by … for CASSANDRA-" precedence
+     "cassandra-java-driver")
+      groupings=("cassandra-java-driver")
+      #continue # FIXME commit messages in java-driver do not follow the "patch by …; reviewed by … for CASSANDRA-" precedence
      ;;
 
      "python-driver")
@@ -65,8 +65,20 @@ for group in ${groups[*]} ; do
       continue # FIXME commit messages in python-driver do not follow the "patch by …; reviewed by … for CASSANDRA-" precedence
      ;;
 
+     "cassandra-sidecar")
+      groupings=("cassandra-sidecar")
+     ;;
+
+     "cassandra-analytics")
+      groupings=("cassandra-analytics")
+     ;;
+
+     "cassandra-accord")
+      groupings=("cassandra-accord")
+     ;;
+
      *)
-      groupings=("cassandra" "cassandra-dtest" "cassandra-builds" "cassandra-website")
+      groupings=("cassandra" "cassandra-dtest" "cassandra-in-jvm-dtest-api" "cassandra-harry" "cassandra-builds" "cassandra-website" "cassandra-java-driver" "cassandra-sidecar" "cassandra-analytics" "cassandra-accord")
       ;;
     esac
 
