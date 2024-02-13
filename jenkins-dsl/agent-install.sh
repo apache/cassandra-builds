@@ -1,10 +1,10 @@
 #!/bin/bash
 #
-# This script sets up an Ubuntu 18.04 server to be a ASF Jenkins agent.
+# This script sets up an Ubuntu 22.04 server to be a ASF Jenkins agent.
 #  After this setup is complete, an INFRA jira ticket must be opened for ASF Infra to complete the process.
 #
 # Script Requirements:
-#  * Ubuntu 18.04
+#  * Ubuntu 22.04
 #  * run as root
 #  * internet access
 #
@@ -16,8 +16,8 @@
 #
 
 command -v lsb_release >/dev/null 2>&1 || { echo >&2 "Expecting an Ubuntu server with lsb_release installed"; exit 1; }
-if ! lsb_release -d | grep -q "Ubuntu 18.04" ; then
-    echo "Ubuntu 18.04 expected. Found $(lsb_release -d | cut -d' ' -f2)"
+if ! lsb_release -d | grep -q "Ubuntu 22.04" ; then
+    echo "Ubuntu 22.04 expected. Found $(lsb_release -d | cut -d' ' -f2)"
     exit 1
 fi
 if [ "$EUID" -ne 0 ] ; then
@@ -55,13 +55,12 @@ chmod 700 /home/jenkins/.ssh
 chmod 600 /home/jenkins/.ssh/authorized_keys
 
 # Add asf999 user
-groupadd -g 999 asf999
-useradd -m -u 999 -g 999 -s /bin/bash asf999
+useradd -m -s /bin/bash asf999
 mkdir /home/asf999/.ssh
 usermod -a -G sudo asf999
 
 # Authorize ssh pub key for asf999 user:
-#  more info, see https://github.com/apache/infrastructure-puppet/blob/deployment/data/common.yaml#L55-L73
+#  more info, see https://github.com/apache/infrastructure-p6/blob/production/data/common/asf999.yaml
 
 sh -c "echo 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDKU0OarYDnMtEyneHtOAA/mpeJbXLCVA2yy8wl2fGQ/kzdRhBDCCjusV0D83cwKckJEGVInbYruLwq7Rk4e1k0hwHoVR28ps4B0IrsFlkQrfkS0plGq5VlbUU1lu9hdR+2o992NzK3BGJa6Bde493FaEnJf+s4dQM9kkb9keYXLdh9lC99xlxYg7P5gSlv+0tCAo3LisKM1vVfjLaXIv94KwRNjcrLH0rjrQt0UnkGTjoP+WonILz9CsFfJDncofFp4gyyioYDTqgyGbVauGAdfctrqc+c1x4sz+Hk2ocFjGZEGzHZ8E/ZRXpaa9QNeyc4vKAm9CSWyonLNr3+KyJfQP82w5IZIF8rMBjl3/m0zPUgXSitc6ebrLUFhrESyoFF0RfeqEYUzjf52uRVlPVSiSATmvccdHel/G6lUZrQScYUPOZT++C7TZNPzRNy/MzeLjF0jcrDYjCXEj1r9TkQtByoHKc0Cikokcmn15SPX9nBWScN0kQ9DCnQ1DRx0C2L/KJwiV8i/ziel8RFqg8n71v1H8Ve40F/m+03dZAUGzlE1wu+lXu/ZXjBgIu8vOmz3LK+k4UskiMiiktYq1N9RG+4l30JR/OlLIRhlKiernmWUFyGC4npbquaTKUsB6G6RKOC1WnLpuM5U1jIKVeOejoptJilaHvO0RiZxNP/ZQ== humbedooh-puppet-20130726' > /home/asf999/.ssh/authorized_keys"
 sh -c "echo 'ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQC71HP9YspO1SDZ/5qNJNGE3MW27XiYc5gx2kaCJ2ZT3unZVRU60p3/fbMG5XwOzvmbN3Gzp2l2/8jKmngnQO0oHY9E2ZcVh14TblbgSErVPMM5zZBg40PvDRk61eECnGkXYfVKU5RzcDq5yYr4FFFFRh3pWjjBDBWtSczAXYavWPHOpNpQ1onudiCev/KHADXZS8J/HwhHmkVmxSWX+9upQlPlokXulZpMFqx6FPbBLk45Miq5xSYS3mN8dW3OupDHiKavKoLuzqom+7ndLhFUMX468htnhfUvTs9ajh7xBTfhziPJh+PkjeQLWNLdMQe0L8Ptd4IAxqSkegTCNit/LZbK/Jo6z7sBSdk2N+f8UIlK2do/9KlN30sFbVAK3nsIekxR+xQldEOMaCr83IM/b0G/mefxFrCdSm3z9SW84WKVt+DNADVKUMTm9ngOp2cjxPeXQuL5vTABaeSrzeMTAWagWTRQQVT/6XMNNJRbpHj+Fp8rd4sIRnqv86hYL1aoE1THuxqT451ZRYHJoCiZ3PQPMEhAzR5F6Voji6RkyJL8S662Ai/FesEeNyc2hcErfnfFCsKWckUOg8YOIR+DSfuJ6LtZZB/+SAE/QzKzIvMWuLCiGFR2oSiY7MqeJCm5CeF06YGddnQhGoqM6ZC6/hFkWAJ0Uzc5DRlxyFovaQ== gav_mac' >> /home/asf999/.ssh/authorized_keys"
@@ -75,10 +74,10 @@ chown -R asf999:asf999 /home/asf999/.ssh
 chmod 700 /home/asf999/.ssh
 chmod 600 /home/asf999/.ssh/authorized_keys
 
-# Install Puppet 6 (not Puppet 5 that Bionic would normally install) and configured the puppet.conf file ready for use
-wget https://apt.puppetlabs.com/puppet-release-bionic.deb
-dpkg -i puppet-release-bionic.deb
-rm puppet-release-bionic.deb
+# Install Puppet 6 (not Puppet 5 that Jammy would normally install) and configured the puppet.conf file ready for use
+wget https://apt.puppetlabs.com/puppet-release-jammy.deb
+dpkg -i puppet-release-jammy.deb
+rm puppet-release-jammy.deb
 apt-get update
 apt-get install -y puppet-agent
 
