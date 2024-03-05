@@ -19,7 +19,7 @@ def jobDescription = '''
 
 // architectures. blank is amd64
 def archs = ['', '-arm64']
-arm64_enabled = true
+arm64_enabled = false // TODO waiting on CASSANDRA-19241
 arm64_test_label_enabled = false
 def use_arm64_test_label() { return arm64_enabled && arm64_test_label_enabled }
 
