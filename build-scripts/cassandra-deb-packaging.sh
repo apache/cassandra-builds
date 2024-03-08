@@ -39,6 +39,7 @@ until docker build --build-arg CASSANDRA_GIT_URL=$CASSANDRA_GIT_URL --build-arg 
 
 
 # Run build script through docker (specify branch, tag, or sha)
+mkdir -p ~/.m2/repository
 docker run --rm -v "${deb_dir}":/dist -v ~/.m2/repository/:/home/build/.m2/repository/ cassandra-artifacts-bullseye:${sha} /home/build/build-debs.sh ${sha} ${java_version}
 
 popd
