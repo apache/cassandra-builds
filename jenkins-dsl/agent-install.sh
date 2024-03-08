@@ -83,6 +83,9 @@ apt-get install -y puppet-agent
 
 sh -c 'cat >> /etc/puppetlabs/puppet/puppet.conf << EOF
 [main]
-server = pm01-lw-us.apache.org
+use_srv_records = true
+srv_domain = apache.org
+
+environment = production
 EOF'
 
