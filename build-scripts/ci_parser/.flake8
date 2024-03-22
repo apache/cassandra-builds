@@ -1,0 +1,4 @@
+[flake8]
+# E501: Don't abuse long lines, but also... meh
+# F401: flake8 isn't smart enough to see type hints in comments post declaration
+ignore = E501, F401

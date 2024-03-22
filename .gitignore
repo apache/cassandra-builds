@@ -1,4 +1,8 @@
 dist/cassandra*
 .idea
 *.iml
+build-scripts/ci_parser/bin/
+build-scripts/ci_parser/lib/
+build-scripts/ci_parser/include/
+build-scripts/ci_parser/pyvenv.cfg
 
