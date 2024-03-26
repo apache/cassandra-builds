@@ -35,7 +35,7 @@ RUN until curl -f -S -s --retry 9 --retry-delay 1 http://mirror.centos.org/cento
 RUN rpm -i --nodeps ant-junit-1.9.4-2.el7.noarch.rpm
 
 # try first downloads.a.o and then archive.a.o (as the latter has a 5GB per IP daily limit)
-RUN until curl -f -S -s --retry 9 --retry-delay 1 https://downloads.apache.org/ant/binaries/apache-ant-${ANT_VERSION}-bin.tar.gz -o apache-ant-${ANT_VERSION}-bin.tar.gz || curl -f -S -s --retry 9 --retry-delay 1 http://archive.apache.org/dist/ant/binaries/apache-ant-${ANT_VERSION}-bin.tar.gz -o apache-ant-${ANT_VERSION}-bin.tar.gz ; do echo "curl failed… trying again in 10s… " ; sleep 10 ; done
+RUN until curl -f -S -s --retry 9 --retry-delay 1 https://downloads.apache.org/ant/binaries/apache-ant-${ANT_VERSION}-bin.tar.gz -o apache-ant-${ANT_VERSION}-bin.tar.gz || curl -f -S -s --retry 9 --retry-delay 1 https://archive.apache.org/dist/ant/binaries/apache-ant-${ANT_VERSION}-bin.tar.gz -o apache-ant-${ANT_VERSION}-bin.tar.gz ; do echo "curl failed… trying again in 10s… " ; sleep 10 ; done
 
 RUN rm -rf /etc/ant.conf
 RUN tar xvf apache-ant-${ANT_VERSION}-bin.tar.gz -C /opt
