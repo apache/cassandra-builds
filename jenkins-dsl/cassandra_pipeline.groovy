@@ -1,4 +1,6 @@
-// Cassandra-devbranch needs custom Jenkinsfile because of the parameters passed into the build jobs.
+// Lgeacy: only for branches older than 5.0
+//
+// Before 5.0 Cassandra-devbranch  needs custom Jenkinsfile because of the parameters passed into the build jobs.
 //
 // When updating this file you will need to go to https://ci-cassandra.apache.org/scriptApproval/
 //  and approve the change.
