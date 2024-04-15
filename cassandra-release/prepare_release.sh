@@ -9,7 +9,7 @@ if [ -z "$gpg_key" ]; then
 fi
 
 if [ "$gpg_key" = "XXXXXXXX" ]; then
-    exit -e "Gpg key is unset. Pleae set gpg_key variable."
+    echo >&2 "Gpg key is unset. Pleae set gpg_key variable." && exit 1
 fi
 
 # The name of remote for the asf remote in your git repo
@@ -28,6 +28,7 @@ command -v reprepro >/dev/null 2>&1 || { echo >&2 "reprepro needs to be installe
 command -v rpmsign >/dev/null 2>&1 || { echo >&2 "rpmsign needs to be installed"; exit 1; }
 command -v docker >/dev/null 2>&1 || { echo >&2 "docker needs to be installed"; exit 1; }
 command -v createrepo_c >/dev/null 2>&1 || { echo >&2 "createrepo_c needs to be installed"; exit 1; }
+command -v mvn >/dev/null 2>&1 || { echo >&2 "mvn needs to be installed"; exit 1; }
 (docker info >/dev/null 2>&1) || { echo >&2 "docker needs to running"; exit 1; }
 
 ###################
