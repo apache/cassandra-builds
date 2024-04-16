@@ -63,8 +63,8 @@ RUN rm -fr ~/cassandra
 RUN bash -c 'source ~/env3.6/bin/activate && \
     for i in {1..22} ; do echo $i ; ccm create --quiet -n 1 -v binary:2.1.$i test && ccm remove test ; done && \
     for i in {1..19} ; do echo $i ; ccm create --quiet -n 1 -v binary:2.2.$i test && ccm remove test ; done && \
-    for i in {1..29} ; do echo $i ; ccm create --quiet -n 1 -v binary:3.0.$i test && ccm remove test ; done && \
-    for i in {1..15} ; do echo $i ; ccm create --quiet -n 1 -v binary:3.11.$i test && ccm remove test ; done && \
+    for i in {1..30} ; do echo $i ; ccm create --quiet -n 1 -v binary:3.0.$i test && ccm remove test ; done && \
+    for i in {1..17} ; do echo $i ; ccm create --quiet -n 1 -v binary:3.11.$i test && ccm remove test ; done && \
     for i in {1..11} ; do echo $i ; ccm create --quiet -n 1 -v binary:4.0.$i test && ccm remove test ; done && \
-    for i in {1..3}  ; do echo $i ; ccm create --quiet -n 1 -v binary:4.1.$i test && ccm remove test ; done'
+    for i in {1..4}  ; do echo $i ; ccm create --quiet -n 1 -v binary:4.1.$i test && ccm remove test ; done'
 
