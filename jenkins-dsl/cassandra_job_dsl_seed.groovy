@@ -491,27 +491,22 @@ legacyCassandraBranches.each {
                   buildSteps {
                     markBuildUnstable(false)
                     postBuildStep {
-                        executeOn('BOTH')
+                        executeOn('AXES')
                         stopOnFailure(false)
                         results(['SUCCESS','UNSTABLE','FAILURE','NOT_BUILT','ABORTED'])
                         buildSteps {
-                          shell {
-                            // docker needs to (soon or later) prune its volumes too, but that can only be done when the agent is idle
-                            // if the agent is busy, just prune everything that is older than maxJobHours
-                            command("""
-                                echo "Cleaning project…"; git clean -qxdff  || echo "failed to clean… continuing…";
-                                echo "Cleaning processes…" ;
-                                if ! ( pgrep -xa docker || pgrep -af "cassandra-builds/build-scripts" ) ; then pkill -9 -f org.apache.cassandra. || echo "already clean" ; fi ;
-                                echo "Pruning docker…" ;
-                                docker volume ls -qf dangling=true | xargs -r docker rm -v || true ;
-                                if pgrep -xa docker || pgrep -af "cassandra-builds/build-scripts" ; then docker system prune --force --filter "until=${maxJobHours}h" || true ; else  docker system prune --all --force --volumes || true ;  fi;
-                                echo "Reporting disk usage…"; df -h ;
-                                echo "Cleaning tmp…";
-                                find . -type d -name tmp -delete 2>/dev/null ;
-                                find /tmp -type f -atime +2 -user jenkins -and -not -exec fuser -s {} ';' -and -delete 2>/dev/null || echo clean tmp failed ;
-                                echo "For test report and logs see https://nightlies.apache.org/cassandra/${branchName}/${jobNamePrefix}-artifacts/\${BUILD_NUMBER}/\${JOB_NAME}/"
-                            """)
-                          }
+                            shell {
+                              // agent_report.sh does not log to file or archive to nightlies
+                              command("""
+                                  echo "Cleaning processes…"
+                                  if ! (pgrep -xa docker || pgrep -af "cassandra-builds/build-scripts") ; then pkill -9 -f org.apache.cassandra. || echo "already clean" ; fi ;
+                                  echo "Pruning docker for '${JOB_NAME}' on ${NODE_NAME}…"
+                                  cd cassandra-builds/jenkins-dsl/agent_scripts/
+                                  bash docker_agent_cleaner.sh ${maxJobHours}
+                                  bash agent_report.sh
+                                  git clean -qxdff -e build/test/jmh-result.json || true
+                                """)
+                            }
                         }
                     }
                   }
@@ -586,26 +581,21 @@ legacyCassandraBranches.each {
                         buildSteps {
                           markBuildUnstable(false)
                           postBuildStep {
-                              executeOn('BOTH')
+                              executeOn('AXES')
                               stopOnFailure(false)
                               results(['SUCCESS','UNSTABLE','FAILURE','NOT_BUILT','ABORTED'])
                               buildSteps {
                                 shell {
-                                  // docker needs to (soon or later) prune its volumes too, but that can only be done when the agent is idle
-                                  // if the agent is busy, just prune everything that is older than maxJobHours
+                                  // agent_report.sh does not log to file or archive to nightlies
                                   command("""
-                                      echo "Cleaning project…"; git clean -qxdff -e build/test/jmh-result.json || echo "failed to clean… continuing…" ;
-                                      echo "Cleaning processes…" ;
-                                      if ! ( pgrep -xa docker || pgrep -af "cassandra-builds/build-scripts" ) ; then pkill -9 -f org.apache.cassandra. || echo "already clean" ; fi ;
-                                      echo "Pruning docker…" ;
-                                      docker volume ls -qf dangling=true | xargs -r docker rm -v || true ;
-                                      if pgrep -xa docker || pgrep -af "cassandra-builds/build-scripts" ; then docker system prune --force --filter "until=${maxJobHours}h" || true ; else  docker system prune --all --force --volumes || true ;  fi;
-                                      echo "Reporting disk usage…"; du -xm / 2>/dev/null | sort -rn | head -n 30 ; df -h ;
-                                      echo "Cleaning tmp…";
-                                      find . -type d -name tmp -delete 2>/dev/null ;
-                                      find /tmp -type f -atime +2 -user jenkins -and -not -exec fuser -s {} ';' -and -delete 2>/dev/null || echo clean tmp failed ;
-                                      echo "For test report and logs see https://nightlies.apache.org/cassandra/${branchName}/${jobNamePrefix}-${targetName}/\${BUILD_NUMBER}/\${JOB_NAME}/"
-                                  """)
+                                      echo "Cleaning processes…"
+                                      if ! (pgrep -xa docker || pgrep -af "cassandra-builds/build-scripts") ; then pkill -9 -f org.apache.cassandra. || echo "already clean" ; fi ;
+                                      echo "Pruning docker for '${JOB_NAME}' on ${NODE_NAME}…"
+                                      cd cassandra-builds/jenkins-dsl/agent_scripts/
+                                      bash docker_agent_cleaner.sh ${maxJobHours}
+                                      bash agent_report.sh
+                                      git clean -qxdff -e build/test/jmh-result.json || true
+                                    """)
                                 }
                               }
                           }
@@ -689,27 +679,22 @@ legacyCassandraBranches.each {
                           buildSteps {
                             markBuildUnstable(false)
                             postBuildStep {
-                                executeOn('BOTH')
+                                executeOn('AXES')
                                 stopOnFailure(false)
                                 results(['SUCCESS','UNSTABLE','FAILURE','NOT_BUILT','ABORTED'])
                                 buildSteps {
-                                  shell {
-                                    // docker needs to (soon or later) prune its volumes too, but that can only be done when the agent is idle
-                                    // if the agent is busy, just prune everything that is older than maxJobHours
-                                    command("""
-                                        echo "Cleaning project…"; git clean -qxdff || echo "failed to clean… continuing…";
-                                        echo "Cleaning processes…" ;
-                                        if ! ( pgrep -xa docker || pgrep -af "cassandra-builds/build-scripts" ) ; then pkill -9 -f org.apache.cassandra. || echo "already clean" ; fi ;
-                                        echo "Pruning docker…" ;
-                                        docker volume ls -qf dangling=true | xargs -r docker rm -v || true ;
-                                        if pgrep -xa docker || pgrep -af "cassandra-builds/build-scripts" ; then docker system prune --force --filter "until=${maxJobHours}h" || true ; else  docker system prune --all --force --volumes || true ;  fi;
-                                        echo "Reporting disk usage…"; df -h ;
-                                        echo "Cleaning tmp…";
-                                        find . -type d -name tmp -delete 2>/dev/null ;
-                                        find /tmp -type f -atime +2 -user jenkins -and -not -exec fuser -s {} ';' -and -delete 2>/dev/null || echo clean tmp failed ;
-                                        echo "For test report and logs see https://nightlies.apache.org/cassandra/${branchName}/${jobNamePrefix}-${targetArchName}/\${BUILD_NUMBER}/\${JOB_NAME}/"
-                                    """)
-                                  }
+                                    shell {
+                                      // agent_report.sh does not log to file or archive to nightlies
+                                      command("""
+                                          echo "Cleaning processes…"
+                                          if ! (pgrep -xa docker || pgrep -af "cassandra-builds/build-scripts") ; then pkill -9 -f org.apache.cassandra. || echo "already clean" ; fi ;
+                                          echo "Pruning docker for '${JOB_NAME}' on ${NODE_NAME}…"
+                                          cd cassandra-builds/jenkins-dsl/agent_scripts/
+                                          bash docker_agent_cleaner.sh ${maxJobHours}
+                                          bash agent_report.sh
+                                          git clean -qxdff -e build/test/jmh-result.json || true
+                                        """)
+                                    }
                                 }
                             }
                           }
@@ -772,27 +757,22 @@ legacyCassandraBranches.each {
                   buildSteps {
                     markBuildUnstable(false)
                     postBuildStep {
-                        executeOn('BOTH')
+                        executeOn('AXES')
                         stopOnFailure(false)
                         results(['SUCCESS','UNSTABLE','FAILURE','NOT_BUILT','ABORTED'])
                         buildSteps {
-                          shell {
-                            // docker needs to (soon or later) prune its volumes too, but that can only be done when the agent is idle
-                            // if the agent is busy, just prune everything that is older than maxJobHours
-                            command("""
-                                echo "Cleaning project…"; git clean -qxdff  || echo "failed to clean… continuing…";
-                                echo "Cleaning processes…" ;
-                                if ! (pgrep -xa docker || pgrep -af "cassandra-builds/build-scripts") ; then pkill -9 -f org.apache.cassandra. || echo "already clean" ; fi ;
-                                echo "Pruning docker…" ;
-                                docker volume ls -qf dangling=true | xargs -r docker rm -v || true ;
-                                if pgrep -xa docker || pgrep -af "cassandra-builds/build-scripts" ; then docker system prune --force --filter "until=${maxJobHours}h" || true ; else  docker system prune --all --force --volumes || true ;  fi;
-                                echo "Reporting disk usage…"; df -h ;
-                                echo "Cleaning tmp…";
-                                find . -type d -name tmp -delete 2>/dev/null ;
-                                find /tmp -type f -atime +2 -user jenkins -and -not -exec fuser -s {} ';' -and -delete 2>/dev/null || echo clean tmp failed ;
-                                echo "For test report and logs see https://nightlies.apache.org/cassandra/${branchName}/${jobNamePrefix}-cqlsh-tests/\${BUILD_NUMBER}/\${JOB_NAME}/"
-                            """)
-                          }
+                            shell {
+                              // agent_report.sh does not log to file or archive to nightlies
+                              command("""
+                                  echo "Cleaning processes…"
+                                  if ! (pgrep -xa docker || pgrep -af "cassandra-builds/build-scripts") ; then pkill -9 -f org.apache.cassandra. || echo "already clean" ; fi ;
+                                  echo "Pruning docker for '${JOB_NAME}' on ${NODE_NAME}…"
+                                  cd cassandra-builds/jenkins-dsl/agent_scripts/
+                                  bash docker_agent_cleaner.sh ${maxJobHours}
+                                  bash agent_report.sh
+                                  git clean -qxdff -e build/test/jmh-result.json || true
+                                """)
+                            }
                         }
                     }
                   }
@@ -883,7 +863,7 @@ matrixJob('Cassandra-devbranch-before-5-artifacts') {
     }
     parameters {
         stringParam('REPO', 'apache', 'The github user/org to clone cassandra repo from')
-        stringParam('BRANCH', 'trunk', 'The branch of cassandra to checkout')
+        stringParam('BRANCH', 'cassandra-4.1', 'The branch of cassandra to checkout, must be based off before cassandra-5.0')
     }
     properties {
         githubProjectUrl(mainRepo)
@@ -923,7 +903,7 @@ matrixJob('Cassandra-devbranch-before-5-artifacts') {
             server('Nightlies') {
                 transferSet {
                     sourceFiles("console.log.xz,build/apache-cassandra-*.tar.gz, build/apache-cassandra-*.jar, build/apache-cassandra-*.pom, build/cassandra*.deb, build/cassandra*.rpm")
-                    remoteDirectory("cassandra/devbranch/Cassandra-devbranch-artifacts/\${BUILD_NUMBER}/\${JOB_NAME}/")
+                    remoteDirectory("cassandra/devbranch/Cassandra-devbranch-before-5-artifacts/\${BUILD_NUMBER}/\${JOB_NAME}/")
                 }
                 retry(9, 5000)
             }
@@ -934,26 +914,21 @@ matrixJob('Cassandra-devbranch-before-5-artifacts') {
             markBuildUnstable(false)
             postBuildStep {
                 stopOnFailure(false)
-                executeOn('BOTH')
+                executeOn('AXES')
                 results(['SUCCESS','UNSTABLE','FAILURE','NOT_BUILT','ABORTED'])
                 buildSteps {
-                  shell {
-                    // docker needs to (soon or later) prune its volumes too, but that can only be done when the agent is idle
-                    // if the agent is busy, just prune everything that is older than maxJobHours
-                    command("""
-                        echo "Cleaning project…"; git clean -qxdff ;
-                        echo "Cleaning processes…" ;
-                        if ! (pgrep -xa docker || pgrep -af "cassandra-builds/build-scripts") ; then pkill -9 -f org.apache.cassandra. || echo "already clean" ; fi ;
-                        echo "Pruning docker…" ;
-                        docker volume ls -qf dangling=true | xargs -r docker rm -v || true ;
-                        if pgrep -xa docker || pgrep -af "cassandra-builds/build-scripts" ; then docker system prune --force --filter "until=${maxJobHours}h" || true ; else  docker system prune --all --force --volumes || true ;  fi;
-                        echo "Reporting disk usage…"; df -h ;
-                        echo "Cleaning tmp…";
-                        find . -type d -name tmp -delete 2>/dev/null ;
-                        find /tmp -type -f -atime +3 -user jenkins -and -not -exec fuser -s {} ';' -and -delete 2>/dev/null || echo clean tmp failed ;
-                        echo "For test report and logs see https://nightlies.apache.org/cassandra/devbranch/Cassandra-devbranch-artifacts/\${BUILD_NUMBER}/\${JOB_NAME}/"
-                    """)
-                  }
+                    shell {
+                      // agent_report.sh does not log to file or archive to nightlies
+                      command("""
+                          echo "Cleaning processes…"
+                          if ! (pgrep -xa docker || pgrep -af "cassandra-builds/build-scripts") ; then pkill -9 -f org.apache.cassandra. || echo "already clean" ; fi ;
+                          echo "Pruning docker for '${JOB_NAME}' on ${NODE_NAME}…"
+                          cd cassandra-builds/jenkins-dsl/agent_scripts/
+                          bash docker_agent_cleaner.sh ${maxJobHours}
+                          bash agent_report.sh
+                          git clean -qxdff -e build/test/jmh-result.json || true
+                        """)
+                    }
                 }
             }
           }
@@ -999,7 +974,7 @@ testTargets.each {
         }
         parameters {
             stringParam('REPO', 'apache', 'The github user/org to clone cassandra repo from')
-            stringParam('BRANCH', 'trunk', 'The branch of cassandra to checkout')
+            stringParam('BRANCH', 'cassandra-4.1', 'The branch of cassandra to checkout, must be based off before cassandra-5.0')
         }
         properties {
             githubProjectUrl(mainRepo)
@@ -1031,7 +1006,7 @@ testTargets.each {
                     echo "cassandra-builds at: `git -C cassandra-builds log -1 --pretty=format:'%H %an %ad %s'`" ;
                     """)
             shell("""
-                    echo "Cassandra-devbranch-${targetName}) cassandra: `git log -1 --pretty=format:'%H %an %ad %s'`" > Cassandra-devbranch-${targetName}.head ;
+                    echo "Cassandra-devbranch-before-5-${targetName}) cassandra: `git log -1 --pretty=format:'%H %an %ad %s'`" > Cassandra-devbranch-before-5-${targetName}.head ;
                     ./cassandra-builds/build-scripts/cassandra-test-docker.sh \${REPO} \${BRANCH} ${buildsRepo} ${buildsBranch} ${testDockerImage} ${targetName} \${split}${_testSplits} ;
                     ./cassandra-builds/build-scripts/cassandra-test-report.sh ;
                     xz TESTS-TestSuites.xml ;
@@ -1044,7 +1019,7 @@ testTargets.each {
                 server('Nightlies') {
                     transferSet {
                         sourceFiles("TESTS-TestSuites.xml.xz,build/test/logs/**,build/test/jmh-result.json")
-                        remoteDirectory("cassandra/devbranch/Cassandra-devbranch-${targetName}/\${BUILD_NUMBER}/\${JOB_NAME}/")
+                        remoteDirectory("cassandra/devbranch/Cassandra-devbranch-before-5-${targetName}/\${BUILD_NUMBER}/\${JOB_NAME}/")
                     }
                     retry(9, 5000)
                 }
@@ -1062,27 +1037,22 @@ testTargets.each {
               buildSteps {
                 markBuildUnstable(false)
                 postBuildStep {
-                    executeOn('BOTH')
+                    executeOn('AXES')
                     stopOnFailure(false)
                     results(['SUCCESS','UNSTABLE','FAILURE','NOT_BUILT','ABORTED'])
                     buildSteps {
-                      shell {
-                        // docker needs to (soon or later) prune its volumes too, but that can only be done when the agent is idle
-                        // if the agent is busy, just prune everything that is older than maxJobHours
-                        command("""
-                            echo "Cleaning project…"; git clean -qxdff ${targetName == 'microbench' ? '-e build/test/jmh-result.json' : ''};
-                            echo "Cleaning processes…" ;
-                            if ! (pgrep -xa docker || pgrep -af "cassandra-builds/build-scripts") ; then pkill -9 -f org.apache.cassandra. || echo "already clean" ; fi ;
-                            echo "Pruning docker…" ;\n\
-                            docker volume ls -qf dangling=true | xargs -r docker rm -v || true ;
-                            if pgrep -xa docker || pgrep -af "cassandra-builds/build-scripts" ; then docker system prune --force --filter "until=${maxJobHours}h" || true ; else  docker system prune --all --force --volumes || true ;  fi;
-                            echo "Reporting disk usage…"; du -xm / 2>/dev/null | sort -rn | head -n 30 ; df -h ;
-                            echo "Cleaning tmp…";
-                            find . -type d -name tmp -delete 2>/dev/null ;
-                            find /tmp -type f -atime +2 -user jenkins -and -not -exec fuser -s {} ';' -and -delete 2>/dev/null || echo clean tmp failed ;
-                            echo "For test report and logs see https://nightlies.apache.org/cassandra/devbranch/Cassandra-devbranch-${targetName}/\${BUILD_NUMBER}/\${JOB_NAME}/"
-                        """)
-                      }
+                        shell {
+                          // agent_report.sh does not log to file or archive to nightlies
+                          command("""
+                              echo "Cleaning processes…"
+                              if ! (pgrep -xa docker || pgrep -af "cassandra-builds/build-scripts") ; then pkill -9 -f org.apache.cassandra. || echo "already clean" ; fi ;
+                              echo "Pruning docker for '${JOB_NAME}' on ${NODE_NAME}…"
+                              cd cassandra-builds/jenkins-dsl/agent_scripts/
+                              bash docker_agent_cleaner.sh ${maxJobHours}
+                              bash agent_report.sh
+                              git clean -qxdff -e build/test/jmh-result.json || true
+                            """)
+                        }
                     }
                 }
               }
@@ -1121,7 +1091,7 @@ archs.each {
             }
             parameters {
                 stringParam('REPO', 'apache', 'The github user/org to clone cassandra repo from')
-                stringParam('BRANCH', 'trunk', 'The branch of cassandra to checkout')
+                stringParam('BRANCH', 'cassandra-4.1', 'The branch of cassandra to checkout, must be based off before cassandra-5.0')
                 stringParam('DTEST_REPO', "${dtestRepo}", 'The cassandra-dtest repo URL')
                 stringParam('DTEST_BRANCH', 'trunk', 'The branch of cassandra-dtest to checkout')
                 stringParam('DOCKER_IMAGE', "${dtestDockerImage}", 'Docker image for running dtests')
@@ -1178,7 +1148,7 @@ archs.each {
                         git clean -qxdff ;
                         git clone --depth 1 --single-branch -b ${buildsBranch} ${buildsRepo} ;
                         echo "cassandra-builds at: `git -C cassandra-builds log -1 --pretty=format:'%H %an %ad %s'`" ;
-                        echo "Cassandra-devbranch-${targetArchName}) cassandra: `git log -1 --pretty=format:'%H %an %ad %s'`" > Cassandra-devbranch-${targetArchName}.head ;
+                        echo "Cassandra-devbranch-before-5-${targetArchName}) cassandra: `git log -1 --pretty=format:'%H %an %ad %s'`" > Cassandra-devbranch-before-5-${targetArchName}.head ;
                       """)
                 shell("""
                       ./cassandra-builds/build-scripts/cassandra-dtest-pytest-docker.sh \$REPO \$BRANCH \$DTEST_REPO \$DTEST_BRANCH ${buildsRepo} ${buildsBranch} \$DOCKER_IMAGE ${targetName} \${split}/${splits} ;
@@ -1191,7 +1161,7 @@ archs.each {
                     server('Nightlies') {
                         transferSet {
                             sourceFiles("console.log.xz,**/nosetests.xml,**/test_stdout.txt.xz,**/ccm_logs.tar.xz")
-                            remoteDirectory("cassandra/devbranch/Cassandra-devbranch-${targetArchName}/\${BUILD_NUMBER}/\${JOB_NAME}/")
+                            remoteDirectory("cassandra/devbranch/Cassandra-devbranch-before-5-${targetArchName}/\${BUILD_NUMBER}/\${JOB_NAME}/")
                         }
                         retry(9, 5000)
                     }
@@ -1207,27 +1177,22 @@ archs.each {
                   buildSteps {
                     markBuildUnstable(false)
                     postBuildStep {
-                        executeOn('BOTH')
+                        executeOn('AXES')
                         stopOnFailure(false)
                         results(['SUCCESS','UNSTABLE','FAILURE','NOT_BUILT','ABORTED'])
                         buildSteps {
-                          shell {
-                            // docker needs to (soon or later) prune its volumes too, but that can only be done when the agent is idle
-                            // if the agent is busy, just prune everything that is older than maxJobHours
-                            command("""
-                                echo "Cleaning project…" ; git clean -qxdff ;
-                                echo "Cleaning processes…" ;
-                                if ! (pgrep -xa docker || pgrep -af "cassandra-builds/build-scripts") ; then pkill -9 -f org.apache.cassandra. || echo "already clean" ; fi ;
-                                echo "Pruning docker…" ;
-                                docker volume ls -qf dangling=true | xargs -r docker rm -v || true ;
-                                if pgrep -xa docker || pgrep -af "cassandra-builds/build-scripts" ; then docker system prune --force --filter "until=${maxJobHours}h" || true ; else  docker system prune --all --force --volumes || true ;  fi;
-                                echo "Reporting disk usage…"; df -h ;
-                                echo "Cleaning tmp…";
-                                find . -type d -name tmp -delete 2>/dev/null ;
-                                find /tmp -type f -atime +2 -user jenkins -and -not -exec fuser -s {} ';' -and -delete 2>/dev/null || echo clean tmp failed ;
-                                echo "For test report and logs see https://nightlies.apache.org/cassandra/devbranch/Cassandra-devbranch-${targetArchName}/\${BUILD_NUMBER}/\${JOB_NAME}/"
-                            """)
-                          }
+                            shell {
+                              // agent_report.sh does not log to file or archive to nightlies
+                              command("""
+                                  echo "Cleaning processes…"
+                                  if ! (pgrep -xa docker || pgrep -af "cassandra-builds/build-scripts") ; then pkill -9 -f org.apache.cassandra. || echo "already clean" ; fi ;
+                                  echo "Pruning docker for '${JOB_NAME}' on ${NODE_NAME}…"
+                                  cd cassandra-builds/jenkins-dsl/agent_scripts/
+                                  bash docker_agent_cleaner.sh ${maxJobHours}
+                                  bash agent_report.sh
+                                  git clean -qxdff -e build/test/jmh-result.json || true
+                                """)
+                            }
                         }
                     }
                   }
@@ -1258,7 +1223,7 @@ matrixJob('Cassandra-devbranch-before-5-cqlsh-tests') {
     }
     parameters {
         stringParam('REPO', 'apache', 'The github user/org to clone cassandra repo from')
-        stringParam('BRANCH', 'trunk', 'The branch of cassandra to checkout')
+        stringParam('BRANCH', 'cassandra-4.1', 'The branch of cassandra to checkout, must be based off before cassandra-5.0')
         stringParam('DTEST_REPO', "${dtestRepo}", 'The cassandra-dtest repo URL')
         stringParam('DTEST_BRANCH', 'trunk', 'The branch of cassandra-dtest to checkout')
     }
@@ -1312,7 +1277,7 @@ matrixJob('Cassandra-devbranch-before-5-cqlsh-tests') {
             server('Nightlies') {
                 transferSet {
                     sourceFiles("console.log.xz,**/test_stdout.txt.xz,**/ccm_logs.tar.xz")
-                    remoteDirectory("cassandra/devbranch/Cassandra-devbranch-cqlsh-tests/\${BUILD_NUMBER}/\${JOB_NAME}/")
+                    remoteDirectory("cassandra/devbranch/Cassandra-devbranch-before-5-cqlsh-tests/\${BUILD_NUMBER}/\${JOB_NAME}/")
                 }
                 retry(9, 5000)
             }
@@ -1328,27 +1293,22 @@ matrixJob('Cassandra-devbranch-before-5-cqlsh-tests') {
           buildSteps {
             markBuildUnstable(false)
             postBuildStep {
-                executeOn('BOTH')
+                executeOn('AXES')
                 stopOnFailure(false)
                 results(['SUCCESS','UNSTABLE','FAILURE','NOT_BUILT','ABORTED'])
                 buildSteps {
-                  shell {
-                    // docker needs to (soon or later) prune its volumes too, but that can only be done when the agent is idle
-                    // if the agent is busy, just prune everything that is older than maxJobHours
-                    command("""
-                        echo "Cleaning project…"; git clean -qxdff ;
-                        echo "Cleaning processes…" ;
-                        if ! ( pgrep -xa docker || pgrep -af "cassandra-builds/build-scripts" ) ; then pkill -9 -f org.apache.cassandra. || echo "already clean" ; fi ;
-                        echo "Pruning docker…" ;
-                        docker volume ls -qf dangling=true | xargs -r docker rm -v || true ;
-                        if pgrep -xa docker || pgrep -af "cassandra-builds/build-scripts" ; then docker system prune --force --filter "until=${maxJobHours}h" || true ; else  docker system prune --all --force --volumes || true ;  fi;
-                        echo "Reporting disk usage…"; df -h ;
-                        echo "Cleaning tmp…";
-                        find . -type d -name tmp -delete 2>/dev/null ;
-                        find /tmp -type f -atime +2 -user jenkins -and -not -exec fuser -s {} ';' -and -delete 2>/dev/null || echo clean tmp failed ;
-                        echo "For test report and logs see https://nightlies.apache.org/cassandra/devbranch/Cassandra-devbranch-cqlsh-tests/\${BUILD_NUMBER}/\${JOB_NAME}/"
-                    """)
-                  }
+                    shell {
+                      // agent_report.sh does not log to file or archive to nightlies
+                      command("""
+                          echo "Cleaning processes…"
+                          if ! (pgrep -xa docker || pgrep -af "cassandra-builds/build-scripts") ; then pkill -9 -f org.apache.cassandra. || echo "already clean" ; fi ;
+                          echo "Pruning docker for '${JOB_NAME}' on ${NODE_NAME}…"
+                          cd cassandra-builds/jenkins-dsl/agent_scripts/
+                          bash docker_agent_cleaner.sh ${maxJobHours}
+                          bash agent_report.sh
+                          git clean -qxdff -e build/test/jmh-result.json || true
+                        """)
+                    }
                 }
             }
           }
@@ -1371,7 +1331,7 @@ pipelineJob('Cassandra-devbranch-before-5') {
     }
     parameters {
         stringParam('REPO', 'apache', 'The github user/org to clone cassandra repo from')
-        stringParam('BRANCH', 'trunk', 'The branch of cassandra to checkout')
+        stringParam('BRANCH', 'cassandra-4.1', 'The branch of cassandra to checkout, must be based off before cassandra-5.0')
         stringParam('DTEST_REPO', "${dtestRepo}", 'The cassandra-dtest repo URL')
         stringParam('DTEST_BRANCH', 'trunk', 'The branch of cassandra-dtest to checkout')
         stringParam('DOCKER_IMAGE', "${dtestDockerImage}", 'Docker image for running dtests')

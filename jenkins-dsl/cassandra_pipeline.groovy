@@ -1,4 +1,4 @@
-// Lgeacy: only for branches older than 5.0
+// Legacy: only for branches older than 5.0
 //
 // Before 5.0 Cassandra-devbranch  needs custom Jenkinsfile because of the parameters passed into the build jobs.
 //
