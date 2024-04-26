@@ -23,7 +23,7 @@ echo "----"
 echo $(date)
 echo "${JOB_NAME} ${BUILD_NUMBER} ${STAGE_NAME}"
 echo
-du -xmh / 2>/dev/null | sort -rh | head -n 30
+du -mh / 2>/dev/null | sort -rh | head -n 30
 echo
 df -h
 echo
