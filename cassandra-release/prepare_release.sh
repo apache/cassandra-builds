@@ -166,6 +166,7 @@ then
     fi
     echo ""
     git show $head_commit
+    java -version
 
     echo "Is this what you want?"
     select yn in "Yes" "No"; do
