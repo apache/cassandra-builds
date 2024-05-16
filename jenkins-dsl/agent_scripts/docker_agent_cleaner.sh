@@ -43,6 +43,8 @@ docker system prune --all --force --filter "until=${maxJobHours}h"
 if !( pgrep -xa docker &> /dev/null || pgrep -af "build/docker" &> /dev/null || pgrep -af "cassandra-builds/build-scripts" &> /dev/null ) ; then
     echo -n "docker system prune --force : "
     docker system prune --force || true ;
+    echo -n "docker volume prune --force : "
+    docker volume prune --force || true ;
 fi;
 
 virtualenv -p python3 -q .venv
