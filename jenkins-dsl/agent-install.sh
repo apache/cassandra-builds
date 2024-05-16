@@ -89,3 +89,7 @@ srv_domain = apache.org
 environment = production
 EOF'
 
+echo 'Domains=apache.org' >> /etc/systemd/resolved.conf
+apt upgrade -y
+apt dist-upgrade -y
+echo "Please reboot this machine after the upgrade."
