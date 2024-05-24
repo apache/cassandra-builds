@@ -12,10 +12,9 @@ If you have questions about compute resource donations, ask on the dev mailing l
 ## Server Requirements
 
 Server Requirements:
- - Installed OS software is the stock online.net Ubuntu 18.04 LTS amd64 image.
+ - Installed OS software is the stock online.net Ubuntu 22.04 LTS amd64 image.
  - Static IP address.
- - Root volume is 100GB+.
- - Data volume is 500GB+ and is mounted at `/home/jenkins`.
+ - Root volume is all available space (500GB+), preferably in a RAID-0 configuration.
 
 
 ## Ubuntu 18.04 Server Installation
