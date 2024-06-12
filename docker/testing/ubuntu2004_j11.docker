@@ -26,10 +26,16 @@ RUN export DEBIAN_FRONTEND=noninteractive && \
     apt-get install -y --no-install-recommends software-properties-common apt-utils vim && \
     apt-get install -y lsof
 
+# We need git 2.30.0+ to support --merge-base in diff command; Ubuntu 20.04 has 2.25.1
+RUN export DEBIAN_FRONTEND=noninteractive && \
+    add-apt-repository ppa:git-core/ppa && \
+    apt-get update && \
+    apt-get install -y git
+
 RUN export DEBIAN_FRONTEND=noninteractive && \
     add-apt-repository -y ppa:deadsnakes/ppa && \
     apt-get update && \
-    apt-get install -y curl git-core python2.7 python-dev python3-pip \
+    apt-get install -y curl python2.7 python-dev python3-pip \
         python3.6 python3.6-venv python3.6-dev \
         python3.7 python3.7-venv python3.7-dev \
         python3.8 python3.8-venv python3.8-dev \
@@ -160,6 +166,12 @@ RUN echo 'Host *\n UserKnownHostsFile /dev/null\n StrictHostKeyChecking no' > ~/
 RUN chown cassandra:cassandra ~/.ssh
 RUN chown cassandra:cassandra ~/.ssh/config
 RUN chmod 600 ~/.ssh/config
+
+# Fetch the OWASP database
+RUN mkdir -p /home/cassandra/dependency-check
+COPY build-owasp-db.xml /home/cassandra/dependency-check/build.xml
+RUN cd /home/cassandra/dependency-check && ant -f build.xml -Dowasp.data.dir=/home/cassandra/.cache/cassandra-owasp/dependency-check-ant && chown -R cassandra:cassandra /home/cassandra/.cache
+RUN rm -rf /home/cassandra/dependency-check
 
 # mark "/tmp" as a volume so it will get mounted as an ext4 mount and not
 # the stupid aufs/CoW stuff that the actual docker container mounts will have.

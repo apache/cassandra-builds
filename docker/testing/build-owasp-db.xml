@@ -1,0 +1,43 @@
+<project basedir="." default="dependency-check-update" name="dependency-check-update">
+
+  <property name="dependency-check.version" value="8.3.1"/>
+  <property name="dependency-check.home.base" value="${basedir}/plugin"/>
+  <property name="dependency-check.home" value="${basedir}/plugin/dependency-check-ant"/>
+  <property name="owasp.data.dir" value="${user.home}/.cache/cassandra-owasp/dependency-check-ant"/>
+
+  <condition property="is.dependency.check.jar">
+    <available file="${dependency-check.home}/dependency-check-ant.jar" type="file" />
+  </condition>
+
+  <target name="dependency-check-download"
+      description="Fetch OWASP Dependency checker"
+      unless="is.dependency.check.jar">
+
+    <echo>Downloading OWASP Dependency checks ...</echo>
+
+    <mkdir dir="${dependency-check.home.base}"/>
+
+    <retry retrycount="3" retrydelay="10" >
+      <get src="https://github.com/jeremylong/DependencyCheck/releases/download/v${dependency-check.version}/dependency-check-ant-${dependency-check.version}-release.zip"
+          dest="${dependency-check.home.base}/dependency-check-ant-${dependency-check.version}-release.zip"/>
+    </retry>
+
+    <unzip src="${dependency-check.home.base}/dependency-check-ant-${dependency-check.version}-release.zip" dest="${dependency-check.home.base}"/>
+  </target>
+
+  <target name="dependency-check-update" description="Dependency-Check Update" depends="dependency-check-download">
+    <path id="dependency-check.path">
+      <pathelement location="${dependency-check.home}/dependency-check-ant.jar"/>
+      <fileset dir="${dependency-check.home}/lib">
+        <include name="*.jar"/>
+      </fileset>
+    </path>
+
+    <taskdef resource="dependency-check-taskdefs.properties">
+      <classpath refid="dependency-check.path" />
+    </taskdef>
+
+    <dependency-check-update dataDirectory="${owasp.data.dir}"/>
+  </target>
+
+</project>
