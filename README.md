@@ -23,7 +23,7 @@ Prior to release, make sure to edit:
 
 1. Create build images containing the build tool-chain, Java and an Apache Cassandra git working directory
    * Debian:
-   ```docker build -t cass-build-debs -f docker/jessie-image.docker docker/```
+   ```docker build -t cass-build-debs -f docker/bullseye-image.docker docker/```
    * RPM:
    ```docker build -t cass-build-rpms -f docker/almalinux-image.docker docker/```
    The image will contain a clone of the Apache git repository by default. Using a different repository is possible by adding the `--build-arg CASSANDRA_GIT_URL=https://github.com/myuser/cassandra.git` parameter. All successive builds will be executed based on the repository cloned during docker image creation.
