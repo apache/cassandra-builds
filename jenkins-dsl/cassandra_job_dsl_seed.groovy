@@ -1471,3 +1471,18 @@ job('contribulyze') {
         }
     }
 }
+
+multibranchPipelineJob('multi-branch-java-driver') {
+    branchSources {
+        github {
+            id('123') 
+            repoOwner('apache')
+          	repository('cassandra-java-driver')
+        }
+    }
+  	factory {
+        workflowBranchProjectFactory {
+            scriptPath('Jenkinsfile-asf')
+        }
+    }
+}
