@@ -33,30 +33,24 @@ WORKDIR /home/docker
 
 # install jabba and java versions
 RUN export JABBA_HOME="$HOME/.jabba" && \
-	curl -sL https://github.com/shyiko/jabba/raw/master/install.sh | bash && . "$HOME/.jabba/jabba.sh" && \
-	jabba install zulu@1.8 && \
-	jabba install openjdk@1.11.0 && \
-	jabba install openjdk@1.17.0
+	curl -sL https://github.com/Jabba-Team/jabba/raw/main/install.sh | bash && . /home/docker/.jabba/jabba.sh
+	
+RUN . /home/docker/.jabba/jabba.sh && jabba install openjdk@1.8.0-292
+RUN . /home/docker/.jabba/jabba.sh && jabba install openjdk@1.11.0-9
+RUN . /home/docker/.jabba/jabba.sh && jabba install openjdk@17
 
 ENV PATH="/home/docker/.jabba/bin:/home/docker/.local/bin:$PATH"
 
-RUN echo "export JAVA8_HOME=$(jabba which zulu@1.8)" >> ~/env.txt && \
-  	echo "export JAVA11_HOME=$(jabba which openjdk@1.11.0)" >> ~/env.txt && \
-	  echo "export JAVA17_HOME=$(jabba which openjdk@1.17.0)" >> ~/env.txt && \
-  	echo "export JAVA_HOME=$(jabba which zulu@1.8)" >> ~/env.txt && \
+RUN echo "export JAVA8_HOME=$(jabba which openjdk@1.8.0-292)" >> ~/env.txt && \
+  	echo "export JAVA11_HOME=$(jabba which openjdk@1.11.0-9)" >> ~/env.txt && \
+	echo "export JAVA17_HOME=$(jabba which openjdk@17)" >> ~/env.txt && \
+  	echo "export JAVA_HOME=$(jabba which openjdk@1.8.0-292)" >> ~/env.txt && \
   	echo ". $HOME/.jabba/jabba.sh" >> ~/env.txt && \
-  	echo "jabba use zulu@1.8" >> ~/env.txt
+  	echo "jabba use openjdk@1.8.0-292" >> ~/env.txt
 
 # ccm
 RUN git clone https://github.com/riptano/ccm.git  && \
 	cd ccm && \
 	pip install -e .
 
-# driver
-RUN git clone https://github.com/apache/cassandra-java-driver.git
-
 ENTRYPOINT [ "/bin/bash", "-l", "-c" ]
-
-# # now you should be able to
-# cd ~/cassandra-java-driver
-# mvn verify 
