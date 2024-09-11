@@ -1472,7 +1472,7 @@ job('contribulyze') {
     }
 }
 
-multibranchPipelineJob('multi-branch-java-driver') {
+multibranchPipelineJob('cassandra-java-driver') {
     branchSources {
         github {
             id('123') 
