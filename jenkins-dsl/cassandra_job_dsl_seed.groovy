@@ -1474,19 +1474,37 @@ job('contribulyze') {
 
 multibranchPipelineJob('cassandra-java-driver') {
     branchSources {
-        github {
-            id('123')
-            scanCredentialsId('ASF CI for Github PRs etc')
-            repoOwner('apache')
-              repository('cassandra-java-driver')
-        }
-        buildStrategies {
-            buildChangeRequests {
-                ignoreTargetOnlyChanges(true)
+        branchSource {
+            source {
+                github {
+                    id('123')
+                    credentialsId('5f95d117-af3b-452a-9e5c-4bddb22a67f4')
+                    repoOwner('apache')
+                    repository('cassandra-java-driver')
+                    repositoryUrl('https://github.com/apache/cassandra-java-driver.git')
+                    configuredByUrl(true)
+                    traits {
+                        gitHubBranchDiscovery {
+                            strategyId(1)
+                        }
+                        gitHubForkDiscovery {
+                            strategyId(1)
+                            trust {
+                                gitHubTrustEveryone()
+                            }
+                        }
+                    }
+                }
+            }
+            buildStrategies {
+                buildChangeRequests {
+                    ignoreTargetOnlyChanges(true)
+                    ignoreUntrustedChanges(true)
+                }
             }
         }
     }
-      factory {
+    factory {
         workflowBranchProjectFactory {
             scriptPath('Jenkinsfile-asf')
         }
