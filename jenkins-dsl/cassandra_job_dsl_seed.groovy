@@ -11,10 +11,9 @@
 
 def jobDescription = '''
 <p><img src="http://cassandra.apache.org/assets/img/logo-white.svg" />
-<br/>Apache Cassandra DSL-generated job - DSL git repo: <a href="https://github.com/apache/cassandra-builds">cassandra-builds</a></p>
+<br/>Full Apache Cassandra Test trends and history is found in <a href="https://butler.cassandra.apache.org/#/">butler.cassandra.apache.org</a></p>
 <p>Logs and test results are archived in <a href="https://nightlies.apache.org/cassandra/">nightlies.apache.org</a>
-<br/><i>protip: it is required to look in the pipeline's console log to find the stage build numbers for a specific pipeline run</i></p>
-<p>A basic mirror of all build summary pages (classic and blue ocean ui) is found here <a href="https://nightlies.apache.org/cassandra/ci-cassandra.apache.org/">here</a></p>
+<br/><i>protip: use blue ocean ui to easier find the failed stage (and logs) build within a specific pipeline run</i></p>
                     '''
 
 // architectures. blank is amd64

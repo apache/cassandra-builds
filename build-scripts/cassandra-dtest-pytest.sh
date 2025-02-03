@@ -115,6 +115,12 @@ PYTEST_OPTS="-vv --log-cli-level=DEBUG --junit-xml=nosetests.xml --junit-prefix=
 
 pytest ${PYTEST_OPTS} --cassandra-dir=$CASSANDRA_DIR ${DTEST_ARGS} ${SPLIT_TESTS} 2>&1 | tee -a ${WORKSPACE}/test_stdout.txt
 
+# remove <testsuites> wrapping elements, and update testsuite name
+sed -r "s/<[\/]?testsuites>//g" nosetests.xml > ${TMPDIR}/nosetests.xml
+cat ${TMPDIR}/nosetests.xml > nosetests.xml
+sed "s/testsuite name=\"Cassandra dtests\"/testsuite name=\"${DTEST_TARGET}_jdk${java_version}_python${python_version}_cython${cython}_$(uname -m)${SPLIT_STRING}\"/g" nosetests.xml > ${TMPDIR}/nosetests.xml
+cat ${TMPDIR}/nosetests.xml > nosetests.xml
+
 # tar up any ccm logs for easy retrieval
 tar -cJf ccm_logs.tar.xz ${TMPDIR}/*/test/*/logs/*
 
