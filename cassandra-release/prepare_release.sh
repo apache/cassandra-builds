@@ -2,14 +2,18 @@
 
 ##### TO EDIT #####
 
-asf_username="$USER"
+asf_username="${asf_username:-$USER}"
+
+if [ "x${asf_username}" != "x${USER}" ] ; then
+  echo "Using ASF username ${asf_username}"
+fi
 
 if [ -z "$gpg_key" ]; then
     gpg_key="XXXXXXXX"
 fi
 
 if [ "$gpg_key" = "XXXXXXXX" ]; then
-    echo >&2 "Gpg key is unset. Pleae set gpg_key variable." && exit 1
+    echo >&2 "Gpg key is unset. Please set gpg_key variable." && exit 1
 fi
 
 # The name of remote for the asf remote in your git repo
