@@ -9,7 +9,7 @@ if [ -z "$gpg_key" ]; then
 fi
 
 if [ "$gpg_key" = "XXXXXXXX" ]; then
-    echo >&2 "Gpg key is unset. Pleae set gpg_key variable." && exit 1
+    echo >&2 "Gpg key is unset. Please set gpg_key variable." && exit 1
 fi
 
 # The name of remote for the asf remote in your git repo
