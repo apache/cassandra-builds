@@ -57,15 +57,6 @@ ask for more in console https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/elas
 
 | Agent Name     | Donated By  | Description                                  | IP Address     |
 | -------------- | -----------:| --------------------------------------------:|:--------------:|
-| [cassandra8](https://ci-cassandra.apache.org/computer/cassandra8)         | Instaclustr |  Ubuntu 18.04 LTS amd64, 32G RAM, m4.2xlarge | 52.38.142.130   |
-| [cassandra9](https://ci-cassandra.apache.org/computer/cassandra9)         | Instaclustr |  Ubuntu 18.04 LTS amd64, 32G RAM, m4.2xlarge | 34.223.128.131  |
-| [cassandra10](https://ci-cassandra.apache.org/computer/cassandra10)       | Instaclustr |  Ubuntu 18.04 LTS amd64, 32G RAM, m4.2xlarge | 34.209.95.9     |
-| [cassandra11](https://ci-cassandra.apache.org/computer/cassandra11)       | Instaclustr |  Ubuntu 18.04 LTS amd64, 32G RAM, m4.2xlarge | 52.13.31.44     |
-| [cassandra12](https://ci-cassandra.apache.org/computer/cassandra12)       | Instaclustr |  Ubuntu 18.04 LTS amd64, 32G RAM, m4.2xlarge | 52.88.147.81    |
-| [cassandra13](https://ci-cassandra.apache.org/computer/cassandra13)       | Instaclustr |  Ubuntu 18.04 LTS amd64, 32G RAM, m4.2xlarge | 34.213.143.168  |
-| [cassandra14](https://ci-cassandra.apache.org/computer/cassandra14)       | Instaclustr |  Ubuntu 18.04 LTS amd64, 32G RAM, m4.2xlarge | 54.148.1.179    |
-| [cassandra15](https://ci-cassandra.apache.org/computer/cassandra15)       | Instaclustr |  Ubuntu 18.04 LTS amd64, 32G RAM, m4.2xlarge | 54.189.131.27   |
-| [cassandra16](https://ci-cassandra.apache.org/computer/cassandra16)       | Instaclustr |  Ubuntu 18.04 LTS amd64, 32G RAM, m4.2xlarge | 54.201.88.175   |
 | [cassandra17](https://ci-cassandra.apache.org/computer/cassandra17)       | Amazon      |  Ubuntu 18.04 LTS amd64, 32G RAM, m5.2xlarge | 44.230.121.32   |
 | [cassandra18](https://ci-cassandra.apache.org/computer/cassandra18)       | Amazon      |  Ubuntu 18.04 LTS amd64, 32G RAM, m5.2xlarge | 44.230.213.15   |
 | [cassandra19](https://ci-cassandra.apache.org/computer/cassandra19)       | Amazon      |  Ubuntu 18.04 LTS amd64, 32G RAM, m5.2xlarge | 44.231.106.18   |
@@ -86,20 +77,30 @@ ask for more in console https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/elas
 | [cassandra34](https://ci-cassandra.apache.org/computer/cassandra34)       | iland       |  Ubuntu 18.04 LTS amd64, 32G RAM, 16 core    | 64.18.213.247   |
 | [cassandra35](https://ci-cassandra.apache.org/computer/cassandra35)       | iland       |  Ubuntu 18.04 LTS amd64, 32G RAM, 16 core    | 64.18.213.248   |
 | [cassandra36](https://ci-cassandra.apache.org/computer/cassandra36)       | iland       |  Ubuntu 18.04 LTS amd64, 32G RAM, 16 core    | 64.18.213.249   |
-| [cassandra37](https://ci-cassandra.apache.org/computer/cassandra37)       | DataStax    |  Ubuntu 18.04 LTS amd64, 32G RAM             | 163.172.52.226  |
-| [cassandra38](https://ci-cassandra.apache.org/computer/cassandra38)       | DataStax    |  Ubuntu 18.04 LTS amd64, 32G RAM             | 163.172.52.231  |
-| [cassandra39](https://ci-cassandra.apache.org/computer/cassandra39)       | DataStax    |  Ubuntu 18.04 LTS amd64, 32G RAM             | 163.172.52.232  |
-| [cassandra40](https://ci-cassandra.apache.org/computer/cassandra40)       | DataStax    |  Ubuntu 18.04 LTS amd64, 32G RAM             | 163.172.52.237  |
-| [cassandra41](https://ci-cassandra.apache.org/computer/cassandra41)       | DataStax    |  Ubuntu 18.04 LTS amd64, 32G RAM             | 163.172.52.242  |
-| [cassandra42](https://ci-cassandra.apache.org/computer/cassandra42)       | DataStax    |  Ubuntu 18.04 LTS amd64, 32G RAM             | 163.172.52.245  |
-| [cassandra43](https://ci-cassandra.apache.org/computer/cassandra43)       | DataStax    |  Ubuntu 18.04 LTS amd64, 32G RAM             | 163.172.53.15   |
-| [cassandra44](https://ci-cassandra.apache.org/computer/cassandra44)       | DataStax    |  Ubuntu 18.04 LTS amd64, 32G RAM             | 163.172.53.17   |
-| [cassandra45](https://ci-cassandra.apache.org/computer/cassandra45)       | DataStax    |  Ubuntu 18.04 LTS amd64, 32G RAM             | 163.172.53.59   |
-| [cassandra46](https://ci-cassandra.apache.org/computer/cassandra46)       | DataStax    |  Ubuntu 18.04 LTS amd64, 32G RAM             | 163.172.55.25   |
-| [cassandra47](https://ci-cassandra.apache.org/computer/cassandra47)       | DataStax    |  Ubuntu 18.04 LTS amd64, 32G RAM             | 163.172.55.40   |
-| [cassandra48](https://ci-cassandra.apache.org/computer/cassandra48)       | DataStax    |  Ubuntu 18.04 LTS amd64, 32G RAM             | 163.172.55.49   |
-| [cassandra49](https://ci-cassandra.apache.org/computer/cassandra49)       | DataStax    |  Ubuntu 18.04 LTS amd64, 32G RAM             | 163.172.55.57   |
-| [cassandra50](https://ci-cassandra.apache.org/computer/cassandra50)       | DataStax    |  Ubuntu 18.04 LTS amd64, 32G RAM             | 163.172.51.48   |
+| [cassandra37](https://ci-cassandra.apache.org/computer/cassandra37)       | DataStax    |  Ubuntu 22.04 LTS amd64, 32G RAM, 8 core     | 163.172.52.226  |
+| [cassandra38](https://ci-cassandra.apache.org/computer/cassandra38)       | DataStax    |  Ubuntu 22.04 LTS amd64, 32G RAM, 8 core     | 163.172.52.231  |
+| [cassandra39](https://ci-cassandra.apache.org/computer/cassandra39)       | DataStax    |  Ubuntu 22.04 LTS amd64, 32G RAM, 8 core     | 163.172.52.232  |
+| [cassandra40](https://ci-cassandra.apache.org/computer/cassandra40)       | DataStax    |  Ubuntu 22.04 LTS amd64, 32G RAM, 8 core     | 163.172.52.237  |
+| [cassandra41](https://ci-cassandra.apache.org/computer/cassandra41)       | DataStax    |  Ubuntu 22.04 LTS amd64, 32G RAM, 8 core     | 163.172.52.242  |
+| [cassandra42](https://ci-cassandra.apache.org/computer/cassandra42)       | DataStax    |  Ubuntu 22.04 LTS amd64, 32G RAM, 8 core     | 163.172.52.245  |
+| [cassandra43](https://ci-cassandra.apache.org/computer/cassandra43)       | DataStax    |  Ubuntu 22.04 LTS amd64, 32G RAM, 8 core     | 163.172.53.15   |
+| [cassandra44](https://ci-cassandra.apache.org/computer/cassandra44)       | DataStax    |  Ubuntu 22.04 LTS amd64, 32G RAM, 8 core     | 163.172.53.17   |
+| [cassandra45](https://ci-cassandra.apache.org/computer/cassandra45)       | DataStax    |  Ubuntu 22.04 LTS amd64, 32G RAM, 8 core     | 163.172.53.59   |
+| [cassandra46](https://ci-cassandra.apache.org/computer/cassandra46)       | DataStax    |  Ubuntu 22.04 LTS amd64, 32G RAM, 8 core     | 163.172.55.25   |
+| [cassandra47](https://ci-cassandra.apache.org/computer/cassandra47)       | DataStax    |  Ubuntu 22.04 LTS amd64, 32G RAM, 8 core     | 163.172.55.40   |
+| [cassandra48](https://ci-cassandra.apache.org/computer/cassandra48)       | DataStax    |  Ubuntu 22.04 LTS amd64, 32G RAM, 8 core     | 163.172.55.49   |
+| [cassandra49](https://ci-cassandra.apache.org/computer/cassandra49)       | DataStax    |  Ubuntu 22.04 LTS amd64, 32G RAM, 8 core     | 163.172.55.57   |
+| [cassandra50](https://ci-cassandra.apache.org/computer/cassandra50)       | DataStax    |  Ubuntu 22.04 LTS amd64, 32G RAM, 8 core     | 163.172.51.48   |
+| [cassandra51](https://ci-cassandra.apache.org/computer/cassandra51)       | NetApp      |  Ubuntu 22.04 LTS amd64, 256G RAM, 48 core   | 37.27.237.42    |
+| [cassandra52](https://ci-cassandra.apache.org/computer/cassandra52)       | NetApp      |  Ubuntu 22.04 LTS amd64, 256G RAM, 48 core   | 65.21.169.90    |
+| [cassandra53](https://ci-cassandra.apache.org/computer/cassandra53)       | NetApp      |  Ubuntu 22.04 LTS amd64, 256G RAM, 48 core   | 65.21.169.89    |
+| [cassandra54](https://ci-cassandra.apache.org/computer/cassandra54)       | NetApp      |  Ubuntu 22.04 LTS amd64, 256G RAM, 48 core   | 65.21.169.88    |
+| [cassandra55](https://ci-cassandra.apache.org/computer/cassandra55)       | NetApp      |  Ubuntu 22.04 LTS amd64, 256G RAM, 48 core   | 65.21.169.87    |
+| [cassandra56](https://ci-cassandra.apache.org/computer/cassandra56)       | NetApp      |  Ubuntu 22.04 LTS amd64, 256G RAM, 48 core   | 95.216.13.181   |
+| [cassandra57](https://ci-cassandra.apache.org/computer/cassandra57)       | NetApp      |  Ubuntu 22.04 LTS amd64, 256G RAM, 48 core   | 65.21.174.184   |
+| [cassandra58](https://ci-cassandra.apache.org/computer/cassandra58)       | NetApp      |  Ubuntu 22.04 LTS amd64, 256G RAM, 48 core   | 95.217.141.42   |
+| [cassandra59](https://ci-cassandra.apache.org/computer/cassandra59)       | NetApp      |  Ubuntu 22.04 LTS amd64, 256G RAM, 48 core   | 37.27.231.136   |
+| [cassandra60](https://ci-cassandra.apache.org/computer/cassandra60)       | NetApp      |  Ubuntu 22.04 LTS amd64, 256G RAM, 48 core   | 37.27.142.164   |
 | [cassandra-arm1](https://ci-cassandra.apache.org/computer/cassandra-arm1) | Huawei      |  Ubuntu 18.04.3 LTS arm64, 32G RAM, 16 core  | 114.119.184.236 |
 | [cassandra-arm2](https://ci-cassandra.apache.org/computer/cassandra-arm2) | Huawei      |  Ubuntu 18.04.3 LTS arm64, 32G RAM, 16 core  | 94.74.91.186    |
 | [cassandra-arm3](https://ci-cassandra.apache.org/computer/cassandra-arm3) | Huawei      |  Ubuntu 18.04.3 LTS arm64, 32G RAM, 16 core  | 159.138.106.144 |
@@ -114,7 +115,7 @@ Contacts for system donators, when console hands may be needed by INFRA:
 
   *Datastax*: Mick Semb Wever <mck@apache.org>
 
-  *Instaclustr*: Stefan Miklosovic <stefan.miklosovic@instaclustr.com>
+  *NetApp*: Stefan Miklosovic <smiklosovic@apache.org>
                alternative group list: admin@instaclustr.com
 
   *Amazon*: Steve Mayszak cassandra-hardware@amazon.com
