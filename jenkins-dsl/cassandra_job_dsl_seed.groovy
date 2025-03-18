@@ -363,6 +363,7 @@ cassandraBranches.each {
             stringParam( "repository", mainRepo )
             stringParam( "branch", branchName )
             stringParam( "profile", "post-commit" )
+            stringParam( "architecture", "all" )
         }
         properties {
             githubProjectUrl(mainRepo)
