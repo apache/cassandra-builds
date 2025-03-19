@@ -2,7 +2,11 @@
 
 ##### TO EDIT #####
 
-asf_username="$USER"
+asf_username="${asf_username:-$USER}"
+
+if [ "x${asf_username}" != "x${USER}" ] ; then
+  echo "Using ASF username ${asf_username}"
+fi
 
 if [ -z "$gpg_key" ]; then
     gpg_key="XXXXXXXX"
