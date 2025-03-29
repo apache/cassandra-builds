@@ -13,7 +13,7 @@ mkdir -p /tmp/contribulyze-repos
 mkdir -p /tmp/contribulyze-html
 cd /tmp/contribulyze-repos
 
-repos=("https://github.com/apache/cassandra.git" "https://github.com/apache/cassandra-dtest.git" "https://github.com/apache/cassandra-builds.git" "https://github.com/apache/cassandra-in-jvm-dtest-api.git" "https://github.com/apache/cassandra-harry.git" "https://github.com/apache/cassandra-website.git" "https://github.com/apache/cassandra-java-driver.git" "https://github.com/apache/cassandra-gocql-driver.git" "https://github.com/datastax/python-driver.git" "https://github.com/apache/cassandra-sidecar.git" "https://github.com/apache/cassandra-analytics.git" "https://github.com/apache/cassandra-accord.git")
+repos=("https://github.com/apache/cassandra.git" "https://github.com/apache/cassandra-dtest.git" "https://github.com/apache/cassandra-builds.git" "https://github.com/apache/cassandra-in-jvm-dtest-api.git" "https://github.com/apache/cassandra-harry.git" "https://github.com/apache/cassandra-website.git" "https://github.com/apache/cassandra-java-driver.git" "https://github.com/apache/cassandra-gocql-driver.git" "https://github.com/datastax/python-driver.git" "https://github.com/apache/cassandra-sidecar.git" "https://github.com/apache/cassandra-analytics.git" "https://github.com/apache/cassandra-accord.git" "https://github.com/apache/cassandra-ccm" "https://github.com/apache/cassandra-spark-connector")
 
 # the different groups we want separate contribulyze reports on. note '..' refers to everything.
 groups=('..' 'website_and_docs' 'build_and_tools' 'packaging_and_release' 'test_and_ci' 'cassandra_src' 'drivers' 'python-driver' 'cassandra-sidecar' 'cassandra-analytics' 'cassandra-accord')
@@ -48,7 +48,7 @@ for group in ${groups[*]} ; do
      ;;
 
      "test_and_ci")
-      groupings=("cassandra/.circleci" "cassandra/.jenkins" "cassandra/test" "cassandra/pylib/cqlshlib/test" "cassandra-dtest" "cassandra-in-jvm-dtest-api" "cassandra-harry" "cassandra-builds/build-scripts")
+      groupings=("cassandra/.circleci" "cassandra/.jenkins" "cassandra/test" "cassandra/pylib/cqlshlib/test" "cassandra-dtest" "cassandra-in-jvm-dtest-api" "cassandra-harry" "cassandra-builds/build-scripts" "cassandra-ccm")
      ;;
 
      "cassandra_src")
@@ -69,7 +69,7 @@ for group in ${groups[*]} ; do
      ;;
 
      "cassandra-analytics")
-      groupings=("cassandra-analytics")
+      groupings=("cassandra-analytics" "cassandra-spark-connector")
      ;;
 
      "cassandra-accord")
