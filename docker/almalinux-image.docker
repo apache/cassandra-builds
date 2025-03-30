@@ -36,6 +36,7 @@ RUN until curl -f -S -s --retry 9 --retry-connrefused --retry-delay 1 https://va
 RUN rpm -i --nodeps ant-junit-1.9.4-2.el7.noarch.rpm
 
 RUN pip3 install --upgrade pip
+RUN ln -s /usr/bin/python3 /usr/bin/python
 
 # create and change to build user
 RUN groupadd --gid ${GID_ARG} --non-unique build \
