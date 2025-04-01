@@ -51,8 +51,8 @@ RUN echo "export JAVA8_HOME=$(jabba which openjdk@1.8.0-292)" >> ~/env.txt && \
     echo "jabba use openjdk@1.8.0-292" >> ~/env.txt
 
 # ccm
-RUN git clone https://github.com/apache/cassandra-ccm.git  && \
-    cd ccm && \
+RUN git clone --depth 1 --single-branch -b cassandra-test https://github.com/apache/cassandra-ccm.git  && \
+    cd cassandra-ccm && \
     pip install -e .
 
 # download cassandra binaries of latest patch versions for each minor version
