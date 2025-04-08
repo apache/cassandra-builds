@@ -28,26 +28,28 @@ def remove_prefix(input_string, prefix):
 
 def prune_docker_images():
 
-    docker_images = subprocess.run(['docker', 'images', '--filter', 'reference=apache/cassandra*', '--format', '{{.Repository}}'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True).stdout.splitlines()
+    docker_images = subprocess.run(['docker', 'images', '--filter', 'reference=apache/cassandra*', '--filter', 'reference=apache.jfrog.io/cassan-docker/apache/cassandra*', '--format', '{{.Repository}}'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True).stdout.splitlines()
 
     debug(f"found images: {docker_images}")
     md5sums = set()
     for branch in ['cassandra-5.0','trunk']:
         for docker_image in docker_images:
-            dockerfile=remove_prefix(docker_image,'apache/cassandra-')
-            debug(f"checking {branch}/.build/docker/{dockerfile}")
-            md5sums.add(fetch_url_md5sum(f"https://raw.githubusercontent.com/apache/cassandra/{branch}/.build/docker/{dockerfile}"))
+            dockerfile=remove_prefix(remove_prefix(docker_image,'apache/cassandra-'),'apache.jfrog.io/cassan-docker/apache/cassandra-')
+            debug(f"checking {branch}/.build/docker/{dockerfile}.docker")
+            md5sums.add(fetch_url_md5sum(f"https://raw.githubusercontent.com/apache/cassandra/{branch}/.build/docker/{dockerfile}.docker"))
 
 
     if 0 < len(md5sums):
         debug(f"in use md5sums are: {md5sums}")
 
-        docker_tags = subprocess.run(['docker', 'images', '--filter', 'reference=apache/cassandra*', '--format', '{{.Repository}}:{{.Tag}}'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True).stdout.splitlines()
+        docker_tags = subprocess.run(['docker', 'images', '--filter', 'reference=apache/cassandra*', '--filter', 'reference=apache.jfrog.io/cassan-docker/apache/cassandra*', '--format', '{{.Repository}}:{{.Tag}}'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True).stdout.splitlines()
 
         debug(f"local images are: {docker_tags}")
         for docker_tag in docker_tags:
-            debug(docker_tag)
-            if subprocess.run(['docker', 'image', 'inspect', '--format', '{{.Id}}', docker_tag], stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True).stdout.strip() not in md5sums:
+            debug(f"checking {docker_tag}")
+            repo_tags = subprocess.run(['docker', 'image', 'inspect', '--format', '{{json .RepoTags}}', docker_tag], stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True).stdout.strip()
+            sha = repo_tags.split(':')[-1].strip('[]"').split()[0]
+            if sha not in md5sums:
                 print(f"Pruning {docker_tag}")
                 subprocess.run(['docker', 'rmi', docker_tag], check=False)
 
