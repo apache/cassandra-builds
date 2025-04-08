@@ -38,8 +38,8 @@ error() {
     exit $1
 }
 
-echo -n "docker system prune --all --force --filter \"until=${maxJobHours}h\" : "
-docker system prune --all --force --filter "until=${maxJobHours}h"
+echo -n "docker system prune --force --filter \"until=${maxJobHours}h\" : "
+docker system prune --force --filter "until=${maxJobHours}h"
 if !( pgrep -xa docker &> /dev/null || pgrep -af "build/docker" &> /dev/null || pgrep -af "cassandra-builds/build-scripts" &> /dev/null ) ; then
     echo -n "docker system prune --force : "
     docker system prune --force || true ;
