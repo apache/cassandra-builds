@@ -1499,7 +1499,7 @@ multibranchPipelineJob('cassandra-java-driver') {
             buildStrategies {
                 buildChangeRequests {
                     ignoreTargetOnlyChanges(true)
-                    ignoreUntrustedChanges(true)
+                    ignoreUntrustedChanges(false)
                 }
             }
         }
@@ -1507,6 +1507,11 @@ multibranchPipelineJob('cassandra-java-driver') {
     factory {
         workflowBranchProjectFactory {
             scriptPath('Jenkinsfile-asf')
+        }
+    }
+    triggers {
+        periodicFolderTrigger {
+            interval("10m")
         }
     }
 }
