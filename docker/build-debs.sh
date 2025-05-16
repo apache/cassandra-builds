@@ -134,6 +134,8 @@ for x in $(seq 1 3); do
 done
 set -e
 
+sudo apt update -y
+
 # Install build dependencies (retry if failed)
 until ( echo "y" | sudo mk-build-deps --install ) ; do echo "mk-build-deps failed… trying again after 10s… " ; sleep 10 ; done
 
