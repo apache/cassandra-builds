@@ -13,7 +13,7 @@ def jobDescription = '''
 <p><img src="http://cassandra.apache.org/assets/img/logo-white.svg" />
 <br/>Full Apache Cassandra Test trends and history is found in <a href="https://butler.cassandra.apache.org/#/">butler.cassandra.apache.org</a></p>
 <p>Logs and test results are archived in <a href="https://nightlies.apache.org/cassandra/">nightlies.apache.org</a>
-<br/><i>protip: use blue ocean ui to easier find the failed stage (and logs) build within a specific pipeline run</i></p>
+<br/><i>protip: use cloudbees pipline explorer to debug/search splits and stages within a build</i></p>
                     '''
 
 // architectures. blank is amd64
