@@ -12,10 +12,10 @@
 
 # base things off the testing image without dependencies warmed up
 FROM apache/cassandra-testing-ubuntu2004-java11
-MAINTAINER Apache Cassandra <dev@cassandra.apache.org>
+LABEL org.opencontainers.image.authors="Apache Cassandra <dev@cassandra.apache.org>"
 
 USER cassandra
-ENV HOME /home/cassandra
+ENV HOME=/home/cassandra
 WORKDIR /home/cassandra
 
 # Fetch the maven dependencies in advance since this tends to fail at runtime
@@ -47,7 +47,9 @@ RUN cd ~/cassandra && \
     git checkout origin/cassandra-2.1 && ant maven-ant-tasks-retrieve-build
 
 # Initialize the CCM git repo as well as this also can fail to clone
+RUN rm -fr ~/.ccm/repository/_git_cache_apache
 RUN /bin/bash -c 'source ~/env3.6/bin/activate && \
+    export LC_ALL=en_US.UTF-8 && export LANG=en_US.UTF-8 && export LANGUAGE=en_US.UTF-8 && \
     ccm create -n 1 -v git:cassandra-4.1 test && ccm remove test && \
     ccm create -n 1 -v git:cassandra-4.0 test && ccm remove test && \
     ccm create -n 1 -v git:cassandra-3.11 test && ccm remove test && \
@@ -72,3 +74,4 @@ RUN bash -c 'source ~/env3.6/bin/activate && \
     latest_4_1=$(curl -s https://downloads.apache.org/cassandra/ | grep -oP "(?<=href=\")4\.1\.[0-9]+(?=\")" | sort -V | tail -1 | cut -d"." -f3) && \
     for i in $(seq 1 $latest_4_1); do echo $i ; ccm create --quiet -n 1 -v binary:4.1.$i test && ccm remove test ; done'
 
+RUN rm -rf ~/env*/src/cassandra-driver/.git /tmp/ccm-*.tar.gz
