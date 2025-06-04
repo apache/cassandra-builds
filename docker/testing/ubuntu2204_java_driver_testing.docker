@@ -15,7 +15,7 @@ MAINTAINER Apache Cassandra <dev@cassandra.apache.org>
 
 RUN export DEBIAN_FRONTEND=noninteractive && \
     apt update  && \
-    apt install -y curl git virtualenv software-properties-common vim maven sudo && \
+    apt install -y curl git virtualenv software-properties-common vim sudo && \
     add-apt-repository -y ppa:deadsnakes/ppa && \
     apt update
 
@@ -30,6 +30,19 @@ RUN echo "docker ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 USER docker
 
 WORKDIR /home/docker
+
+# install newer maven, 3.8.8 is latest that supports Java 8
+# checksum at: https://downloads.apache.org/maven/maven-3/3.8.8/binaries/apache-maven-3.8.8-bin.tar.gz.sha512
+RUN sh -c '\
+  MAVEN_DOWNLOAD_TAR_PATH="apache-maven-3.8.8-bin.tar.gz"; \
+  MAVEN_388_SHA512="332088670d14fa9ff346e6858ca0acca304666596fec86eea89253bd496d3c90deae2be5091be199f48e09d46cec817c6419d5161fb4ee37871503f472765d00"; \
+  curl --fail --silent --retry 2 --retry-delay 5 --max-time 30 -L https://dlcdn.apache.org/maven/maven-3/3.8.8/binaries/apache-maven-3.8.8-bin.tar.gz -o "$MAVEN_DOWNLOAD_TAR_PATH"; \
+  DOWNLOADED_SHA512="$(sha512sum "$MAVEN_DOWNLOAD_TAR_PATH" | cut -d" " -f1)"; \
+  if [[ "$MAVEN_388_SHA512" != "$DOWNLOADED_SHA512" ]]; \
+    then echo "Maven checksum mismatch: expected $MAVEN_388_SHA512, got $DOWNLOADED_SHA512. Exiting"; exit 1; \
+  fi; \
+  tar xzvf apache-maven-3.8.8-bin.tar.gz;'
+ENV PATH="/home/docker/apache-maven-3.8.8/bin:$PATH"
 
 # install jabba and java versions
 RUN export JABBA_HOME="$HOME/.jabba" && \
