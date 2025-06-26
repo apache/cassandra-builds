@@ -36,7 +36,7 @@ WORKDIR /home/docker
 RUN sh -c '\
   MAVEN_DOWNLOAD_TAR_PATH="apache-maven-3.8.8-bin.tar.gz"; \
   MAVEN_388_SHA512="332088670d14fa9ff346e6858ca0acca304666596fec86eea89253bd496d3c90deae2be5091be199f48e09d46cec817c6419d5161fb4ee37871503f472765d00"; \
-  curl --fail --silent --retry 2 --retry-delay 5 --max-time 30 -L https://dlcdn.apache.org/maven/maven-3/3.8.8/binaries/apache-maven-3.8.8-bin.tar.gz -o "$MAVEN_DOWNLOAD_TAR_PATH"; \
+  curl --fail --silent --retry 2 --retry-delay 5 --max-time 30 -L https://archive.apache.org/dist/maven/maven-3/3.8.8/binaries/apache-maven-3.8.8-bin.tar.gz -o "$MAVEN_DOWNLOAD_TAR_PATH"; \
   DOWNLOADED_SHA512="$(sha512sum "$MAVEN_DOWNLOAD_TAR_PATH" | cut -d" " -f1)"; \
   if [[ "$MAVEN_388_SHA512" != "$DOWNLOADED_SHA512" ]]; \
     then echo "Maven checksum mismatch: expected $MAVEN_388_SHA512, got $DOWNLOADED_SHA512. Exiting"; exit 1; \
