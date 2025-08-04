@@ -1,0 +1,48 @@
+# Example Cassandra logging configuration override
+# Place your custom logback.xml here to override the default logging configuration
+# This file will be mounted into the container at /opt/cassandra/conf/logback.xml
+
+# Example configuration:
+# <configuration scan="true" scanPeriod="60 seconds">
+#   <jmxConfigurator />
+#   <appender name="SYSTEMLOG" class="ch.qos.logback.core.rolling.RollingFileAppender">
+#     <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+#       <level>INFO</level>
+#     </filter>
+#     <file>${cassandra.logdir}/system.log</file>
+#     <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+#       <fileNamePattern>${cassandra.logdir}/system.log.%d{yyyy-MM-dd}.%i.zip</fileNamePattern>
+#       <maxFileSize>20MB</maxFileSize>
+#       <maxHistory>7</maxHistory>
+#       <totalSizeCap>5GB</totalSizeCap>
+#     </rollingPolicy>
+#     <encoder>
+#       <pattern>%date{ISO8601} [%thread] %-5level %logger{36} - %msg%n</pattern>
+#     </encoder>
+#   </appender>
+#   
+#   <appender name="DEBUGLOG" class="ch.qos.logback.core.rolling.RollingFileAppender">
+#     <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+#       <level>DEBUG</level>
+#     </filter>
+#     <file>${cassandra.logdir}/debug.log</file>
+#     <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+#       <fileNamePattern>${cassandra.logdir}/debug.log.%d{yyyy-MM-dd}.%i.zip</fileNamePattern>
+#       <maxFileSize>20MB</maxFileSize>
+#       <maxHistory>7</maxHistory>
+#       <totalSizeCap>5GB</totalSizeCap>
+#     </rollingPolicy>
+#     <encoder>
+#       <pattern>%date{ISO8601} [%thread] %-5level %logger{36} - %msg%n</pattern>
+#     </encoder>
+#   </appender>
+#   
+#   <root level="INFO">
+#     <appender-ref ref="SYSTEMLOG" />
+#   </root>
+#   
+#   <logger name="com.thinkaurelius.thrift" level="ERROR"/>
+#   <logger name="org.apache.cassandra" level="DEBUG" additivity="false">
+#     <appender-ref ref="DEBUGLOG" />
+#   </logger>
+# </configuration>

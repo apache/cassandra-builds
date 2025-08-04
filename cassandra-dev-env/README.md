@@ -1,0 +1,411 @@
+# Cassandra Development Environment Manager
+
+A comprehensive Apache Cassandra development environment management tool using Docker Compose, built from the latest source code. The environment supports multi-node clusters, Cassandra Sidecar integration, and complete lifecycle management.
+
+## Requirements
+
+- **Go 1.21+** (for building from source)
+- **Docker Desktop** with **at least 8GB memory allocation** (16GB+ recommended for multi-node clusters)
+- **Docker Compose**
+- **Java 11** (OpenJDK)
+- **Apache Ant**
+- **Git**
+
+### Docker Desktop Configuration
+
+**Important**: Cassandra clusters require significant memory. Before starting:
+
+1. Open Docker Desktop → Settings → Resources → Advanced
+2. Set **Memory** to at least **8GB** (16GB recommended for 3+ node clusters)
+3. Set **CPUs** to at least **4** (6-8 recommended)
+4. Apply & Restart Docker Desktop
+
+**Memory allocation per configuration:**
+- Single node: 6GB container memory + 1536M heap
+- 3-node cluster: 6GB container memory per node + 1536M heap each
+- Larger clusters: 6GB container memory per node + optimized heap sizing
+
+## Installation
+
+### Option 1: Use Pre-built Binary
+
+Download the pre-built binary for your platform from the releases page.
+
+### Option 2: Build from Source
+
+```bash
+# Clone the repository
+git clone <repository-url>
+cd cassandra-env
+
+# Build for current platform
+make build
+
+# Or build manually
+go build -o cassandra-env-manager ./cmd
+```
+
+### Cross-Platform Builds
+
+```bash
+# Build for all platforms
+make build-all
+
+# Build for specific platforms
+make build-linux    # Linux AMD64
+make build-darwin   # macOS AMD64  
+make build-windows  # Windows AMD64
+```
+
+## Usage
+
+The tool provides a unified interface for managing Cassandra development environments:
+
+### Environment Management Commands
+
+```bash
+# Setup new environment
+./cassandra-env-manager                    # Full setup with 3-node cluster
+
+# Environment lifecycle
+./cassandra-env-manager --status           # Check environment status
+./cassandra-env-manager --stop             # Stop running environment
+./cassandra-env-manager --start            # Start stopped environment
+./cassandra-env-manager --teardown         # Complete cleanup
+
+# Monitoring and debugging
+./cassandra-env-manager --logs cassandra-1 # View logs for specific service
+./cassandra-env-manager --logs             # List available services
+```
+
+### Build and Deploy Options
+
+```bash
+# Build options
+./cassandra-env-manager --build            # Build only, don't start
+./cassandra-env-manager --clean            # Clean rebuild
+./cassandra-env-manager --start-only       # Start existing environment
+
+# Code source options
+./cassandra-env-manager --branch cassandra-4.1     # Use specific branch
+./cassandra-env-manager --commit abc123            # Use specific commit
+./cassandra-env-manager --pr 2845                  # Use specific pull request
+./cassandra-env-manager --local-cassandra /path    # Use local Cassandra repository
+./cassandra-env-manager --local-sidecar /path      # Use local Sidecar repository
+
+# Cluster configuration
+./cassandra-env-manager --nodes 5          # 5-node cluster
+./cassandra-env-manager --nodes 1          # Single node
+
+# Sidecar integration
+./cassandra-env-manager --sidecar          # Enable Cassandra Sidecar
+./cassandra-env-manager --sidecar-branch trunk     # Use specific sidecar branch
+./cassandra-env-manager --sidecar-commit abc123    # Use specific sidecar commit
+./cassandra-env-manager --sidecar-pr 123           # Use specific sidecar pull request
+```
+
+### Usage Examples
+
+```bash
+# Environment Management
+./cassandra-env-manager                    # Full setup with 3-node cluster
+./cassandra-env-manager --status           # Check environment status
+./cassandra-env-manager --stop             # Stop the environment
+./cassandra-env-manager --start            # Start the environment
+./cassandra-env-manager --teardown         # Complete cleanup
+./cassandra-env-manager --logs cassandra-1 # View logs for cassandra-1
+
+# Setup and Configuration
+./cassandra-env-manager --nodes 5          # 5-node cluster with trunk
+./cassandra-env-manager --nodes 1          # Single node cluster
+./cassandra-env-manager --branch cassandra-4.1 # Use cassandra-4.1 branch
+./cassandra-env-manager --commit abc123    # Use specific commit
+./cassandra-env-manager --pr 2845          # Use pull request #2845
+./cassandra-env-manager --sidecar --nodes 2 # 2-node cluster with sidecar
+
+# Local Development
+./cassandra-env-manager --local-cassandra /path/to/cassandra # Use local Cassandra repo
+./cassandra-env-manager --local-sidecar /path/to/sidecar     # Use local Sidecar repo
+./cassandra-env-manager --local-cassandra /path/to/cassandra --local-sidecar /path/to/sidecar # Use both local repos
+
+# Development Workflow
+./cassandra-env-manager --nodes 1 --build  # Build single node environment
+./cassandra-env-manager --start            # Start the built environment
+./cassandra-env-manager --status           # Check status
+./cassandra-env-manager --logs cassandra-1 # Monitor logs
+./cassandra-env-manager --teardown         # Clean up when done
+```
+
+## Features
+
+### Core Capabilities
+- ✅ **Multi-node cluster support**: Configurable cluster size (1-10 nodes)
+- ✅ **Dynamic configuration**: Automatic Docker Compose generation
+- ✅ **Code source flexibility**: Support for branches, commits, PRs, and local repositories
+- ✅ **Cassandra Sidecar integration**: Optional REST API deployment
+- ✅ **Configuration overrides**: Custom Cassandra and Sidecar configurations
+- ✅ **Cross-platform compatibility**: Single binary runs on Linux, macOS, and Windows
+- ✅ **Resource optimization**: Adaptive memory/CPU allocation based on cluster size
+
+### Enhanced Features
+- **Automatic repository cleanup**: Prevents git conflicts when switching versions
+- **Coordinated startup**: Proper seed node strategy for reliable cluster formation
+- **Real-time monitoring**: Environment status, cluster health, and resource usage
+- **Enhanced logging**: Detailed startup progress and comprehensive diagnostics
+- **Type safety**: Compile-time error checking with structured error handling
+- **Better performance**: Efficient process management and improved I/O operations
+
+## Configuration Override System
+
+The environment manager supports configuration overrides for both Cassandra and Sidecar components:
+
+### Override Files
+
+Place custom configuration files in the `config/` directory:
+
+```
+config/
+├── cassandra/
+│   ├── cassandra.yaml           # Custom Cassandra configuration
+│   ├── logback.xml              # Custom logging configuration
+│   └── jvm.options              # Custom JVM options
+└── sidecar/
+    ├── sidecar.yaml             # Custom Sidecar configuration
+    └── logback.xml              # Custom Sidecar logging
+```
+
+### Configuration Examples
+
+**Enable authentication in Cassandra:**
+```yaml
+# config/cassandra/cassandra.yaml
+authenticator: PasswordAuthenticator
+authorizer: CassandraAuthorizer
+role_manager: CassandraRoleManager
+```
+
+**Increase JVM heap size:**
+```
+# config/cassandra/jvm.options
+-Xms2G
+-Xmx2G
+-XX:+UseG1GC
+-XX:G1HeapRegionSize=16m
+```
+
+**Custom Sidecar configuration:**
+```yaml
+# config/sidecar/sidecar.yaml
+sidecar:
+  host: 0.0.0.0
+  port: 9043
+  health_check_frequency: 10s
+
+logging:
+  level: DEBUG
+  loggers:
+    org.apache.cassandra.sidecar: DEBUG
+```
+
+## Working with the Cluster
+
+The tool automatically generates a Cassandra cluster with the specified number of nodes. Each node has unique ports:
+
+**Port mapping:**
+- Node 1: CQL 9042, JMX 7199, Inter-node 7000-7001, Thrift 9160, Sidecar 9043
+- Node 2: CQL 9044, JMX 7200, Inter-node 7010-7011, Thrift 9161, Sidecar 9045
+- Node N: CQL 9042+(N-1)*2, JMX 7199+(N-1), Inter-node 7000+(N-1)*10, Sidecar 9043+(N-1)*2
+
+### Common Operations
+
+```bash
+# Connect to node 1
+COMPOSE_BAKE=false docker-compose exec cassandra-1 cqlsh
+
+# View cluster status
+./cassandra-env-manager --status
+
+# Check cluster health from any node
+COMPOSE_BAKE=false docker-compose exec cassandra-1 nodetool status
+
+# Monitor logs
+./cassandra-env-manager --logs cassandra-1
+
+# Verify sidecar (if enabled)
+curl http://localhost:9043/health
+
+# Connect to sidecar of node 2
+curl http://localhost:9045/health
+```
+
+## Cassandra Sidecar Integration
+
+The project includes optional support for [Cassandra Sidecar](https://github.com/apache/cassandra-sidecar), providing REST APIs for Cassandra operations.
+
+### Sidecar Features
+- **REST API**: Endpoints for administration and monitoring operations
+- **Independent deployment**: One sidecar per Cassandra node
+- **Automatic configuration**: Automatically connects to corresponding Cassandra node
+- **Code flexibility**: Supports specific branches, commits, and pull requests
+- **Local development**: Supports local sidecar repositories
+
+### Sidecar Usage
+
+```bash
+# Enable sidecar with trunk
+./cassandra-env-manager --sidecar
+
+# Single node with sidecar
+./cassandra-env-manager --nodes 1 --sidecar
+
+# Use specific sidecar branch
+./cassandra-env-manager --sidecar --sidecar-branch cassandra-sidecar-1.0
+
+# Use specific sidecar commit
+./cassandra-env-manager --sidecar --sidecar-commit abc123
+
+# Use sidecar pull request
+./cassandra-env-manager --sidecar --sidecar-pr 123
+
+# Local sidecar development
+./cassandra-env-manager --local-sidecar /path/to/sidecar --sidecar
+```
+
+## Architecture
+
+The Go implementation is organized into several packages:
+
+- `cmd/` - CLI entry point and command handling
+- `internal/config/` - Configuration management and validation
+- `internal/docker/` - Docker Compose generation and container operations
+- `internal/git/` - Git repository management
+- `internal/cassandra/` - Cassandra build system integration
+- `internal/sidecar/` - Sidecar build system integration
+- `internal/system/` - Cross-platform command execution
+
+## Development
+
+### Typical Development Session
+
+```bash
+# 1. Setup environment
+./cassandra-env-manager --nodes 1 --sidecar
+
+# 2. Check status
+./cassandra-env-manager --status
+
+# 3. Monitor logs during development
+./cassandra-env-manager --logs cassandra-1
+
+# 4. Stop environment when taking a break
+./cassandra-env-manager --stop
+
+# 5. Resume work
+./cassandra-env-manager --start
+
+# 6. Clean up when done
+./cassandra-env-manager --teardown
+```
+
+### Update Cassandra
+
+To update to the latest version of trunk:
+
+```bash
+./cassandra-env-manager --teardown
+./cassandra-env-manager --clean
+```
+
+## Project Structure
+
+```
+cassandra-env/
+├── cassandra-env-manager       # Go binary (main tool)
+├── Dockerfile                  # Cassandra Docker image
+├── Dockerfile.sidecar          # Sidecar Docker image
+├── cassandra-entrypoint.sh     # Cassandra configuration script
+├── sidecar-entrypoint.sh       # Sidecar configuration script
+├── docker-compose.yml          # Service configuration (generated)
+├── cmd/                        # CLI entry point
+├── internal/                   # Go packages
+│   ├── config/                # Configuration management
+│   ├── docker/                # Docker operations
+│   ├── git/                   # Git repository management
+│   ├── cassandra/             # Cassandra build integration
+│   ├── sidecar/               # Sidecar build integration
+│   └── system/                # System command execution
+├── config/                     # Configuration overrides
+│   ├── README.md              # Configuration documentation
+│   ├── cassandra/             # Cassandra configuration overrides
+│   └── sidecar/               # Sidecar configuration overrides
+├── cassandra/                  # Cassandra source code (generated)
+├── cassandra-sidecar/          # Sidecar source code (generated)
+├── Makefile                    # Build automation
+└── README.md                   # This file
+```
+
+## Exposed Ports
+
+- **9042**: CQL native transport port (for connecting with drivers)
+- **7000**: Inter-node communication
+- **7001**: Inter-node communication (SSL)
+- **7199**: JMX
+- **9160**: Thrift (deprecated)
+- **9043+**: Sidecar API ports (when enabled)
+
+## Volumes
+
+- `cassandra_data_N`: Persistent Cassandra data for node N
+- `cassandra_logs_N`: Cassandra logs for node N
+- `sidecar_logs_N`: Sidecar logs for node N (when enabled)
+
+## Configuration
+
+The cluster is configured with:
+- Cluster name: DevCluster
+- Datacenter: datacenter1
+- Rack: rack1
+- Snitch: GossipingPropertyFileSnitch
+
+## Troubleshooting
+
+### Common Issues
+
+- **Build errors**: Ensure Go 1.21+ is installed and `make build` completes successfully
+- **Memory errors**: Adjust Docker Desktop resources (minimum 8GB)
+- **Port conflicts**: Check that ports are not already in use by other services
+- **Stale containers**: Use `--teardown` to completely clean up the environment
+- **Docker issues**: Ensure Docker Desktop is running and accessible
+
+### Environment Issues
+
+```bash
+# Check environment status
+./cassandra-env-manager --status
+
+# View logs for troubleshooting
+./cassandra-env-manager --logs cassandra-1
+
+# Complete cleanup and restart
+./cassandra-env-manager --teardown
+./cassandra-env-manager --clean
+```
+
+### Performance Optimization
+
+- **Resource allocation**: Adjust Docker Desktop memory/CPU limits
+- **Cluster size**: Use fewer nodes for development (--nodes 1)
+- **Local repositories**: Use --local-cassandra and --local-sidecar for faster builds
+- **Build caching**: Use --build option to avoid unnecessary rebuilds
+
+## Contributing
+
+1. Ensure Go 1.21+ is installed
+2. Run tests: `go test ./...`
+3. Format code: `go fmt ./...`
+4. Build and test: `make build && ./cassandra-env-manager --help`
+5. Test all major workflows before submitting changes
+
+## License
+
+This project maintains the same license as Apache Cassandra.
