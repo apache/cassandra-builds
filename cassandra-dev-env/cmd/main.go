@@ -256,7 +256,7 @@ func showClusterInfo(cfg config.Config) error {
 
 	fmt.Println("")
 	fmt.Println("📋 Useful commands:")
-	fmt.Println("   Connect to Node 1: COMPOSE_BAKE=false docker-compose exec cassandra-1 cqlsh")
+	fmt.Println("   Connect to Node 1: COMPOSE_BAKE=false docker-compose exec cassandra-1 cqlsh -u cassandra -p cassandra")
 	fmt.Println("   Check status:      cassandra-env-manager --status")
 	fmt.Println("   View logs:         cassandra-env-manager --logs cassandra-1")
 	fmt.Println("   Stop cluster:      cassandra-env-manager --stop")

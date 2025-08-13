@@ -140,6 +140,8 @@ The tool provides a unified interface for managing Cassandra development environ
 
 ### Core Capabilities
 - ✅ **Multi-node cluster support**: Configurable cluster size (1-10 nodes)
+- ✅ **Unified container architecture**: Single container per node running both Cassandra and Sidecar
+- ✅ **Built-in authentication**: Password-based authentication enabled by default
 - ✅ **Dynamic configuration**: Automatic Docker Compose generation
 - ✅ **Code source flexibility**: Support for branches, commits, PRs, and local repositories
 - ✅ **Cassandra Sidecar integration**: Optional REST API deployment
@@ -176,9 +178,11 @@ config/
 
 ### Configuration Examples
 
-**Enable authentication in Cassandra:**
+**Custom authentication settings:**
 ```yaml
 # config/cassandra/cassandra.yaml
+# Authentication is enabled by default with PasswordAuthenticator
+# Default credentials: cassandra/cassandra
 authenticator: PasswordAuthenticator
 authorizer: CassandraAuthorizer
 role_manager: CassandraRoleManager
@@ -207,6 +211,36 @@ logging:
     org.apache.cassandra.sidecar: DEBUG
 ```
 
+## Authentication
+
+The environment is configured with **password authentication enabled by default** for both CQL and JMX connections:
+
+### Default Credentials
+- **Username**: `cassandra`
+- **Password**: `cassandra`
+
+### Connection Examples
+```bash
+# CQL connection (cqlsh)
+COMPOSE_BAKE=false docker-compose exec cassandra-1 cqlsh -u cassandra -p cassandra
+
+# JMX connection (nodetool)
+COMPOSE_BAKE=false docker-compose exec cassandra-1 nodetool -u cassandra -pw cassandra status
+
+# Sidecar health check (no authentication required for health endpoints)
+curl http://localhost:9043/api/v1/cassandra/native/__health?instanceId=1
+curl http://localhost:9043/api/v1/cassandra/jmx/__health?instanceId=1
+```
+
+### Changing Default Credentials
+To use different credentials, update the configuration in your custom `config/cassandra/cassandra.yaml`:
+
+```yaml
+# After cluster startup, connect and change password:
+# COMPOSE_BAKE=false docker-compose exec cassandra-1 cqlsh -u cassandra -p cassandra
+# ALTER USER cassandra WITH PASSWORD 'new_password';
+```
+
 ## Working with the Cluster
 
 The tool automatically generates a Cassandra cluster with the specified number of nodes. Each node has unique ports:
@@ -219,14 +253,14 @@ The tool automatically generates a Cassandra cluster with the specified number o
 ### Common Operations
 
 ```bash
-# Connect to node 1
-COMPOSE_BAKE=false docker-compose exec cassandra-1 cqlsh
+# Connect to node 1 (authentication required)
+COMPOSE_BAKE=false docker-compose exec cassandra-1 cqlsh -u cassandra -p cassandra
 
 # View cluster status
 ./cassandra-env-manager --status
 
-# Check cluster health from any node
-COMPOSE_BAKE=false docker-compose exec cassandra-1 nodetool status
+# Check cluster health from any node (JMX authentication required)
+COMPOSE_BAKE=false docker-compose exec cassandra-1 nodetool -u cassandra -pw cassandra status
 
 # Monitor logs
 ./cassandra-env-manager --logs cassandra-1
@@ -244,8 +278,9 @@ The project includes optional support for [Cassandra Sidecar](https://github.com
 
 ### Sidecar Features
 - **REST API**: Endpoints for administration and monitoring operations
-- **Independent deployment**: One sidecar per Cassandra node
-- **Automatic configuration**: Automatically connects to corresponding Cassandra node
+- **Unified deployment**: Sidecar runs alongside Cassandra in the same container
+- **Automatic configuration**: Automatically connects to localhost Cassandra with authentication
+- **Health endpoints**: Native and JMX health checks available
 - **Code flexibility**: Supports specific branches, commits, and pull requests
 - **Local development**: Supports local sidecar repositories
 
@@ -321,10 +356,8 @@ To update to the latest version of trunk:
 ```
 cassandra-env/
 ├── cassandra-env-manager       # Go binary (main tool)
-├── Dockerfile                  # Cassandra Docker image
-├── Dockerfile.sidecar          # Sidecar Docker image
-├── cassandra-entrypoint.sh     # Cassandra configuration script
-├── sidecar-entrypoint.sh       # Sidecar configuration script
+├── Dockerfile                  # Unified Cassandra + Sidecar Docker image
+├── cassandra-entrypoint.sh     # Unified container entrypoint script
 ├── docker-compose.yml          # Service configuration (generated)
 ├── cmd/                        # CLI entry point
 ├── internal/                   # Go packages
@@ -366,6 +399,9 @@ The cluster is configured with:
 - Datacenter: datacenter1
 - Rack: rack1
 - Snitch: GossipingPropertyFileSnitch
+- Authentication: PasswordAuthenticator (enabled)
+- Default credentials: cassandra/cassandra
+- JMX authentication: cassandra/cassandra
 
 ## Troubleshooting
 

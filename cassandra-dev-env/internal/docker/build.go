@@ -25,20 +25,14 @@ func NewOperations(cfg *config.Config) *Operations {
 func (ops *Operations) BuildImages() error {
 	fmt.Println("🐳 Step 2: Building Docker images...")
 
-	// Build main Cassandra image
-	fmt.Println("🐳 Building Cassandra Docker image...")
+	// Build unified Cassandra image (includes Sidecar when enabled)
+	fmt.Println("🐳 Building unified Cassandra Docker image...")
+	if ops.config.EnableSidecar {
+		fmt.Println("   - Including Cassandra Sidecar in unified container")
+	}
 	result := system.DockerCommand([]string{"build", "-t", "cassandra-dev", "."}, nil)
 	if result.ExitCode != 0 {
 		return fmt.Errorf("failed to build Cassandra Docker image: %s", result.Stderr)
-	}
-
-	// Build Sidecar image if enabled
-	if ops.config.EnableSidecar {
-		fmt.Println("🐳 Building Sidecar Docker image...")
-		result = system.DockerCommand([]string{"build", "-f", "Dockerfile.sidecar", "-t", "cassandra-sidecar-dev", "."}, nil)
-		if result.ExitCode != 0 {
-			return fmt.Errorf("failed to build Sidecar Docker image: %s", result.Stderr)
-		}
 	}
 
 	fmt.Println("✅ Docker images built!")
@@ -220,7 +214,7 @@ func (ops *Operations) WaitForClusterReady() error {
 
 	for attempt <= maxChecks && !clusterReady {
 		// Get nodetool status output
-		result := system.DockerComposeCommand([]string{"exec", "-T", "cassandra-1", "nodetool", "status"}, &system.CommandOptions{Silent: true})
+		result := system.DockerComposeCommand([]string{"exec", "-T", "cassandra-1", "nodetool", "-u", "cassandra", "-pw", "cassandra", "status"}, &system.CommandOptions{Silent: true})
 
 		if result.ExitCode == 0 {
 			// Count nodes in UP/NORMAL state (lines starting with "UN")
@@ -313,7 +307,7 @@ func (ops *Operations) ShowStatus() error {
 	fmt.Println("🔍 Cluster Status:")
 	containerIDs, err = system.GetDockerContainerIDs("name=cassandra-node-1")
 	if err == nil && len(containerIDs) > 0 {
-		result = system.DockerComposeCommand([]string{"exec", "-T", "cassandra-1", "nodetool", "status"}, &system.CommandOptions{Silent: true})
+		result = system.DockerComposeCommand([]string{"exec", "-T", "cassandra-1", "nodetool", "-u", "cassandra", "-pw", "cassandra", "status"}, &system.CommandOptions{Silent: true})
 		if strings.Contains(result.Stderr, "Server is not initialized yet") {
 			fmt.Println("   Cluster is still initializing (this is normal for multi-node setups)")
 		} else if strings.Contains(result.Stdout, "UN") || strings.Contains(result.Stdout, "UJ") || strings.Contains(result.Stdout, "UL") {

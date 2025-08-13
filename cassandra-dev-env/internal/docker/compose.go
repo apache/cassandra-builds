@@ -44,12 +44,7 @@ func (g *ComposeGenerator) GenerateComposeFile() error {
 		if err := g.writeCassandraService(file, i, heapSize, heapNewSize, cpuLimit, memoryLimit, seeds); err != nil {
 			return fmt.Errorf("failed to write cassandra service %d: %w", i, err)
 		}
-
-		if g.config.EnableSidecar {
-			if err := g.writeSidecarService(file, i); err != nil {
-				return fmt.Errorf("failed to write sidecar service %d: %w", i, err)
-			}
-		}
+		// Note: Sidecar is now integrated into Cassandra containers, no separate service needed
 	}
 
 	// Write volumes and networks
@@ -67,6 +62,7 @@ func (g *ComposeGenerator) writeCassandraService(file *os.File, nodeNum int, hea
 	interPort := 7000 + (nodeNum-1)*10     // 7000, 7010, 7020, etc.
 	interSSLPort := 7001 + (nodeNum-1)*10  // 7001, 7011, 7021, etc.
 	thriftPort := 9160 + nodeNum - 1       // 9160, 9161, 9162, etc.
+	sidecarPort := 9043 + (nodeNum-1)*2    // 9043, 9045, 9047, etc.
 
 	service := fmt.Sprintf(`  cassandra-%d:
     image: cassandra-dev
@@ -82,11 +78,26 @@ func (g *ComposeGenerator) writeCassandraService(file *os.File, nodeNum int, hea
       - "%d:7199"
       - "%d:7000"
       - "%d:7001"
-      - "%d:9160"
+      - "%d:9160"`, nodeNum, nodeNum, nodeNum, cpuLimit, memoryLimit, cqlPort, jmxPort, interPort, interSSLPort, thriftPort)
+
+	// Add sidecar port if enabled
+	if g.config.EnableSidecar {
+		service += fmt.Sprintf(`
+      - "%d:9043"`, sidecarPort)
+	}
+
+	service += fmt.Sprintf(`
     volumes:
       - cassandra_data_%d:/var/lib/cassandra
-      - cassandra_logs_%d:/var/log/cassandra
-`, nodeNum, nodeNum, nodeNum, cpuLimit, memoryLimit, cqlPort, jmxPort, interPort, interSSLPort, thriftPort, nodeNum, nodeNum)
+      - cassandra_logs_%d:/var/log/cassandra`, nodeNum, nodeNum)
+
+	// Add sidecar volumes if enabled
+	if g.config.EnableSidecar {
+		service += fmt.Sprintf(`
+      - sidecar_logs_%d:/opt/sidecar/logs`, nodeNum)
+	}
+
+	service += "\n"
 
 	// Add configuration overrides if they exist
 	if g.config.ConfigOverrides.CassandraConfig {
@@ -111,7 +122,21 @@ func (g *ComposeGenerator) writeCassandraService(file *os.File, nodeNum int, hea
       - CASSANDRA_BROADCAST_RPC_ADDRESS=cassandra-%d
       - MAX_HEAP_SIZE=%s
       - HEAP_NEWSIZE=%s
-      - DEBUG_MODE=true
+      - DEBUG_MODE=true`, seeds, nodeNum, nodeNum, nodeNum, heapSize, heapNewSize)
+
+	// Add sidecar environment variables if enabled
+	if g.config.EnableSidecar {
+		service += fmt.Sprintf(`
+      - ENABLE_SIDECAR=true
+      - SIDECAR_PORT=9043
+      - SIDECAR_HEALTH_CHECK_FREQUENCY=30s
+      - SIDECAR_LOG_LEVEL=INFO`)
+	} else {
+		service += `
+      - ENABLE_SIDECAR=false`
+	}
+
+	service += `
     networks:
       - cassandra-net
     # healthcheck:
@@ -121,7 +146,7 @@ func (g *ComposeGenerator) writeCassandraService(file *os.File, nodeNum int, hea
     #   retries: 3
     #   start_period: 120s
     restart: unless-stopped
-`, seeds, nodeNum, nodeNum, nodeNum, heapSize, heapNewSize)
+`
 
 	// Add dependencies for startup order
 	if nodeNum > 1 {
@@ -137,44 +162,9 @@ func (g *ComposeGenerator) writeCassandraService(file *os.File, nodeNum int, hea
 	return err
 }
 
-func (g *ComposeGenerator) writeSidecarService(file *os.File, nodeNum int) error {
-	sidecarPort := 9043 + (nodeNum-1)*2 // 9043, 9045, 9047, etc.
-
-	service := fmt.Sprintf(`  sidecar-%d:
-    image: cassandra-sidecar-dev
-    container_name: sidecar-node-%d
-    hostname: sidecar-%d
-    ports:
-      - "%d:9043"
-    environment:
-      - SIDECAR_PORT=9043
-      - CASSANDRA_HOST=cassandra-%d
-      - CASSANDRA_PORT=9042
-      - CASSANDRA_JMX_PORT=7199
-      - SIDECAR_HEALTH_CHECK_FREQUENCY=30s
-      - SIDECAR_LOG_LEVEL=INFO
-    volumes:
-      - sidecar_logs_%d:/var/log/sidecar
-`, nodeNum, nodeNum, nodeNum, sidecarPort, nodeNum, nodeNum)
-
-	// Add sidecar configuration overrides if they exist
-	if g.config.ConfigOverrides.SidecarConfig {
-		service += "      - ./config/sidecar/sidecar.yaml:/opt/sidecar/conf/sidecar.yaml:ro\n"
-	}
-	if g.config.ConfigOverrides.SidecarLogging {
-		service += "      - ./config/sidecar/logback.xml:/opt/sidecar/conf/logback.xml:ro\n"
-	}
-
-	service += fmt.Sprintf(`    networks:
-      - cassandra-net
-    depends_on:
-      - cassandra-%d
-    restart: unless-stopped
-
-`, nodeNum)
-
-	_, err := file.WriteString(service)
-	return err
+// GetNodeHostname returns the hostname for a given node
+func GetNodeHostname(nodeNum int) string {
+	return fmt.Sprintf("cassandra-%d", nodeNum)
 }
 
 func (g *ComposeGenerator) writeVolumesAndNetworks(file *os.File) error {
@@ -226,11 +216,6 @@ func GetPortInfo(nodeNum int, enableSidecar bool) map[string]int {
 	}
 
 	return ports
-}
-
-// GetNodeHostname returns the hostname for a given node
-func GetNodeHostname(nodeNum int) string {
-	return fmt.Sprintf("cassandra-%d", nodeNum)
 }
 
 // GetSidecarHostname returns the sidecar hostname for a given node

@@ -59,6 +59,34 @@ func (b *Builder) buildSidecar() error {
 		fmt.Println("⚠️  Warning: Could not make gradlew executable")
 	}
 
+	// Execute build-dtest-jars.sh script before gradle build (required for trunk branch)
+	dtestScript := filepath.Join("cassandra-sidecar", "scripts", "build-dtest-jars.sh")
+	if config.FileOrDirExists(dtestScript) {
+		fmt.Println("🔧 Running build-dtest-jars.sh script...")
+		
+		// Make the script executable
+		result = system.ExecuteCommand("chmod", []string{"+x", "./scripts/build-dtest-jars.sh"}, &system.CommandOptions{
+			WorkingDir: "cassandra-sidecar",
+			Silent:     true,
+		})
+		if result.ExitCode != 0 {
+			fmt.Println("⚠️  Warning: Could not make build-dtest-jars.sh executable")
+		}
+
+		// Execute the dtest jars build script
+		result = system.ExecuteCommand("./scripts/build-dtest-jars.sh", []string{}, &system.CommandOptions{
+			WorkingDir: "cassandra-sidecar",
+		})
+		
+		if result.ExitCode != 0 {
+			return fmt.Errorf("build-dtest-jars.sh script failed: %s", result.Stderr)
+		}
+		
+		fmt.Println("✅ build-dtest-jars.sh completed successfully")
+	} else {
+		fmt.Println("ℹ️  build-dtest-jars.sh not found, skipping (may not be needed for this branch)")
+	}
+
 	// Build using Gradle (skip tests and integration tests like the original script)
 	result = system.ExecuteCommand("./gradlew", []string{"build", "-x", "test", "-x", "integrationTest", "-x", "check"}, &system.CommandOptions{
 		WorkingDir: "cassandra-sidecar",
