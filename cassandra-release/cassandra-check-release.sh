@@ -61,7 +61,7 @@ echo "Downloading ${dist_url}"
 wget -Nqe robots=off --recursive --no-parent ${dist_url}
 if [ -z "$3" ] ; then
     mkdir dist.apache.org/repos/dist/release/cassandra/$2/{debian,redhat}
-    echo "Downloading ${debian_url}/pool/main/c/cassandra/*${2/-/\~}/*.deb"
+    echo "Downloading ${debian_url}/pool/main/c/cassandra/*${2/-/\~}*.deb"
     wget -Nqe robots=off --recursive --no-parent -A "*${2/-/\~}*.deb" -P dist.apache.org/repos/dist/release/cassandra/$2/debian ${debian_url}/pool/main/c/cassandra/
     echo "Downloading ${redhat_url}/${packaging_series}/**/*${2/-/\~}*.rpm"
     wget -Nqe robots=off --recursive --no-parent -A "*${2/-/\~}*.rpm" -P dist.apache.org/repos/dist/release/cassandra/$2/redhat ${redhat_url}/${packaging_series}/
@@ -112,9 +112,14 @@ for JDK in ${JDKS[@]} ; do
     rm -f procfifo
     mkfifo procfifo
     docker run -i -v `pwd`/apache-cassandra-$2-src:/apache-cassandra-$2-src openjdk:${JDK}-jdk-slim-buster timeout ${TIMEOUT} /bin/bash -c "
-        ( apt -qq update;
-          apt -qq install -y ant build-essential git python procps ) 2>&1 >/dev/null;
-        cd apache-cassandra-$2-src ;
+        ( echo 'deb http://archive.debian.org/debian buster main' > /etc/apt/sources.list;
+          echo 'deb http://archive.debian.org/debian-security buster/updates main' >> /etc/apt/sources.list;
+          apt -qq update;
+          apt -qq install -y wget ant build-essential git python python3 procps;
+          wget https://go.dev/dl/go1.24.5.linux-amd64.tar.gz;
+          tar -C /usr/local -xzf go1.24.5.linux-amd64.tar.gz; ) 2>&1 >/dev/null;
+        export PATH=/usr/local/openjdk-11/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/go/bin:/usr/local/go/bin;
+        cd apache-cassandra-$2-src;
         ant artifacts ${BUILD_OPT}" 2>&1 >procfifo &
 
     PID=$!
@@ -138,9 +143,11 @@ for JDK in ${JDKS[@]} ; do
     rm -f procfifo
     mkfifo procfifo
     docker run -i -v `pwd`/apache-cassandra-$2:/apache-cassandra-$2 openjdk:${JDK}-jdk-slim-buster timeout ${TIMEOUT} /bin/bash -c "
-        ( apt -qq update;
+        ( echo 'deb http://archive.debian.org/debian buster main' > /etc/apt/sources.list;
+          echo 'deb http://archive.debian.org/debian-security buster/updates main' >> /etc/apt/sources.list;
+          apt -qq update;
           apt -qq install -y python python3 procps ) 2>&1 >/dev/null;
-        apache-cassandra-$2/bin/cassandra -R -f" 2>&1 >procfifo &
+        HEAP_NEWSIZE=500m MAX_HEAP_SIZE=1g MAX_DIRECT_MEMORY_SIZE=1g apache-cassandra-$2/bin/cassandra -R -f" 2>&1 >procfifo &
 
     PID=$!
     success=false
@@ -164,16 +171,31 @@ for JDK in ${JDKS[@]} ; do
         DEBIAN_IMAGE="debian:bullseye-slim"
     fi
 
-    echo
-    rm -f procfifo
-    mkfifo procfifo
-    docker run -i -v `pwd`/debian:/debian ${DEBIAN_IMAGE} timeout ${TIMEOUT} /bin/bash -c "
-        ( apt -qq update ;
-          apt -qq install -y python ; # will silently fail on debian latest
-          apt -qq install -y python3 procps ;
-          apt -qq install -y openjdk-${JDK}-jre-headless ; # will silently fail on *jdk-slim-buster
-          dpkg --ignore-depends=java7-runtime --ignore-depends=java8-runtime -i debian/*.deb ) 2>&1 >/dev/null ;
-        CASSANDRA_CONF=file:///etc/cassandra/ HEAP_NEWSIZE=500m MAX_HEAP_SIZE=1g cassandra -R -f" 2>&1 >procfifo &
+    if [ "$JDK" == "8" ] ; then
+      echo
+      rm -f procfifo
+      mkfifo procfifo
+      docker run -i -v `pwd`/debian:/debian ${DEBIAN_IMAGE} timeout ${TIMEOUT} /bin/bash -c "
+          ( echo 'deb http://archive.debian.org/debian buster main' > /etc/apt/sources.list;
+            echo 'deb http://archive.debian.org/debian-security buster/updates main' >> /etc/apt/sources.list;
+            apt -qq update ;
+            apt -qq install -y python ; # will silently fail on debian latest
+            apt -qq install -y python3 procps ;
+            apt -qq install -y openjdk-${JDK}-jre-headless ; # will silently fail on *jdk-slim-buster
+            dpkg --ignore-depends=java7-runtime --ignore-depends=java8-runtime -i debian/*.deb ) 2>&1 >/dev/null ;
+          HEAP_NEWSIZE=500m MAX_HEAP_SIZE=1g MAX_DIRECT_MEMORY_SIZE=1g cassandra -R -f" 2>&1 >procfifo &
+    else
+      echo
+      rm -f procfifo
+      mkfifo procfifo
+      docker run -i -v `pwd`/debian:/debian ${DEBIAN_IMAGE} timeout ${TIMEOUT} /bin/bash -c "
+          ( apt -qq update ;
+            apt -qq install -y python ; # will silently fail on debian latest
+            apt -qq install -y python3 procps ;
+            apt -qq install -y openjdk-${JDK}-jre-headless ; # will silently fail on *jdk-slim-buster
+            dpkg --ignore-depends=java7-runtime --ignore-depends=java8-runtime -i debian/*.deb ) 2>&1 >/dev/null ;
+          HEAP_NEWSIZE=500m MAX_HEAP_SIZE=1g MAX_DIRECT_MEMORY_SIZE=1g cassandra -R -f" 2>&1 >procfifo &
+    fi
 
     PID=$!
     success=false
@@ -192,18 +214,37 @@ for JDK in ${JDKS[@]} ; do
 
     # test deb repository startup
 
-    echo
-    rm -f procfifo
-    mkfifo procfifo
-    docker run -i ${DEBIAN_IMAGE} timeout ${TIMEOUT} /bin/bash -c "
-        ( echo 'deb ${debian_url} ${packaging_series} main' | tee -a /etc/apt/sources.list.d/cassandra.sources.list ;
-          apt -qq update ;
-          apt -qq install -y curl gnupg2 ;
-          apt-key adv --keyserver keyserver.ubuntu.com  --recv-key E91335D77E3E87CB ;
-          curl https://downloads.apache.org/cassandra/KEYS | apt-key add - ;
-          apt update  ;
-          apt-get install -y cassandra ) 2>&1 >/dev/null ;
-        cassandra -R -f" 2>&1 >procfifo &
+    if [ "$JDK" == "8" ] ; then
+      echo
+      rm -f procfifo
+      mkfifo procfifo
+      docker run -i ${DEBIAN_IMAGE} timeout ${TIMEOUT} /bin/bash -c "
+          ( echo 'deb http://archive.debian.org/debian-security buster/updates main' >> /etc/apt/sources.list;
+            echo 'deb http://archive.debian.org/debian buster main' > /etc/apt/sources.list;
+            apt -qq update ;
+            apt -qq install -y curl gnupg2 ;
+            apt-key adv --keyserver keyserver.ubuntu.com  --recv-key E91335D77E3E87CB ;
+            curl https://downloads.apache.org/cassandra/KEYS | apt-key add - ;
+            apt update  ;
+            echo 'deb ${debian_url} ${packaging_series} main' | tee -a /etc/apt/sources.list.d/cassandra.sources.list ;
+            apt update  ;
+            apt-get install -y cassandra ) 2>&1 >/dev/null ;
+          HEAP_NEWSIZE=500m MAX_HEAP_SIZE=1g MAX_DIRECT_MEMORY_SIZE=1g cassandra -R -f" 2>&1 >procfifo &
+    else
+      echo
+      rm -f procfifo
+      mkfifo procfifo
+      docker run -i ${DEBIAN_IMAGE} timeout ${TIMEOUT} /bin/bash -c "
+          ( apt -qq update ;
+            apt -qq install -y curl gnupg2 ;
+            apt-key adv --keyserver keyserver.ubuntu.com  --recv-key E91335D77E3E87CB ;
+            curl https://downloads.apache.org/cassandra/KEYS | apt-key add - ;
+            apt update  ;
+            echo 'deb ${debian_url} ${packaging_series} main' | tee -a /etc/apt/sources.list.d/cassandra.sources.list ;
+            apt update  ;
+            apt-get install -y cassandra ) 2>&1 >/dev/null ;
+          HEAP_NEWSIZE=500m MAX_HEAP_SIZE=1g MAX_DIRECT_MEMORY_SIZE=1g cassandra -R -f" 2>&1 >procfifo &
+    fi
 
     PID=$!
     success=false
@@ -250,7 +291,7 @@ for JDK in ${JDKS[@]} ; do
             ( yum install -y  procps-ng python3-pip;
             yum install -y ${JDK_RH} ;
             rpm -i --nodeps redhat/*.rpm ) 2>&1 >/dev/null ;
-            cassandra -R -f " 2>&1  >procfifo &
+            HEAP_NEWSIZE=500m MAX_HEAP_SIZE=1g MAX_DIRECT_MEMORY_SIZE=1g cassandra -R -f " 2>&1  >procfifo &
 
         PID=$!
         success=false
@@ -286,7 +327,7 @@ for JDK in ${JDKS[@]} ; do
             yum install -y ${JDK_RH} ;
             yum install -y cassandra ) 2>&1 >/dev/null ;
 
-            cassandra -R -f" 2>&1 >procfifo &
+            HEAP_NEWSIZE=500m MAX_HEAP_SIZE=1g MAX_DIRECT_MEMORY_SIZE=1g cassandra -R -f" 2>&1 >procfifo &
 
         PID=$!
         success=false
