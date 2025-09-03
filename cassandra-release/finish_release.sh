@@ -252,11 +252,11 @@ echo "The Cassandra team is pleased to announce the release of Apache Cassandra 
 echo "" >> $mail_file
 echo "Apache Cassandra is a fully distributed database. It is the right choice when you need scalability and high availability without compromising performance." >> $mail_file
 echo "" >> $mail_file
-echo " http://cassandra.apache.org/" >> $mail_file
+echo " https://cassandra.apache.org/" >> $mail_file
 echo "" >> $mail_file
 echo "Downloads of source and binary distributions are listed in our download section:" >> $mail_file
 echo "" >> $mail_file
-echo " http://cassandra.apache.org/download/" >> $mail_file
+echo " https://cassandra.apache.org/_/download.html" >> $mail_file
 echo "" >> $mail_file
 series="${release_major}.${release_minor}"
 echo "This version is a bug fix release[1] on the $series series. As always, please pay attention to the release notes[2] and Let us know[3] if you were to encounter any problem." >> $mail_file
