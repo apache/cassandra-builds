@@ -5,8 +5,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/bbotellacorbi/cassandra-env-manager/internal/config"
-	"github.com/bbotellacorbi/cassandra-env-manager/internal/system"
+	"cassandra-dev-env/internal/config"
+	"cassandra-dev-env/internal/system"
 )
 
 // Repository handles git repository operations

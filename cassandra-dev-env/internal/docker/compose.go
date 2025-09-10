@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/bbotellacorbi/cassandra-env-manager/internal/config"
+	"cassandra-dev-env/internal/config"
 )
 
 // ComposeGenerator handles docker-compose.yml generation

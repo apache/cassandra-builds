@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"path/filepath"
 
-	"github.com/bbotellacorbi/cassandra-env-manager/internal/config"
-	"github.com/bbotellacorbi/cassandra-env-manager/internal/git"
-	"github.com/bbotellacorbi/cassandra-env-manager/internal/system"
+	"cassandra-dev-env/internal/config"
+	"cassandra-dev-env/internal/git"
+	"cassandra-dev-env/internal/system"
 )
 
 // Builder handles Cassandra Sidecar compilation

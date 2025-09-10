@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/bbotellacorbi/cassandra-env-manager/internal/cassandra"
-	"github.com/bbotellacorbi/cassandra-env-manager/internal/config"
-	"github.com/bbotellacorbi/cassandra-env-manager/internal/docker"
-	"github.com/bbotellacorbi/cassandra-env-manager/internal/sidecar"
+	"cassandra-dev-env/internal/cassandra"
+	"cassandra-dev-env/internal/config"
+	"cassandra-dev-env/internal/docker"
+	"cassandra-dev-env/internal/sidecar"
 	"github.com/spf13/cobra"
 )
 

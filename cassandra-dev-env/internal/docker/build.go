@@ -5,8 +5,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/bbotellacorbi/cassandra-env-manager/internal/config"
-	"github.com/bbotellacorbi/cassandra-env-manager/internal/system"
+	"cassandra-dev-env/internal/config"
+	"cassandra-dev-env/internal/system"
 )
 
 // Operations handles Docker operations
