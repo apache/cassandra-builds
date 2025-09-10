@@ -2,6 +2,8 @@ package docker
 
 import (
 	"fmt"
+	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
@@ -213,24 +215,42 @@ func (ops *Operations) WaitForClusterReady() error {
 	fmt.Println("⏳ Waiting for cluster to be fully initialized...")
 
 	for attempt <= maxChecks && !clusterReady {
-		// Get nodetool status output
-		result := system.DockerComposeCommand([]string{"exec", "-T", "cassandra-1", "nodetool", "-u", "cassandra", "-pw", "cassandra", "status"}, &system.CommandOptions{Silent: true})
+		// Use CQL to check cluster membership - more reliable than nodetool with auth
+		// Check system.peers for other nodes, plus local node = total cluster size
+		result := system.DockerComposeCommand([]string{"exec", "-T", "cassandra-1", "cqlsh", "localhost", "-e", "SELECT COUNT(*) FROM system.peers"}, &system.CommandOptions{Silent: true})
 
 		if result.ExitCode == 0 {
-			// Count nodes in UP/NORMAL state (lines starting with "UN")
-			upNormalCount := strings.Count(result.Stdout, "\nUN")
-			if strings.HasPrefix(result.Stdout, "UN") {
-				upNormalCount++
+			// Parse peer count from CQL output
+			lines := strings.Split(strings.TrimSpace(result.Stdout), "\n")
+			var peerCount int
+			for _, line := range lines {
+				line = strings.TrimSpace(line)
+				// Look for numeric result (skip headers and separators)
+				if matched, _ := regexp.MatchString(`^\d+$`, line); matched {
+					if count, err := strconv.Atoi(line); err == nil {
+						peerCount = count
+						break
+					}
+				}
 			}
 
-			if upNormalCount == ops.config.ClusterSize {
+			// Total cluster size = peer count + local node
+			totalNodes := peerCount + 1
+			
+			if totalNodes == ops.config.ClusterSize {
 				clusterReady = true
-				fmt.Printf("✅ Cluster is ready! All %d nodes are UP/NORMAL\n", ops.config.ClusterSize)
+				fmt.Printf("✅ Cluster is ready! All %d nodes are connected\n", ops.config.ClusterSize)
 			} else {
-				fmt.Printf("⏳ Cluster still initializing (attempt %d/%d): %d/%d nodes ready\n", attempt, maxChecks, upNormalCount, ops.config.ClusterSize)
+				fmt.Printf("⏳ Cluster still initializing (attempt %d/%d): %d/%d nodes connected\n", attempt, maxChecks, totalNodes, ops.config.ClusterSize)
 			}
 		} else {
-			fmt.Printf("⏳ Cluster still initializing (attempt %d/%d): nodetool not ready\n", attempt, maxChecks)
+			// Fallback: try to connect to CQL without checking peers
+			pingResult := system.DockerComposeCommand([]string{"exec", "-T", "cassandra-1", "cqlsh", "localhost", "-e", "SELECT release_version FROM system.local"}, &system.CommandOptions{Silent: true})
+			if pingResult.ExitCode == 0 {
+				fmt.Printf("⏳ Cluster still initializing (attempt %d/%d): CQL ready, waiting for gossip\n", attempt, maxChecks)
+			} else {
+				fmt.Printf("⏳ Cluster still initializing (attempt %d/%d): CQL not ready\n", attempt, maxChecks)
+			}
 		}
 
 		if !clusterReady {
@@ -307,11 +327,40 @@ func (ops *Operations) ShowStatus() error {
 	fmt.Println("🔍 Cluster Status:")
 	containerIDs, err = system.GetDockerContainerIDs("name=cassandra-node-1")
 	if err == nil && len(containerIDs) > 0 {
-		result = system.DockerComposeCommand([]string{"exec", "-T", "cassandra-1", "nodetool", "-u", "cassandra", "-pw", "cassandra", "status"}, &system.CommandOptions{Silent: true})
-		if strings.Contains(result.Stderr, "Server is not initialized yet") {
-			fmt.Println("   Cluster is still initializing (this is normal for multi-node setups)")
-		} else if strings.Contains(result.Stdout, "UN") || strings.Contains(result.Stdout, "UJ") || strings.Contains(result.Stdout, "UL") {
-			fmt.Print(result.Stdout)
+		// Use CQL to check cluster membership - consistent with WaitForClusterReady
+		result = system.DockerComposeCommand([]string{"exec", "-T", "cassandra-1", "cqlsh", "localhost", "-e", "SELECT COUNT(*) FROM system.peers"}, &system.CommandOptions{Silent: true})
+		
+		if result.ExitCode == 0 {
+			// Parse peer count from CQL output
+			lines := strings.Split(strings.TrimSpace(result.Stdout), "\n")
+			var peerCount int
+			for _, line := range lines {
+				line = strings.TrimSpace(line)
+				if matched, _ := regexp.MatchString(`^\d+$`, line); matched {
+					if count, err := strconv.Atoi(line); err == nil {
+						peerCount = count
+						break
+					}
+				}
+			}
+			
+			totalNodes := peerCount + 1 // peer count + local node
+			fmt.Printf("   Connected nodes: %d\n", totalNodes)
+			
+			// Also show local and peer info for debugging
+			localResult := system.DockerComposeCommand([]string{"exec", "-T", "cassandra-1", "cqlsh", "localhost", "-e", "SELECT listen_address, rpc_address, release_version FROM system.local"}, &system.CommandOptions{Silent: true})
+			if localResult.ExitCode == 0 {
+				fmt.Println("   Local node:")
+				fmt.Print("   " + localResult.Stdout)
+			}
+			
+			if peerCount > 0 {
+				peerResult := system.DockerComposeCommand([]string{"exec", "-T", "cassandra-1", "cqlsh", "localhost", "-e", "SELECT peer, rpc_address, release_version FROM system.peers"}, &system.CommandOptions{Silent: true})
+				if peerResult.ExitCode == 0 {
+					fmt.Println("   Peer nodes:")
+					fmt.Print("   " + peerResult.Stdout)
+				}
+			}
 		} else {
 			fmt.Println("   Cluster not ready yet or still starting")
 		}

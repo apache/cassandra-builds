@@ -149,13 +149,17 @@ func (g *ComposeGenerator) writeCassandraService(file *os.File, nodeNum int, hea
 
 	service += `
     networks:
-      - cassandra-net
+      - cassandra-net`
+
+	// Only add extra_hosts for single-node clusters (needed for SSL localhost validation)
+	// Multi-node clusters will use Docker's internal DNS
+	if g.config.ClusterSize == 1 {
+		service += `
     extra_hosts:
-      - "cassandra-1:127.0.0.1"
-      - "cassandra-2:127.0.0.1"
-      - "cassandra-3:127.0.0.1"
-      - "cassandra-4:127.0.0.1"
-      - "cassandra-5:127.0.0.1"
+      - "cassandra-1:127.0.0.1"`
+	}
+
+	service += `
     # healthcheck:
     #   test: ["CMD-SHELL", "nc -z localhost 9042 || exit 1"]
     #   interval: 30s

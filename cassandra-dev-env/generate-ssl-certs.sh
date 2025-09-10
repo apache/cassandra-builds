@@ -67,6 +67,11 @@ DNS.3 = cassandra-2
 DNS.4 = cassandra-3
 DNS.5 = cassandra-4
 DNS.6 = cassandra-5
+DNS.7 = cassandra-1.cassandra-net
+DNS.8 = cassandra-2.cassandra-net
+DNS.9 = cassandra-3.cassandra-net
+DNS.10 = cassandra-4.cassandra-net
+DNS.11 = cassandra-5.cassandra-net
 IP.1 = 127.0.0.1
 IP.2 = ::1
 EOF
