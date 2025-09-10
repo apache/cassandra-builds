@@ -97,6 +97,10 @@ func (g *ComposeGenerator) writeCassandraService(file *os.File, nodeNum int, hea
       - sidecar_logs_%d:/opt/sidecar/logs`, nodeNum)
 	}
 
+	// Add SSL certificate volume (mount host directory for pre-generated certificates)
+	service += `
+      - ./ssl-client-certs:/opt/ssl-certs`
+
 	service += "\n"
 
 	// Add configuration overrides if they exist
@@ -136,9 +140,22 @@ func (g *ComposeGenerator) writeCassandraService(file *os.File, nodeNum int, hea
       - ENABLE_SIDECAR=false`
 	}
 
+	// Add SSL environment variables with SSL enabled by default
+	service += `
+      - ENABLE_SSL=${ENABLE_SSL:-true}
+      - SSL_KEYSTORE_PASSWORD=${SSL_KEYSTORE_PASSWORD:-cassandra}
+      - SSL_TRUSTSTORE_PASSWORD=${SSL_TRUSTSTORE_PASSWORD:-cassandra}
+      - SSL_CLIENT_AUTH=${SSL_CLIENT_AUTH:-REQUIRED}`
+
 	service += `
     networks:
       - cassandra-net
+    extra_hosts:
+      - "cassandra-1:127.0.0.1"
+      - "cassandra-2:127.0.0.1"
+      - "cassandra-3:127.0.0.1"
+      - "cassandra-4:127.0.0.1"
+      - "cassandra-5:127.0.0.1"
     # healthcheck:
     #   test: ["CMD-SHELL", "nc -z localhost 9042 || exit 1"]
     #   interval: 30s
@@ -176,6 +193,8 @@ func (g *ComposeGenerator) writeVolumesAndNetworks(file *os.File) error {
 			volumes += fmt.Sprintf("  sidecar_logs_%d:\n", i)
 		}
 	}
+	
+	// Note: SSL certificates are mounted from host directory, no Docker volume needed
 
 	networks := `
 networks:

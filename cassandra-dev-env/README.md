@@ -142,6 +142,7 @@ The tool provides a unified interface for managing Cassandra development environ
 - ✅ **Multi-node cluster support**: Configurable cluster size (1-10 nodes)
 - ✅ **Unified container architecture**: Single container per node running both Cassandra and Sidecar
 - ✅ **Built-in authentication**: Password-based authentication enabled by default
+- ✅ **mTLS support**: Optional mutual TLS authentication for secure communication
 - ✅ **Dynamic configuration**: Automatic Docker Compose generation
 - ✅ **Code source flexibility**: Support for branches, commits, PRs, and local repositories
 - ✅ **Cassandra Sidecar integration**: Optional REST API deployment
@@ -239,6 +240,88 @@ To use different credentials, update the configuration in your custom `config/ca
 # After cluster startup, connect and change password:
 # COMPOSE_BAKE=false docker-compose exec cassandra-1 cqlsh -u cassandra -p cassandra
 # ALTER USER cassandra WITH PASSWORD 'new_password';
+```
+
+## mTLS (Mutual TLS) Configuration
+
+The environment supports **optional mTLS authentication** for secure communication between Sidecar and Cassandra:
+
+### Enabling mTLS
+
+Set environment variables to enable SSL/mTLS:
+
+```bash
+# Enable mTLS for the entire cluster
+export ENABLE_SSL=true
+export SSL_CLIENT_AUTH=REQUIRED  # Options: NONE, REQUEST, REQUIRED
+
+# Optional: Custom certificate passwords (default: cassandra)
+export SSL_KEYSTORE_PASSWORD=your_keystore_password
+export SSL_TRUSTSTORE_PASSWORD=your_truststore_password
+
+# Start cluster with mTLS enabled
+./cassandra-env-manager --sidecar --nodes 3
+```
+
+### mTLS Features
+
+- **Automatic Certificate Generation**: CA, server, and client certificates auto-generated on first startup
+- **PKCS12 Format**: Modern certificate format compatible with both Cassandra and Sidecar
+- **Shared Certificates**: Single certificate set shared across all cluster nodes
+- **Client Authentication**: Configurable client authentication modes (NONE/REQUEST/REQUIRED)
+- **Strong Cipher Suites**: TLS 1.2/1.3 with secure cipher suites
+
+### Certificate Details
+
+When mTLS is enabled, certificates are automatically generated with:
+
+- **Certificate Authority (CA)**: Self-signed root CA for the cluster
+- **Server Certificate**: For Cassandra native transport SSL
+- **Client Certificate**: For Sidecar-to-Cassandra authentication  
+- **Truststore**: Contains CA certificate for validation
+- **Validity**: 365 days (configurable in generation script)
+- **SANs**: Includes localhost, cassandra-1 through cassandra-5, and IP addresses
+
+### Connection Examples with mTLS
+
+```bash
+# Sidecar health endpoints (HTTPS with client certificate validation)
+curl --cert /opt/ssl-certs/client-cert.pem \
+     --key /opt/ssl-certs/client-key.pem \
+     --cacert /opt/ssl-certs/ca-cert.pem \
+     https://localhost:9043/api/v1/cassandra/native/__health?instanceId=1
+
+# CQL connection with SSL (requires SSL-enabled cqlsh or driver)
+# Note: Standard cqlsh requires SSL configuration in cqlshrc
+```
+
+### Custom Certificates
+
+To use custom certificates instead of auto-generated ones:
+
+1. Place your certificates in `/opt/ssl-certs/` directory:
+   - `server-keystore.p12` - Server certificate and key
+   - `client-keystore.p12` - Client certificate and key  
+   - `truststore.p12` - CA certificates for validation
+
+2. Set appropriate passwords via environment variables
+
+3. Restart the cluster
+
+### Troubleshooting mTLS
+
+```bash
+# Check certificate generation logs
+./cassandra-env-manager --logs cassandra-1 | grep -i ssl
+
+# Verify certificates exist
+COMPOSE_BAKE=false docker-compose exec cassandra-1 ls -la /opt/ssl-certs/
+
+# Check SSL configuration
+COMPOSE_BAKE=false docker-compose exec cassandra-1 grep -A 10 "client_encryption_options" /opt/cassandra/conf/cassandra.yaml
+
+# View certificate details
+COMPOSE_BAKE=false docker-compose exec cassandra-1 openssl x509 -in /opt/ssl-certs/server-cert.pem -text -noout
 ```
 
 ## Working with the Cluster

@@ -18,4 +18,8 @@ cassandra-dev-env/build/
 cassandra-dev-env/dist/
 
 # Go module cache
-cassandra-dev-env/*.mod
+
+# SSL certificates - generated at runtime
+*.pem
+*.p12
+*.jks

@@ -25,8 +25,16 @@ SIDECAR_PORT=${SIDECAR_PORT:-9043}
 SIDECAR_HEALTH_CHECK_FREQUENCY=${SIDECAR_HEALTH_CHECK_FREQUENCY:-30s}
 SIDECAR_LOG_LEVEL=${SIDECAR_LOG_LEVEL:-DEBUG}
 
+# SSL/mTLS configuration variables
+ENABLE_SSL=${ENABLE_SSL:-"true"}
+SSL_CERT_DIR=${SSL_CERT_DIR:-"/opt/ssl-certs"}
+SSL_KEYSTORE_PASSWORD=${SSL_KEYSTORE_PASSWORD:-"cassandra"}
+SSL_TRUSTSTORE_PASSWORD=${SSL_TRUSTSTORE_PASSWORD:-"cassandra"}
+SSL_CLIENT_AUTH=${SSL_CLIENT_AUTH:-"REQUIRED"}  # NONE, REQUEST, REQUIRED
+
 echo "🚀 Configuring unified Cassandra + Sidecar node..."
 echo "   Sidecar Enabled: $ENABLE_SIDECAR"
+echo "   SSL/mTLS Enabled: $ENABLE_SSL"
 echo "   Cluster: $CASSANDRA_CLUSTER_NAME"
 echo "   Seeds: $CASSANDRA_SEEDS"
 echo "   Listen Address: $CASSANDRA_LISTEN_ADDRESS"
@@ -38,6 +46,10 @@ echo "   Hostname: $(hostname)"
 if [ "$ENABLE_SIDECAR" = "true" ]; then
     echo "   Sidecar Port: $SIDECAR_PORT"
     echo "   Sidecar Health Check: $SIDECAR_HEALTH_CHECK_FREQUENCY"
+    if [ "$ENABLE_SSL" = "true" ]; then
+        echo "   SSL Certificates: $SSL_CERT_DIR"
+        echo "   SSL Client Auth: $SSL_CLIENT_AUTH"
+    fi
 fi
 
 # Add environment variable to enable remote JMX for Sidecar connectivity
@@ -182,6 +194,76 @@ if [ "$DEBUG_MODE" = "true" ]; then
     export CASSANDRA_LOGBACK_CONFIG_FILE="/opt/cassandra/conf/logback-debug.xml"
 fi
 
+# Function to setup SSL certificates
+setup_ssl_certificates() {
+    if [ "$ENABLE_SSL" != "true" ]; then
+        return 0
+    fi
+    
+    echo "🔐 Setting up SSL certificates for mTLS..."
+    
+    # Check if certificates already exist
+    if [ -f "$SSL_CERT_DIR/server-keystore.p12" ] && [ -f "$SSL_CERT_DIR/truststore.p12" ]; then
+        echo "✅ SSL certificates already exist in $SSL_CERT_DIR"
+        return 0
+    fi
+    
+    # Generate certificates using the script
+    if [ -f "/generate-ssl-certs.sh" ]; then
+        echo "🔐 Generating SSL certificates..."
+        
+        # Set certificate passwords
+        export CA_PASSWORD="$SSL_KEYSTORE_PASSWORD"
+        export SERVER_PASSWORD="$SSL_KEYSTORE_PASSWORD"  
+        export CLIENT_PASSWORD="$SSL_KEYSTORE_PASSWORD"
+        export TRUSTSTORE_PASSWORD="$SSL_TRUSTSTORE_PASSWORD"
+        
+        # Run certificate generation script
+        chmod +x /generate-ssl-certs.sh
+        /generate-ssl-certs.sh
+        
+        echo "✅ SSL certificates generated successfully"
+    else
+        echo "❌ SSL certificate generation script not found"
+        return 1
+    fi
+}
+
+# Function to configure Cassandra for SSL
+configure_cassandra_ssl() {
+    if [ "$ENABLE_SSL" != "true" ]; then
+        return 0
+    fi
+    
+    echo "🔐 Configuring Cassandra for SSL client connections..."
+    
+    local config_file="/opt/cassandra/conf/cassandra.yaml"
+    
+    # Enable native transport SSL
+    if ! grep -q "client_encryption_options:" "$config_file"; then
+        echo "Adding SSL client encryption configuration to cassandra.yaml"
+        cat >> "$config_file" << EOF
+
+# Client-side SSL configuration for native transport
+client_encryption_options:
+    enabled: true
+    optional: false
+    keystore: $SSL_CERT_DIR/server-keystore.p12
+    keystore_password: $SSL_KEYSTORE_PASSWORD
+    truststore: $SSL_CERT_DIR/truststore.p12
+    truststore_password: $SSL_TRUSTSTORE_PASSWORD
+    protocol: TLS
+    store_type: PKCS12
+    cipher_suites: [TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384, TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256, TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256]
+    require_client_auth: true
+EOF
+    else
+        echo "✅ SSL client encryption already configured in cassandra.yaml"
+    fi
+    
+    echo "✅ Cassandra SSL configuration complete"
+}
+
 # Function to generate sidecar configuration
 generate_sidecar_config() {
     if [ "$ENABLE_SIDECAR" != "true" ]; then
@@ -198,8 +280,11 @@ generate_sidecar_config() {
     # Get current container IP
     local container_ip=$(hostname -i | awk '{print $1}')
     
+    # For sidecar connection, use localhost instead of container IP for internal connectivity
+    local sidecar_host="localhost"
+    
     # Build contact points list for multi-node cluster dynamically
-    # Use container IPs for all nodes in format "ip:port"
+    # Use localhost for sidecar internal connections
     local contact_points_yaml=""
     
     # Parse seeds and current node to build contact points
@@ -211,7 +296,7 @@ generate_sidecar_config() {
             # Try to resolve the seed hostname to IP
             local seed_ip=""
             if seed_ip=$(getent hosts "$seed" 2>/dev/null | awk '{print $1}' | head -1); then
-                contact_points_yaml="${contact_points_yaml}    - \"$seed_ip:9042\"\n"
+                contact_points_yaml="${contact_points_yaml}    - \"$seed_ip\"\n"
                 echo "ℹ️  Added seed $seed -> $seed_ip to contact points"
             else
                 echo "⚠️  Could not resolve seed $seed, skipping"
@@ -230,13 +315,13 @@ generate_sidecar_config() {
     done
     
     if [ "$current_in_seeds" = false ]; then
-        contact_points_yaml="${contact_points_yaml}    - \"$container_ip:9042\"\n"
+        contact_points_yaml="${contact_points_yaml}    - \"$container_ip\"\n"
         echo "ℹ️  Added current node $CASSANDRA_LISTEN_ADDRESS -> $container_ip to contact points"
     fi
     
     # If no contact points were built, fall back to current container only
     if [ -z "$contact_points_yaml" ]; then
-        contact_points_yaml="    - \"$container_ip:9042\"\n"
+        contact_points_yaml="    - \"$container_ip\"\n"
         echo "⚠️  No seeds resolved, using current container IP only"
     fi
     
@@ -244,11 +329,11 @@ generate_sidecar_config() {
     cat > /opt/sidecar/conf/sidecar.yaml << EOF
 cassandra_instances:
   - id: 1
-    host: $container_ip
+    host: localhost
     port: 9042
     data_center: $CASSANDRA_DC
     rack: $CASSANDRA_RACK
-    jmx_host: $container_ip
+    jmx_host: localhost
     jmx_port: 7199
     jmx_ssl_enabled: false
     jmx_role: cassandra
@@ -262,6 +347,14 @@ sidecar:
   host: 0.0.0.0
   port: $SIDECAR_PORT
   health_check_frequency: $SIDECAR_HEALTH_CHECK_FREQUENCY
+
+sidecar_instances:
+  - id: 1
+    host: localhost
+    port: $SIDECAR_PORT
+  - id: 2
+    host: $CASSANDRA_LISTEN_ADDRESS
+    port: $SIDECAR_PORT
   
 logging:
   level: $SIDECAR_LOG_LEVEL
@@ -283,12 +376,46 @@ EOF
     printf "%b" "$contact_points_yaml" >> /opt/sidecar/conf/sidecar.yaml
     
     # Add the rest of the driver configuration
+    # Sidecar always connects to Cassandra via HTTP (no SSL)
     cat >> /opt/sidecar/conf/sidecar.yaml << EOF
+  contact_points:
+    - "localhost:9042"
   num_connections: 6
   local_dc: $CASSANDRA_DC
   username: cassandra
   password: cassandra
 EOF
+
+    # Add SSL configuration for Sidecar server endpoints if enabled
+    if [ "$ENABLE_SSL" = "true" ]; then
+        cat >> /opt/sidecar/conf/sidecar.yaml << EOF
+
+# SSL Configuration for Sidecar HTTPS endpoints
+ssl:
+  enabled: true
+  use_openssl: false
+  handshake_timeout: 10s
+  client_auth: $SSL_CLIENT_AUTH
+  accepted_protocols:
+    - TLSv1.2
+    - TLSv1.3
+  cipher_suites:
+    - TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384
+    - TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256
+    - TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
+    - TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA
+    - TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA
+  keystore:
+    type: PKCS12
+    path: "$SSL_CERT_DIR/server-keystore.p12"
+    password: "$SSL_KEYSTORE_PASSWORD"
+    check_interval: 5m
+  truststore:
+    path: "$SSL_CERT_DIR/truststore.p12"
+    password: "$SSL_TRUSTSTORE_PASSWORD"
+EOF
+        echo "✅ SSL configuration added to Sidecar endpoints"
+    fi
     
     echo "✅ Sidecar configuration generated with contact points from: [$contact_points_yaml]"
 }
@@ -385,8 +512,13 @@ start_sidecar() {
     echo "ℹ️ Starting Sidecar (non-blocking)..."
     # Start sidecar in background without hanging the main process
     (
-        # Run sidecar in a subshell to avoid hanging main process
-        /opt/sidecar/bin/cassandra-sidecar --config-file /opt/sidecar/conf/sidecar.yaml >> /opt/sidecar/logs/sidecar.log 2>&1
+        # Run sidecar with localhost hostname override to avoid 'cassandra-1' hostname in service discovery
+        export HOSTNAME=localhost
+        /opt/sidecar/bin/cassandra-sidecar \
+            -Djava.net.preferIPv4Stack=true \
+            -Dvertx.hostname=localhost \
+            -Dsidecar.hostname=localhost \
+            --config-file /opt/sidecar/conf/sidecar.yaml >> /opt/sidecar/logs/sidecar.log 2>&1
     ) &
     local sidecar_pid=$!
     
@@ -424,6 +556,12 @@ shutdown_handler() {
 
 # Set up signal handlers
 trap shutdown_handler SIGTERM SIGINT
+
+# Setup SSL certificates if enabled
+setup_ssl_certificates
+
+# Configure Cassandra for SSL if enabled
+configure_cassandra_ssl
 
 # Generate sidecar configuration if enabled
 generate_sidecar_config
