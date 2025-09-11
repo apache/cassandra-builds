@@ -335,6 +335,8 @@ server:
   request_timeout_millis: 300000
 
 driver_parameters:
+  username: cassandra
+  password: cassandra_test_env_password
   contact_points:
 EOF
 

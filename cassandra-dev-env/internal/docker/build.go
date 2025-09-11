@@ -217,7 +217,8 @@ func (ops *Operations) WaitForClusterReady() error {
 	for attempt <= maxChecks && !clusterReady {
 		// Use CQL to check cluster membership - more reliable than nodetool with auth
 		// Check system.peers for other nodes, plus local node = total cluster size
-		result := system.DockerComposeCommand([]string{"exec", "-T", "cassandra-1", "cqlsh", "localhost", "-e", "SELECT COUNT(*) FROM system.peers"}, &system.CommandOptions{Silent: true})
+		result := system.DockerComposeCommand([]string{"exec", "-T", "cassandra-1", "cqlsh", "localhost", "-u", "cassandra", "-p", "cassandra_test_env_password",
+			"-e", "SELECT COUNT(*) FROM system.peers"}, &system.CommandOptions{Silent: true})
 
 		if result.ExitCode == 0 {
 			// Parse peer count from CQL output
@@ -245,7 +246,9 @@ func (ops *Operations) WaitForClusterReady() error {
 			}
 		} else {
 			// Fallback: try to connect to CQL without checking peers
-			pingResult := system.DockerComposeCommand([]string{"exec", "-T", "cassandra-1", "cqlsh", "localhost", "-e", "SELECT release_version FROM system.local"}, &system.CommandOptions{Silent: true})
+			// TODO: Generate a GUID for the password so it's not embedded in source, and display it for the user each time we start up the cluster?
+			pingResult := system.DockerComposeCommand([]string{"exec", "-T", "cassandra-1", "cqlsh", "localhost", "-e", "-u", "cassandra", "-p", "cassandra_test_env_password",
+				"SELECT release_version FROM system.local"}, &system.CommandOptions{Silent: true})
 			if pingResult.ExitCode == 0 {
 				fmt.Printf("⏳ Cluster still initializing (attempt %d/%d): CQL ready, waiting for gossip\n", attempt, maxChecks)
 			} else {
