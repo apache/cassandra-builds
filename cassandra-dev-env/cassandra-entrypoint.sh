@@ -3,7 +3,7 @@
 # Unified Cassandra + Sidecar Docker Entrypoint Script
 # Configures and starts both Cassandra and Sidecar in the same container
 
-set -e
+# set -e
 
 # Configurar variables de entorno si no están definidas
 CASSANDRA_CLUSTER_NAME=${CASSANDRA_CLUSTER_NAME:-"DevCluster"}
@@ -76,7 +76,8 @@ sed -i "s/^endpoint_snitch:.*/endpoint_snitch: $CASSANDRA_ENDPOINT_SNITCH/" "$CO
 
 # Configure authentication to use password authentication
 sed -i "s/class_name: AllowAllAuthenticator/class_name: PasswordAuthenticator/" "$CONFIG_FILE"
-sed -i "s/class_name: AllowAllAuthorizer/class_name: CassandraAuthorizer/" "$CONFIG_FILE"
+sed -i "s/authenticator: AllowAllAuthenticator/authenticator: PasswordAuthenticator/" "$CONFIG_FILE"
+sed -i "s/authorizer: AllowAllAuthorizer/authorizer: CassandraAuthorizer/" "$CONFIG_FILE"
 
 # Ensure system keyspaces are initialized
 # Add flag to ensure system keyspaces (including system_auth) are created on first startup
@@ -418,7 +419,7 @@ initialize_auth() {
     # First, try to connect as the default cassandra user (this should work initially)
     # and change its password to 'cassandra'
     for i in {1..10}; do
-        if cqlsh localhost -e "ALTER USER cassandra WITH PASSWORD 'cassandra';" 2>/dev/null; then
+        if cqlsh -u cassandra -p cassandra localhost -e "ALTER USER cassandra WITH PASSWORD 'cassandra_test_env_password';" 2>/dev/null; then
             echo "✅ Successfully configured cassandra user password"
             return 0
         else

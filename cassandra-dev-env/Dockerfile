@@ -17,6 +17,8 @@ RUN groupadd -r cassandra && useradd -r -g cassandra cassandra
 # Copiar los binarios pre-compilados de Cassandra
 COPY --chown=cassandra:cassandra cassandra/ /opt/cassandra/
 
+COPY --chown=cassandra:cassandra cqlshrc.withcerts /home/cassandra/.cassandra/cqlshrc
+
 # Copiar los binarios pre-compilados del Sidecar (when sidecar is enabled)
 COPY --chown=cassandra:cassandra cassandra-sidecar/build/install/apache-cassandra-sidecar/ /opt/sidecar/
 

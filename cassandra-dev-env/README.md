@@ -337,7 +337,7 @@ The tool automatically generates a Cassandra cluster with the specified number o
 
 ```bash
 # Connect to node 1 (authentication required)
-COMPOSE_BAKE=false docker-compose exec cassandra-1 cqlsh -u cassandra -p cassandra
+COMPOSE_BAKE=false docker-compose exec cassandra-1 cqlsh -u cassandra -p cassandra_test_env_password
 
 # View cluster status
 ./cassandra-env-manager --status
