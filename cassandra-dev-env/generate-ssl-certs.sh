@@ -5,7 +5,7 @@
 
 set -e
 
-CERT_DIR="/opt/ssl-certs"
+CERT_DIR="./ssl-certs"
 VALIDITY_DAYS=365
 KEY_SIZE=2048
 

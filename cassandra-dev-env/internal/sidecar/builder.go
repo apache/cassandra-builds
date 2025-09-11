@@ -63,7 +63,7 @@ func (b *Builder) buildSidecar() error {
 	dtestScript := filepath.Join("cassandra-sidecar", "scripts", "build-dtest-jars.sh")
 	if config.FileOrDirExists(dtestScript) {
 		fmt.Println("🔧 Running build-dtest-jars.sh script...")
-		
+
 		// Make the script executable
 		result = system.ExecuteCommand("chmod", []string{"+x", "./scripts/build-dtest-jars.sh"}, &system.CommandOptions{
 			WorkingDir: "cassandra-sidecar",
@@ -76,12 +76,13 @@ func (b *Builder) buildSidecar() error {
 		// Execute the dtest jars build script
 		result = system.ExecuteCommand("./scripts/build-dtest-jars.sh", []string{}, &system.CommandOptions{
 			WorkingDir: "cassandra-sidecar",
+			Env:        []string{fmt.Sprintf("BRANCHES=(%s)", b.config.Branch)},
 		})
-		
+
 		if result.ExitCode != 0 {
 			return fmt.Errorf("build-dtest-jars.sh script failed: %s", result.Stderr)
 		}
-		
+
 		fmt.Println("✅ build-dtest-jars.sh completed successfully")
 	} else {
 		fmt.Println("ℹ️  build-dtest-jars.sh not found, skipping (may not be needed for this branch)")
@@ -98,7 +99,7 @@ func (b *Builder) buildSidecar() error {
 	}
 
 	fmt.Println("✅ Sidecar build completed!")
-	
+
 	// Set sidecar code source information
 	b.config.DetermineCodeSource()
 	fmt.Printf("📍 Sidecar built from: %s\n", b.config.SidecarCodeSource)
@@ -113,7 +114,7 @@ func (b *Builder) ValidateBuild() error {
 	}
 
 	sidecarDir := "cassandra-sidecar"
-	
+
 	if !config.FileOrDirExists(sidecarDir) {
 		return fmt.Errorf("cassandra-sidecar directory does not exist")
 	}
@@ -203,7 +204,7 @@ func (b *Builder) CleanBuild() error {
 func CheckBuildDependencies() error {
 	// Sidecar uses Gradle wrapper, so we primarily need Java and Git
 	required := []string{"java", "git"}
-	
+
 	var missing []string
 	for _, cmd := range required {
 		if !system.CheckCommandExists(cmd) {
@@ -267,7 +268,7 @@ func (b *Builder) SetupLocalBuild() error {
 	// Validate that it has the necessary build files
 	buildGradle := filepath.Join(b.config.LocalSidecarPath, "build.gradle")
 	gradlew := filepath.Join(b.config.LocalSidecarPath, "gradlew")
-	
+
 	if !config.FileOrDirExists(buildGradle) {
 		return fmt.Errorf("build.gradle not found in local Sidecar repository")
 	}
@@ -326,7 +327,7 @@ func (b *Builder) GetTestResults() (map[string]interface{}, error) {
 	}
 
 	results := make(map[string]interface{})
-	
+
 	// Check if test results exist
 	testResultsDir := filepath.Join("cassandra-sidecar", "build", "test-results", "test")
 	if config.FileOrDirExists(testResultsDir) {

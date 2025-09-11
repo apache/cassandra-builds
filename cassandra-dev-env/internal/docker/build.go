@@ -123,7 +123,7 @@ func (ops *Operations) TeardownEnvironment(silent bool) error {
 	if !silent {
 		fmt.Println("   🗑️  Removing Docker images...")
 	}
-	system.DockerCommand([]string{"rmi", "cassandra-dev"}, &system.CommandOptions{Silent: true})
+	system.DockerCommand([]string{"rmi", "-f", "cassandra-dev"}, &system.CommandOptions{Silent: true})
 	system.DockerCommand([]string{"rmi", "cassandra-sidecar-dev"}, &system.CommandOptions{Silent: true})
 
 	// Clean up unused volumes and networks
@@ -187,7 +187,7 @@ func (ops *Operations) TeardownEnvironment(silent bool) error {
 	}
 
 	// System cleanup
-	system.DockerCommand([]string{"system", "prune", "-a", "-f", "--volumes"}, &system.CommandOptions{Silent: true})
+	//system.DockerCommand([]string{"system", "prune", "-a", "-f", "--volumes"}, &system.CommandOptions{Silent: true})
 
 	// Remove compose file
 	if ComposeFileExists() {
@@ -236,7 +236,7 @@ func (ops *Operations) WaitForClusterReady() error {
 
 			// Total cluster size = peer count + local node
 			totalNodes := peerCount + 1
-			
+
 			if totalNodes == ops.config.ClusterSize {
 				clusterReady = true
 				fmt.Printf("✅ Cluster is ready! All %d nodes are connected\n", ops.config.ClusterSize)
@@ -329,7 +329,7 @@ func (ops *Operations) ShowStatus() error {
 	if err == nil && len(containerIDs) > 0 {
 		// Use CQL to check cluster membership - consistent with WaitForClusterReady
 		result = system.DockerComposeCommand([]string{"exec", "-T", "cassandra-1", "cqlsh", "localhost", "-e", "SELECT COUNT(*) FROM system.peers"}, &system.CommandOptions{Silent: true})
-		
+
 		if result.ExitCode == 0 {
 			// Parse peer count from CQL output
 			lines := strings.Split(strings.TrimSpace(result.Stdout), "\n")
@@ -343,17 +343,17 @@ func (ops *Operations) ShowStatus() error {
 					}
 				}
 			}
-			
+
 			totalNodes := peerCount + 1 // peer count + local node
 			fmt.Printf("   Connected nodes: %d\n", totalNodes)
-			
+
 			// Also show local and peer info for debugging
 			localResult := system.DockerComposeCommand([]string{"exec", "-T", "cassandra-1", "cqlsh", "localhost", "-e", "SELECT listen_address, rpc_address, release_version FROM system.local"}, &system.CommandOptions{Silent: true})
 			if localResult.ExitCode == 0 {
 				fmt.Println("   Local node:")
 				fmt.Print("   " + localResult.Stdout)
 			}
-			
+
 			if peerCount > 0 {
 				peerResult := system.DockerComposeCommand([]string{"exec", "-T", "cassandra-1", "cqlsh", "localhost", "-e", "SELECT peer, rpc_address, release_version FROM system.peers"}, &system.CommandOptions{Silent: true})
 				if peerResult.ExitCode == 0 {
@@ -398,7 +398,7 @@ func (ops *Operations) ShowLogs(service string) error {
 func (ops *Operations) AutoTeardown() error {
 	// Check if there's an existing environment
 	hasCompose := ComposeFileExists()
-	
+
 	// Check for existing containers
 	containerIDs, _ := system.GetDockerContainerIDs("name=cassandra-node")
 	sidecarIDs, _ := system.GetDockerContainerIDs("name=sidecar-node")

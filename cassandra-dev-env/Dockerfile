@@ -42,11 +42,13 @@ RUN mkdir -p /opt/cassandra/logs \
     /opt/sidecar/logs \
     /opt/ssl-certs \
     /tmp/sidecar-staging \
-    && chown -R cassandra:cassandra /opt/cassandra \
+    /home/cassandra \
+    && chown -R cassandra:cassandra /opt/cassandra/logs \
     && chown -R cassandra:cassandra /opt/sidecar \
     && chown -R cassandra:cassandra /var/lib/cassandra /var/log/cassandra \
     && chown -R cassandra:cassandra /opt/ssl-certs \
-    && chown -R cassandra:cassandra /tmp/sidecar-staging
+    && chown -R cassandra:cassandra /tmp/sidecar-staging \
+    && chown -R cassandra:cassandra /home/cassandra
 
 # Configurar variables de entorno
 ENV CASSANDRA_HOME=/opt/cassandra
@@ -63,6 +65,7 @@ RUN mkdir -p /etc/cassandra && \
 # Exponer puertos (Cassandra + Sidecar)
 EXPOSE 7000 7001 7199 9042 9043 9160
 
+RUN chown -R cassandra:cassandra /opt/ssl-certs
 # Cambiar al usuario cassandra
 USER cassandra
 

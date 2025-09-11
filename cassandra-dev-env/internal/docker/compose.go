@@ -57,12 +57,12 @@ func (g *ComposeGenerator) GenerateComposeFile() error {
 
 func (g *ComposeGenerator) writeCassandraService(file *os.File, nodeNum int, heapSize, heapNewSize, cpuLimit, memoryLimit, seeds string) error {
 	// Calculate unique ports for each node
-	cqlPort := 9042 + (nodeNum-1)*2        // 9042, 9044, 9046, etc.
-	jmxPort := 7199 + nodeNum - 1          // 7199, 7200, 7201, etc.
-	interPort := 7000 + (nodeNum-1)*10     // 7000, 7010, 7020, etc.
-	interSSLPort := 7001 + (nodeNum-1)*10  // 7001, 7011, 7021, etc.
-	thriftPort := 9160 + nodeNum - 1       // 9160, 9161, 9162, etc.
-	sidecarPort := 9043 + (nodeNum-1)*2    // 9043, 9045, 9047, etc.
+	cqlPort := 9042 + (nodeNum-1)*2       // 9042, 9044, 9046, etc.
+	jmxPort := 7199 + nodeNum - 1         // 7199, 7200, 7201, etc.
+	interPort := 7000 + (nodeNum-1)*10    // 7000, 7010, 7020, etc.
+	interSSLPort := 7001 + (nodeNum-1)*10 // 7001, 7011, 7021, etc.
+	thriftPort := 9160 + nodeNum - 1      // 9160, 9161, 9162, etc.
+	sidecarPort := 9043 + (nodeNum-1)*2   // 9043, 9045, 9047, etc.
 
 	service := fmt.Sprintf(`  cassandra-%d:
     image: cassandra-dev
@@ -99,7 +99,7 @@ func (g *ComposeGenerator) writeCassandraService(file *os.File, nodeNum int, hea
 
 	// Add SSL certificate volume (mount host directory for pre-generated certificates)
 	service += `
-      - ./ssl-client-certs:/opt/ssl-certs`
+      - ./ssl-certs:/opt/ssl-certs`
 
 	service += "\n"
 
@@ -197,7 +197,7 @@ func (g *ComposeGenerator) writeVolumesAndNetworks(file *os.File) error {
 			volumes += fmt.Sprintf("  sidecar_logs_%d:\n", i)
 		}
 	}
-	
+
 	// Note: SSL certificates are mounted from host directory, no Docker volume needed
 
 	networks := `
@@ -227,11 +227,11 @@ func ComposeFileExists() bool {
 // GetPortInfo returns port information for a given node
 func GetPortInfo(nodeNum int, enableSidecar bool) map[string]int {
 	ports := map[string]int{
-		"cql":      9042 + (nodeNum-1)*2,        // 9042, 9044, 9046, etc.
-		"jmx":      7199 + nodeNum - 1,          // 7199, 7200, 7201, etc.
-		"inter":    7000 + (nodeNum-1)*10,       // 7000, 7010, 7020, etc.
-		"interSSL": 7001 + (nodeNum-1)*10,       // 7001, 7011, 7021, etc.
-		"thrift":   9160 + nodeNum - 1,          // 9160, 9161, 9162, etc.
+		"cql":      9042 + (nodeNum-1)*2,  // 9042, 9044, 9046, etc.
+		"jmx":      7199 + nodeNum - 1,    // 7199, 7200, 7201, etc.
+		"inter":    7000 + (nodeNum-1)*10, // 7000, 7010, 7020, etc.
+		"interSSL": 7001 + (nodeNum-1)*10, // 7001, 7011, 7021, etc.
+		"thrift":   9160 + nodeNum - 1,    // 9160, 9161, 9162, etc.
 	}
 
 	if enableSidecar {
@@ -273,6 +273,6 @@ func commandExists(command string) bool {
 }
 
 func isDockerRunning() bool {
-	// Use system package function  
+	// Use system package function
 	return true // Placeholder - would check docker daemon in real implementation
 }

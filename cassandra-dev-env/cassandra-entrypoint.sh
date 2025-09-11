@@ -194,41 +194,6 @@ if [ "$DEBUG_MODE" = "true" ]; then
     export CASSANDRA_LOGBACK_CONFIG_FILE="/opt/cassandra/conf/logback-debug.xml"
 fi
 
-# Function to setup SSL certificates
-setup_ssl_certificates() {
-    if [ "$ENABLE_SSL" != "true" ]; then
-        return 0
-    fi
-    
-    echo "🔐 Setting up SSL certificates for mTLS..."
-    
-    # Check if certificates already exist
-    if [ -f "$SSL_CERT_DIR/server-keystore.p12" ] && [ -f "$SSL_CERT_DIR/truststore.p12" ]; then
-        echo "✅ SSL certificates already exist in $SSL_CERT_DIR"
-        return 0
-    fi
-    
-    # Generate certificates using the script
-    if [ -f "/generate-ssl-certs.sh" ]; then
-        echo "🔐 Generating SSL certificates..."
-        
-        # Set certificate passwords
-        export CA_PASSWORD="$SSL_KEYSTORE_PASSWORD"
-        export SERVER_PASSWORD="$SSL_KEYSTORE_PASSWORD"  
-        export CLIENT_PASSWORD="$SSL_KEYSTORE_PASSWORD"
-        export TRUSTSTORE_PASSWORD="$SSL_TRUSTSTORE_PASSWORD"
-        
-        # Run certificate generation script
-        chmod +x /generate-ssl-certs.sh
-        /generate-ssl-certs.sh
-        
-        echo "✅ SSL certificates generated successfully"
-    else
-        echo "❌ SSL certificate generation script not found"
-        return 1
-    fi
-}
-
 # Function to configure Cassandra for SSL
 configure_cassandra_ssl() {
     if [ "$ENABLE_SSL" != "true" ]; then
@@ -556,9 +521,6 @@ shutdown_handler() {
 
 # Set up signal handlers
 trap shutdown_handler SIGTERM SIGINT
-
-# Setup SSL certificates if enabled
-setup_ssl_certificates
 
 # Configure Cassandra for SSL if enabled
 configure_cassandra_ssl

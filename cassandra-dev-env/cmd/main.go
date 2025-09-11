@@ -1,6 +1,7 @@
 package main
 
 import (
+	"cassandra-dev-env/internal/system"
 	"fmt"
 	"os"
 
@@ -8,6 +9,7 @@ import (
 	"cassandra-dev-env/internal/config"
 	"cassandra-dev-env/internal/docker"
 	"cassandra-dev-env/internal/sidecar"
+
 	"github.com/spf13/cobra"
 )
 
@@ -67,6 +69,9 @@ lifecycle management.`,
 	rootCmd.PersistentFlags().StringVar(&cfg.SidecarPR, "sidecar-pr", "", "Use specific sidecar pull request number")
 	rootCmd.PersistentFlags().StringVar(&cfg.LocalSidecarPath, "local-sidecar", "", "Use local Sidecar repository path")
 
+	// SSL settings
+	rootCmd.PersistentFlags().BoolVar(&cfg.EnableSsl, "enable-ssl", false, "Enable SSL for Cassandra")
+	rootCmd.PersistentFlags().StringVar(&cfg.ClientAuthMode, "client-auth-mode", "none", "Enable client authentication (NONE, REQUEST, REQUIRED)")
 	// Add subcommands
 	rootCmd.AddCommand(newVersionCommand())
 
@@ -124,12 +129,12 @@ func handleStop(cfg config.Config) error {
 func handleStart(cfg config.Config) error {
 	// For start-only, determine current code source from existing directories
 	cfg.DetermineCodeSource()
-	
+
 	dockerOps := docker.NewOperations(&cfg)
 	if err := dockerOps.StartExistingServices(); err != nil {
 		return err
 	}
-	
+
 	return showClusterInfo(cfg)
 }
 
@@ -208,6 +213,21 @@ func handleFullSetup(cfg config.Config) error {
 	// Check configuration overrides
 	if err := cfg.CheckConfigOverrides(); err != nil {
 		return fmt.Errorf("configuration override check failed: %w", err)
+	}
+
+	// optionally build SSL certificates
+	if cfg.EnableSsl {
+		env := []string{
+			"ENABLE_SSL=true",
+			fmt.Sprintf("SSL_CLIENT_AUTH=%s", cfg.ClientAuthMode),
+		}
+		var cmdResult = system.ExecuteCommand("./generate-ssl-certs.sh", []string{},
+			&system.CommandOptions{
+				Env: env,
+			})
+		if cmdResult.ExitCode != 0 {
+			return fmt.Errorf("failed to generate ssl certificates: %w", cmdResult)
+		}
 	}
 
 	// Generate docker-compose file

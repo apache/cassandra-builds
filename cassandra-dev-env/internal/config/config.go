@@ -9,48 +9,52 @@ import (
 // Config holds all configuration options for the cassandra-env-manager
 type Config struct {
 	// Environment Management
-	StatusOnly bool
-	StopOnly   bool
-	StartOnly  bool
-	Teardown   bool
+	StatusOnly  bool
+	StopOnly    bool
+	StartOnly   bool
+	Teardown    bool
 	LogsService string
 
 	// Build and Deploy Options
-	CleanBuild      bool
-	BuildOnly       bool
-	NoAutoTeardown  bool
+	CleanBuild     bool
+	BuildOnly      bool
+	NoAutoTeardown bool
 
 	// Code Source Options
-	Branch              string
-	Commit              string
-	PR                  string
-	LocalCassandraPath  string
+	Branch             string
+	Commit             string
+	PR                 string
+	LocalCassandraPath string
 
 	// Cluster Options
 	ClusterSize int
 
 	// Sidecar Options
-	EnableSidecar     bool
-	SidecarBranch     string
-	SidecarCommit     string
-	SidecarPR         string
-	LocalSidecarPath  string
+	EnableSidecar    bool
+	SidecarBranch    string
+	SidecarCommit    string
+	SidecarPR        string
+	LocalSidecarPath string
 
 	// Internal computed values
-	RepoURL              string
-	ProjectName          string
-	CodeSource           string
-	SidecarCodeSource    string
-	ConfigOverrides      ConfigOverrides
+	RepoURL           string
+	ProjectName       string
+	CodeSource        string
+	SidecarCodeSource string
+	ConfigOverrides   ConfigOverrides
+
+	// SSL Options
+	EnableSsl      bool
+	ClientAuthMode string
 }
 
 // ConfigOverrides tracks which configuration files are overridden
 type ConfigOverrides struct {
-	CassandraConfig   bool
-	CassandraLogging  bool
-	CassandraJVM      bool
-	SidecarConfig     bool
-	SidecarLogging    bool
+	CassandraConfig  bool
+	CassandraLogging bool
+	CassandraJVM     bool
+	SidecarConfig    bool
+	SidecarLogging   bool
 }
 
 // NewConfig creates a new configuration with defaults
