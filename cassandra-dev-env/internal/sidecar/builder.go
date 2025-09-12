@@ -74,9 +74,10 @@ func (b *Builder) buildSidecar() error {
 		}
 
 		// Execute the dtest jars build script
+		// Let the sidecar use its own branch configuration, not the cassandra branch
 		result = system.ExecuteCommand("./scripts/build-dtest-jars.sh", []string{}, &system.CommandOptions{
 			WorkingDir: "cassandra-sidecar",
-			Env:        []string{fmt.Sprintf("BRANCHES=(%s)", b.config.Branch)},
+			// Don't override BRANCHES - let sidecar script use its default branches
 		})
 
 		if result.ExitCode != 0 {
