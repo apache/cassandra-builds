@@ -140,7 +140,7 @@ func (r *Repository) clonePR(targetDir, repoURL, pr string) error {
 
 	// Fetch the PR and checkout
 	workingDir := &system.CommandOptions{WorkingDir: targetDir}
-	
+
 	result = system.GitCommand([]string{"fetch", "origin", fmt.Sprintf("pull/%s/head:pr-%s", pr, pr)}, workingDir)
 	if result.ExitCode != 0 {
 		return fmt.Errorf("failed to fetch PR #%s: %s", pr, result.Stderr)
@@ -213,7 +213,7 @@ func CleanRepository(repoDir string) error {
 
 	// Reset any changes
 	system.GitCommand([]string{"reset", "--hard", "HEAD"}, workingDir)
-	
+
 	// Clean untracked files
 	system.GitCommand([]string{"clean", "-fd"}, workingDir)
 
@@ -273,7 +273,7 @@ func GetCommitInfo(repoDir string) (hash, message, author string, err error) {
 // CreateGitIgnoreEntry adds entries to .gitignore
 func CreateGitIgnoreEntry(entries []string) error {
 	gitignorePath := ".gitignore"
-	
+
 	// Check if .gitignore exists
 	var content string
 	if config.FileOrDirExists(gitignorePath) {

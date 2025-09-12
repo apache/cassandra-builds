@@ -43,7 +43,6 @@ lifecycle management.`,
 	// Environment Management flags
 	rootCmd.PersistentFlags().BoolVar(&cfg.StatusOnly, "status", false, "Show environment status and cluster info")
 	rootCmd.PersistentFlags().BoolVar(&cfg.StopOnly, "stop", false, "Stop running environment")
-	rootCmd.PersistentFlags().BoolVar(&cfg.StartOnly, "start", false, "Start stopped environment")
 	rootCmd.PersistentFlags().BoolVar(&cfg.Teardown, "teardown", false, "Completely tear down environment and clean up")
 	rootCmd.PersistentFlags().StringVar(&cfg.LogsService, "logs", "", "Show logs for specific service (or list services)")
 
@@ -149,45 +148,6 @@ func handleLogs(cfg config.Config) error {
 }
 
 func handleBuildOnly(cfg config.Config) error {
-	// Auto-teardown before building if requested
-	if !cfg.NoAutoTeardown {
-		dockerOps := docker.NewOperations(&cfg)
-		if err := dockerOps.AutoTeardown(); err != nil {
-			return fmt.Errorf("auto-teardown failed: %w", err)
-		}
-	}
-
-	// Build Cassandra
-	cassandraBuilder := cassandra.NewBuilder(&cfg)
-	if err := cassandraBuilder.Build(); err != nil {
-		return fmt.Errorf("Cassandra build failed: %w", err)
-	}
-
-	// Build Sidecar if enabled
-	if cfg.EnableSidecar {
-		sidecarBuilder := sidecar.NewBuilder(&cfg)
-		if err := sidecarBuilder.Build(); err != nil {
-			return fmt.Errorf("Sidecar build failed: %w", err)
-		}
-	}
-
-	// Check configuration overrides
-	if err := cfg.CheckConfigOverrides(); err != nil {
-		return fmt.Errorf("configuration override check failed: %w", err)
-	}
-
-	// Generate docker-compose file
-	composeGen := docker.NewComposeGenerator(&cfg)
-	if err := composeGen.GenerateComposeFile(); err != nil {
-		return fmt.Errorf("docker-compose generation failed: %w", err)
-	}
-
-	// Build Docker images
-	dockerOps := docker.NewOperations(&cfg)
-	return dockerOps.BuildImages()
-}
-
-func handleFullSetup(cfg config.Config) error {
 	// Auto-teardown before setting up if requested
 	if !cfg.NoAutoTeardown {
 		dockerOps := docker.NewOperations(&cfg)
@@ -240,8 +200,16 @@ func handleFullSetup(cfg config.Config) error {
 	dockerOps := docker.NewOperations(&cfg)
 	if err := dockerOps.BuildImages(); err != nil {
 		return fmt.Errorf("Docker image build failed: %w", err)
+	} else {
+		return err
 	}
+}
 
+func handleFullSetup(cfg config.Config) error {
+	if err := handleBuildOnly(cfg); err != nil {
+		return fmt.Errorf("Docker image build failed: %w", err)
+	}
+	dockerOps := docker.NewOperations(&cfg)
 	// Start services
 	if err := dockerOps.StartServices(); err != nil {
 		return fmt.Errorf("service startup failed: %w", err)

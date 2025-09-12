@@ -217,7 +217,8 @@ func (ops *Operations) WaitForClusterReady() error {
 	for attempt <= maxChecks && !clusterReady {
 		// Use CQL to check cluster membership - more reliable than nodetool with auth
 		// Check system.peers for other nodes, plus local node = total cluster size
-		result := system.DockerComposeCommand([]string{"exec", "-T", "cassandra-1", "cqlsh", "localhost", "-u", "cassandra", "-p", "cassandra", "-e", "SELECT COUNT(*) FROM system.peers"}, &system.CommandOptions{Silent: true})
+		result := system.DockerComposeCommand([]string{"exec", "-T", "cassandra-1", "cqlsh", "localhost", "-u", "cassandra", "-p", "cassandra_test_env_password",
+			"-e", "SELECT COUNT(*) FROM system.peers"}, &system.CommandOptions{Silent: true})
 
 		if result.ExitCode == 0 {
 			// Parse peer count from CQL output
@@ -330,7 +331,8 @@ func (ops *Operations) ShowStatus() error {
 	containerIDs, err = system.GetDockerContainerIDs("name=cassandra-node-1")
 	if err == nil && len(containerIDs) > 0 {
 		// Use CQL to check cluster membership - consistent with WaitForClusterReady
-		result = system.DockerComposeCommand([]string{"exec", "-T", "cassandra-1", "cqlsh", "localhost", "-u", "cassandra", "-p", "cassandra", "-e", "SELECT COUNT(*) FROM system.peers"}, &system.CommandOptions{Silent: true})
+		result = system.DockerComposeCommand([]string{"exec", "-T", "cassandra-1", "cqlsh", "localhost", "-u", "cassandra", "-p", "cassandra_test_env_password",
+			"-e", "SELECT COUNT(*) FROM system.peers"}, &system.CommandOptions{Silent: true})
 
 		if result.ExitCode == 0 {
 			// Parse peer count from CQL output
