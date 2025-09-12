@@ -29,9 +29,14 @@ COPY --chown=cassandra:cassandra logback-debug.xml /opt/cassandra/conf/logback-d
 COPY --chown=cassandra:cassandra cassandra-entrypoint.sh /usr/local/bin/cassandra-entrypoint.sh
 RUN chmod +x /usr/local/bin/cassandra-entrypoint.sh
 
+# Copy the actual certs (generated before the docker container builds) as bind mounts have permission issues
+
+COPY --chown=cassandra:cassandra ssl-certs /opt/ssl-certs
+
+
 # Copiar script de generación de certificados SSL
-COPY --chown=cassandra:cassandra generate-ssl-certs.sh /generate-ssl-certs.sh
-RUN chmod +x /generate-ssl-certs.sh
+COPY --chown=cassandra:cassandra generate-ssl-certs.sh /opt/ssl-certs/generate-ssl-certs.sh
+RUN chmod +x /opt/ssl-certs/generate-ssl-certs.sh
 
 # Crear directorios necesarios con permisos correctos
 RUN mkdir -p /opt/cassandra/logs \

@@ -97,9 +97,9 @@ func (g *ComposeGenerator) writeCassandraService(file *os.File, nodeNum int, hea
       - sidecar_logs_%d:/opt/sidecar/logs`, nodeNum)
 	}
 
-	// Add SSL certificate volume (mount host directory for pre-generated certificates)
-	service += `
-      - ./ssl-certs:/opt/ssl-certs`
+	//// Add SSL certificate volume (mount host directory for pre-generated certificates)
+	//service += `
+	//  - ./ssl-certs:/opt/ssl-certs:ro"`
 
 	service += "\n"
 
