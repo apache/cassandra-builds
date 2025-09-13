@@ -32,7 +32,7 @@ func (ops *Operations) BuildImages() error {
 	if ops.config.EnableSidecar {
 		fmt.Println("   - Including Cassandra Sidecar in unified container")
 	}
-	result := system.DockerCommand([]string{"build", "-t", "cassandra-dev", "."}, nil)
+	result := system.DockerCommand([]string{"build", "--build-arg", "SSL_CLIENT_AUTH=" + ops.config.ClientAuthMode, "-t", "cassandra-dev", "."}, nil)
 	if result.ExitCode != 0 {
 		return fmt.Errorf("failed to build Cassandra Docker image: %s", result.Stderr)
 	}
@@ -46,7 +46,9 @@ func (ops *Operations) StartServices() error {
 	fmt.Printf("🚀 Step 3: Starting %d node(s)...\n", ops.config.ClusterSize)
 
 	// Start services
-	result := system.DockerComposeCommand([]string{"up", "-d"}, nil)
+	result := system.DockerComposeCommand([]string{"up", "-d"}, &system.CommandOptions{
+		Env: []string{"SSL_CLIENT_AUTH=" + ops.config.ClientAuthMode},
+	})
 	if result.ExitCode != 0 {
 		return fmt.Errorf("failed to start services: %s", result.Stderr)
 	}

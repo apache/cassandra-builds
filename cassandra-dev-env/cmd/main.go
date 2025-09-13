@@ -70,7 +70,7 @@ lifecycle management.`,
 
 	// SSL settings
 	rootCmd.PersistentFlags().BoolVar(&cfg.EnableSsl, "enable-ssl", false, "Enable SSL for Cassandra")
-	rootCmd.PersistentFlags().StringVar(&cfg.ClientAuthMode, "client-auth-mode", "none", "Enable client authentication (NONE, REQUEST, REQUIRED)")
+	rootCmd.PersistentFlags().StringVar(&cfg.ClientAuthMode, "client-auth-mode", "NONE", "Enable client authentication (NONE, REQUEST, REQUIRED)")
 	// Add subcommands
 	rootCmd.AddCommand(newVersionCommand())
 

@@ -1,4 +1,6 @@
-FROM openjdk:11-jre-slim
+FROM openjdk:11-jre-slim as BASE
+
+ARG SSL_CLIENT_AUTH=REQUESTED
 
 # Instalar dependencias de runtime
 RUN apt-get update && apt-get install -y \
@@ -9,6 +11,9 @@ RUN apt-get update && apt-get install -y \
     netcat \
     iputils-ping \
     openssl \
+    curl \
+    vim \
+    less \
     && rm -rf /var/lib/apt/lists/*
 
 # Crear usuario cassandra primero
@@ -73,5 +78,6 @@ EXPOSE 7000 7001 7199 9042 9043 9160
 # Cambiar al usuario cassandra
 USER cassandra
 
+ENV SSL_CLIENT_AUTH=$SSL_CLIENT_AUTH
 # Comando por defecto usando el entrypoint
 CMD ["/usr/local/bin/cassandra-entrypoint.sh"]
