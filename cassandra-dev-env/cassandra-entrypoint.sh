@@ -98,7 +98,7 @@ if [ -f "$JVM_OPTS_FILE" ]; then
     if [ ! -f "$JVM_OPTS_FILE.original" ]; then
         cp "$JVM_OPTS_FILE" "$JVM_OPTS_FILE.original"
     fi
-    
+
     # Actualizar heap settings
     sed -i "s/^-Xms.*/-Xms$MAX_HEAP_SIZE/" "$JVM_OPTS_FILE"
     sed -i "s/^-Xmx.*/-Xmx$MAX_HEAP_SIZE/" "$JVM_OPTS_FILE"
@@ -109,7 +109,7 @@ if [ -f "$JVM_OPTS_FILE" ]; then
         # Comment out any existing -Xmn line
         sed -i "s/^-Xmn.*/#-Xmn (auto-configured)/" "$JVM_OPTS_FILE"
     fi
-    
+
     # Disable memory-intensive flags for low memory environments
     sed -i "s/^-XX:+AlwaysPreTouch/# -XX:+AlwaysPreTouch/" "$JVM_OPTS_FILE"
 fi
@@ -121,7 +121,7 @@ mkdir -p /opt/cassandra/logs
 verify_network() {
     local max_attempts=10
     local attempt=1
-    
+
     echo "🔍 Verifying network connectivity..."
     while [ $attempt -le $max_attempts ]; do
         if ping -c 1 cassandra-1 >/dev/null 2>&1; then
@@ -132,7 +132,7 @@ verify_network() {
         sleep 5
         attempt=$((attempt + 1))
     done
-    
+
     echo "❌ Network connectivity timeout"
     return 1
 }
@@ -142,7 +142,7 @@ wait_for_seed() {
     local seed_host=$1
     local max_attempts=60
     local attempt=1
-    
+
     echo "🌱 Waiting for seed node $seed_host to be ready..."
     while [ $attempt -le $max_attempts ]; do
         if nc -z $seed_host 7000 2>/dev/null; then
@@ -153,7 +153,7 @@ wait_for_seed() {
         sleep 5
         attempt=$((attempt + 1))
     done
-    
+
     echo "❌ Timeout waiting for seed node $seed_host"
     return 1
 }
@@ -174,15 +174,15 @@ elif [ "$CASSANDRA_LISTEN_ADDRESS" = "cassandra-2" ]; then
 else
     echo "🌾 Starting as REGULAR NODE"
     echo "   - Waiting for seed nodes to be ready..."
-    
+
     # Esperar por el nodo seed primario
     wait_for_seed "cassandra-1"
-    
+
     # Si hay seeds adicionales, esperar por ellos también
     if [[ "$CASSANDRA_SEEDS" == *"cassandra-2"* ]]; then
         wait_for_seed "cassandra-2"
     fi
-    
+
     # Tiempo adicional para que el cluster se estabilice
     sleep 30
 fi
@@ -200,11 +200,11 @@ configure_cassandra_ssl() {
     if [ "$ENABLE_SSL" != "true" ]; then
         return 0
     fi
-    
+
     echo "🔐 Configuring Cassandra for SSL client connections..."
-    
+
     local config_file="/opt/cassandra/conf/cassandra.yaml"
-    
+
     # Enable native transport SSL
     if ! grep -q "client_encryption_options:" "$config_file"; then
         echo "Adding SSL client encryption configuration to cassandra.yaml"
@@ -226,7 +226,7 @@ EOF
     else
         echo "✅ SSL client encryption already configured in cassandra.yaml"
     fi
-    
+
     echo "✅ Cassandra SSL configuration complete"
 }
 
@@ -235,24 +235,24 @@ generate_sidecar_config() {
     if [ "$ENABLE_SIDECAR" != "true" ]; then
         return 0
     fi
-    
+
     echo "🔧 Generating Sidecar configuration..."
-    
+
     # Create sidecar configuration directory
     mkdir -p /opt/sidecar/conf
     mkdir -p /opt/sidecar/logs
     mkdir -p /tmp/sidecar-staging
-    
+
     # Get current container IP
     local container_ip=$(hostname -i | awk '{print $1}')
-    
+
     # For sidecar connection, use localhost instead of container IP for internal connectivity
     local sidecar_host="localhost"
-    
+
     # Build contact points list for multi-node cluster dynamically
     # Use localhost for sidecar internal connections
     local contact_points_yaml=""
-    
+
     # Parse seeds and current node to build contact points
     # First add all seed nodes
     IFS=',' read -ra SEED_ARRAY <<< "$CASSANDRA_SEEDS"
@@ -269,7 +269,7 @@ generate_sidecar_config() {
             fi
         fi
     done
-    
+
     # Add current node if it's not already in seeds
     local current_in_seeds=false
     for seed in "${SEED_ARRAY[@]}"; do
@@ -279,18 +279,18 @@ generate_sidecar_config() {
             break
         fi
     done
-    
+
     if [ "$current_in_seeds" = false ]; then
         contact_points_yaml="${contact_points_yaml}    - \"$container_ip\"\n"
         echo "ℹ️  Added current node $CASSANDRA_LISTEN_ADDRESS -> $container_ip to contact points"
     fi
-    
+
     # If no contact points were built, fall back to current container only
     if [ -z "$contact_points_yaml" ]; then
         contact_points_yaml="    - \"$container_ip\"\n"
         echo "⚠️  No seeds resolved, using current container IP only"
     fi
-    
+
     # Generate sidecar.yaml
     cat > /opt/sidecar/conf/sidecar.yaml << EOF
 cassandra_instances:
@@ -321,7 +321,7 @@ sidecar_instances:
   - id: 2
     host: $CASSANDRA_LISTEN_ADDRESS
     port: $SIDECAR_PORT
-  
+
 logging:
   level: $SIDECAR_LOG_LEVEL
   loggers:
@@ -340,7 +340,7 @@ EOF
 
     # Add contact points to the YAML file
     printf "%b" "$contact_points_yaml" >> /opt/sidecar/conf/sidecar.yaml
-    
+
     # Add the rest of the driver configuration
     # Sidecar always connects to Cassandra via HTTP (no SSL)
     cat >> /opt/sidecar/conf/sidecar.yaml << EOF
@@ -377,23 +377,39 @@ ssl:
     password: "$SSL_KEYSTORE_PASSWORD"
     check_interval: 5m
   truststore:
+    type: PKCS12
     path: "$SSL_CERT_DIR/truststore.p12"
     password: "$SSL_TRUSTSTORE_PASSWORD"
 EOF
-        echo "✅ SSL configuration added to Sidecar endpoints"
+
+        # Add access control configuration for mTLS authentication
+        cat >> /opt/sidecar/conf/sidecar.yaml << EOF
+
+# Access Control Configuration for mTLS authentication
+access_control:
+  enabled: true
+  authenticators:
+    - class_name: org.apache.cassandra.sidecar.acl.authentication.MutualTlsAuthenticationHandlerFactory
+      parameters:
+        certificate_validator: io.vertx.ext.auth.mtls.impl.CertificateValidatorImpl
+        certificate_identity_extractor: org.apache.cassandra.sidecar.acl.authentication.CassandraIdentityExtractor
+  admin_identities:
+    - spiffe://cassandra/sidecar/admin
+EOF
+        echo "✅ SSL configuration and mTLS access control added to Sidecar endpoints"
     fi
-    
+
     echo "✅ Sidecar configuration generated with contact points from: [$contact_points_yaml]"
 }
 
 # Function to initialize authentication
 initialize_auth() {
     echo "🔐 Initializing Cassandra authentication..."
-    
+
     # Wait for Cassandra to be ready for CQL connections
     local max_attempts=60
     local attempt=1
-    
+
     echo "⏳ Waiting for Cassandra CQL to be ready for authentication setup..."
     while [ $attempt -le $max_attempts ]; do
         if nc -z localhost 9042 2>/dev/null; then
@@ -404,18 +420,18 @@ initialize_auth() {
         sleep 5
         attempt=$((attempt + 1))
     done
-    
+
     if [ $attempt -gt $max_attempts ]; then
         echo "❌ Timeout waiting for Cassandra CQL"
         return 1
     fi
-    
+
     # Wait a bit more for Cassandra to fully initialize
     sleep 15
-    
+
     # Try to connect and set up authentication
     echo "🔐 Setting up default cassandra user..."
-    
+
     # First, try to connect as the default cassandra user (this should work initially)
     # and change its password to 'cassandra'
     for i in {1..10}; do
@@ -427,7 +443,7 @@ initialize_auth() {
             sleep 10
         fi
     done
-    
+
     echo "⚠️  Could not set up authentication - this might be normal for non-seed nodes"
     return 0
 }
@@ -437,13 +453,13 @@ start_sidecar() {
     if [ "$ENABLE_SIDECAR" != "true" ]; then
         return 0
     fi
-    
+
     echo "🚀 Starting Cassandra Sidecar..."
-    
+
     # Wait for Cassandra to be fully ready before starting sidecar
     local max_attempts=60
     local attempt=1
-    
+
     echo "⏳ Waiting for Cassandra CQL to be ready..."
     while [ $attempt -le $max_attempts ]; do
         if nc -z localhost 9042 2>/dev/null; then
@@ -454,27 +470,27 @@ start_sidecar() {
         sleep 5
         attempt=$((attempt + 1))
     done
-    
+
     if [ $attempt -gt $max_attempts ]; then
         echo "❌ Timeout waiting for Cassandra CQL - will try to start Sidecar anyway"
     fi
-    
+
     # Additional wait to ensure cluster is fully initialized
     echo "⏳ Waiting additional time for cluster initialization..."
     sleep 15  # Reduced from 30 to 15 seconds
-    
+
     # Test sidecar binary before starting
     if [ ! -x "/opt/sidecar/bin/cassandra-sidecar" ]; then
         echo "❌ Sidecar binary not found or not executable"
         return 1
     fi
-    
+
     # Test configuration file
     if [ ! -f "/opt/sidecar/conf/sidecar.yaml" ]; then
         echo "❌ Sidecar configuration file not found"
         return 1
     fi
-    
+
     echo "ℹ️ Starting Sidecar (non-blocking)..."
     # Start sidecar in background without hanging the main process
     (
@@ -487,10 +503,10 @@ start_sidecar() {
             --config-file /opt/sidecar/conf/sidecar.yaml >> /opt/sidecar/logs/sidecar.log 2>&1
     ) &
     local sidecar_pid=$!
-    
+
     echo "✅ Sidecar startup initiated with PID: $sidecar_pid"
     echo $sidecar_pid > /tmp/sidecar.pid
-    
+
     # Give it a moment and check if it's still running
     sleep 2
     if kill -0 $sidecar_pid 2>/dev/null; then
@@ -503,7 +519,7 @@ start_sidecar() {
 # Function to handle shutdown
 shutdown_handler() {
     echo "🛑 Received shutdown signal..."
-    
+
     # Stop sidecar if running
     if [ -f /tmp/sidecar.pid ]; then
         local sidecar_pid=$(cat /tmp/sidecar.pid)
@@ -514,7 +530,7 @@ shutdown_handler() {
         fi
         rm -f /tmp/sidecar.pid
     fi
-    
+
     # Cassandra will be stopped by the main process exit
     echo "🛑 Shutdown complete"
     exit 0

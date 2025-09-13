@@ -106,6 +106,7 @@ C = US
 keyUsage = critical, digitalSignature, keyEncipherment
 extendedKeyUsage = critical, clientAuth
 basicConstraints = critical, CA:FALSE
+subjectAltName = URI:spiffe://cassandra/sidecar/admin
 EOF
 
 # Generate client certificate signing request with extensions
@@ -121,11 +122,16 @@ echo "🔐 Step 4: Creating PKCS12 Keystores and Truststore..."
 # Create server keystore (PKCS12)
 openssl pkcs12 -export -in server-cert.pem -inkey server-key.pem -out server-keystore.p12 -name "cassandra-server" -password pass:$SERVER_PASSWORD
 
-# Create client keystore (PKCS12) 
-openssl pkcs12 -export -in client-cert.pem -inkey client-key.pem -out client-keystore.p12 -name "cassandra-client" -password pass:$CLIENT_PASSWORD
+# Create client keystore with CA certificate included (PKCS12) 
+openssl pkcs12 -export -in client-cert.pem -inkey client-key.pem -certfile ca-cert.pem -out client-keystore.p12 -name "cassandra-client" -password pass:$CLIENT_PASSWORD
 
-# Create truststore with CA certificate (PKCS12)
-openssl pkcs12 -export -nokeys -in ca-cert.pem -out truststore.p12 -name "cassandra-ca" -password pass:$TRUSTSTORE_PASSWORD
+# Create truststore with CA certificate (PKCS12) - using keytool for better Java compatibility
+if command -v keytool &> /dev/null; then
+    keytool -import -trustcacerts -alias cassandra-ca -file ca-cert.pem -keystore truststore.p12 -storetype PKCS12 -storepass $TRUSTSTORE_PASSWORD -noprompt
+else
+    # Fallback to OpenSSL if keytool is not available
+    openssl pkcs12 -export -nokeys -in ca-cert.pem -out truststore.p12 -name "cassandra-ca" -password pass:$TRUSTSTORE_PASSWORD
+fi
 
 echo "✅ PKCS12 keystores created"
 
