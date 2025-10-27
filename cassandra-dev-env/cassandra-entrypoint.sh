@@ -26,11 +26,11 @@ SIDECAR_HEALTH_CHECK_FREQUENCY=${SIDECAR_HEALTH_CHECK_FREQUENCY:-30s}
 SIDECAR_LOG_LEVEL=${SIDECAR_LOG_LEVEL:-DEBUG}
 
 # SSL/mTLS configuration variables
-ENABLE_SSL=${ENABLE_SSL:-"true"}
+ENABLE_SSL=${ENABLE_SSL:-"false"}
 SSL_CERT_DIR=${SSL_CERT_DIR:-"/opt/ssl-certs"}
 SSL_KEYSTORE_PASSWORD=${SSL_KEYSTORE_PASSWORD:-"cassandra"}
 SSL_TRUSTSTORE_PASSWORD=${SSL_TRUSTSTORE_PASSWORD:-"cassandra"}
-SSL_CLIENT_AUTH=${SSL_CLIENT_AUTH:-"REQUIRED"}  # NONE, REQUEST, REQUIRED
+SSL_CLIENT_AUTH=${SSL_CLIENT_AUTH:-"NONE"}  # NONE, REQUEST, REQUIRED
 
 echo "🚀 Configuring unified Cassandra + Sidecar node..."
 echo "   Sidecar Enabled: $ENABLE_SIDECAR"
@@ -320,6 +320,9 @@ sidecar_instances:
     port: $SIDECAR_PORT
   - id: 2
     host: $CASSANDRA_LISTEN_ADDRESS
+    port: $SIDECAR_PORT
+  - id: 3
+    host: $CASSANDRA_LISTEN_ADDRESS.cassandra-net
     port: $SIDECAR_PORT
 
 logging:

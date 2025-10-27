@@ -67,13 +67,28 @@ DNS.3 = cassandra-2
 DNS.4 = cassandra-3
 DNS.5 = cassandra-4
 DNS.6 = cassandra-5
-DNS.7 = cassandra-1.cassandra-net
-DNS.8 = cassandra-2.cassandra-net
-DNS.9 = cassandra-3.cassandra-net
-DNS.10 = cassandra-4.cassandra-net
-DNS.11 = cassandra-5.cassandra-net
+DNS.7 = cassandra-node-1
+DNS.8 = cassandra-node-2
+DNS.9 = cassandra-node-3
+DNS.10 = cassandra-node-4
+DNS.11 = cassandra-node-5
+DNS.12 = cassandra-1.cassandra-net
+DNS.13 = cassandra-2.cassandra-net
+DNS.14 = cassandra-3.cassandra-net
+DNS.15 = cassandra-4.cassandra-net
+DNS.16 = cassandra-5.cassandra-net
+DNS.17 = cassandra-node-1.cassandra-net
+DNS.18 = cassandra-node-2.cassandra-net
+DNS.19 = cassandra-node-3.cassandra-net
+DNS.20 = cassandra-node-4.cassandra-net
+DNS.21 = cassandra-node-5.cassandra-net
 IP.1 = 127.0.0.1
 IP.2 = ::1
+IP.3 = 172.18.0.2
+IP.4 = 172.18.0.3
+IP.5 = 172.18.0.4
+IP.6 = 172.18.0.5
+IP.7 = 172.18.0.6
 EOF
 
 # Generate server CSR

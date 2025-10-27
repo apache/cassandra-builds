@@ -140,12 +140,12 @@ func (g *ComposeGenerator) writeCassandraService(file *os.File, nodeNum int, hea
       - ENABLE_SIDECAR=false`
 	}
 
-	// Add SSL environment variables with SSL enabled by default
+	// Add SSL environment variables with SSL disabled by default for dev environment
 	service += `
-      - ENABLE_SSL=${ENABLE_SSL:-true}
+      - ENABLE_SSL=${ENABLE_SSL:-false}
       - SSL_KEYSTORE_PASSWORD=${SSL_KEYSTORE_PASSWORD:-cassandra}
       - SSL_TRUSTSTORE_PASSWORD=${SSL_TRUSTSTORE_PASSWORD:-cassandra}
-      - SSL_CLIENT_AUTH=${SSL_CLIENT_AUTH:-REQUIRED}`
+      - SSL_CLIENT_AUTH=${SSL_CLIENT_AUTH:-NONE}`
 
 	service += `
     networks:
@@ -203,6 +203,7 @@ func (g *ComposeGenerator) writeVolumesAndNetworks(file *os.File) error {
 	networks := `
 networks:
   cassandra-net:
+    name: cassandra-net
     driver: bridge
 `
 

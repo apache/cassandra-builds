@@ -250,7 +250,7 @@ func showClusterInfo(cfg config.Config) error {
 	fmt.Println("   Stop cluster:      cassandra-env-manager --stop")
 	fmt.Println("   Teardown:          cassandra-env-manager --teardown")
 	if cfg.EnableSidecar {
-		fmt.Println("   Sidecar API:       curl http://localhost:9043/health")
+		fmt.Println("   Sidecar API:       curl http://localhost:9043/api/v1/__health")
 	}
 
 	return nil

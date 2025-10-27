@@ -349,10 +349,10 @@ COMPOSE_BAKE=false docker-compose exec cassandra-1 nodetool -u cassandra -pw cas
 ./cassandra-env-manager --logs cassandra-1
 
 # Verify sidecar (if enabled)
-curl http://localhost:9043/health
+curl http://localhost:9043/api/v1/__health
 
 # Connect to sidecar of node 2
-curl http://localhost:9045/health
+curl http://localhost:9045/api/v1/__health
 ```
 
 ## Cassandra Sidecar Integration
