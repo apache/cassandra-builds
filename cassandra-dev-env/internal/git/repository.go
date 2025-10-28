@@ -82,8 +82,16 @@ func (r *Repository) copyLocalRepository(targetDir, sourcePath string) error {
 	fmt.Printf("📂 Using local repository: %s\n", sourcePath)
 	fmt.Printf("📥 Copying local repository to %s...\n", targetDir)
 
-	// Use cp -r to copy the repository
-	result := system.ExecuteCommand("cp", []string{"-r", sourcePath, targetDir}, nil)
+	// Use rsync to copy the repository, excluding build artifacts that may cause conflicts
+	// --exclude patterns ensure we get a clean copy for building
+	result := system.ExecuteCommand("rsync", []string{
+		"-a",                     // Archive mode (recursive, preserve attributes)
+		"--exclude=dtest-jars/",  // Exclude dtest-jars directory (will be rebuilt)
+		"--exclude=.gradle/",     // Exclude gradle cache
+		"--exclude=build/",       // Exclude build directory (will be rebuilt)
+		sourcePath + "/",         // Source path with trailing slash (copy contents)
+		targetDir,                // Destination
+	}, nil)
 	if result.ExitCode != 0 {
 		return fmt.Errorf("failed to copy local repository: %s", result.Stderr)
 	}

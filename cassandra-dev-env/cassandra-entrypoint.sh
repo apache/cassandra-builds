@@ -117,6 +117,14 @@ fi
 # Crear directorio de logs si no existe
 mkdir -p /opt/cassandra/logs
 
+# Create CDC directory if CDC is enabled
+# This directory must exist before Cassandra starts if CDC is enabled
+mkdir -p /var/lib/cassandra/cdc_raw
+mkdir -p /var/lib/cassandra/data
+mkdir -p /var/lib/cassandra/commitlog
+mkdir -p /var/lib/cassandra/saved_caches
+mkdir -p /var/lib/cassandra/hints
+
 # Función para verificar conectividad de red
 verify_network() {
     local max_attempts=10
@@ -499,10 +507,30 @@ start_sidecar() {
     (
         # Run sidecar with localhost hostname override to avoid 'cassandra-1' hostname in service discovery
         export HOSTNAME=localhost
+
+        # Set JVM options via JAVA_OPTS environment variable (read by cassandra-sidecar wrapper script)
+        # These are necessary for Cassandra internal classes to initialize properly in the Sidecar CDC consumer
+        export JAVA_OPTS="-Djava.net.preferIPv4Stack=true \
+-Dvertx.hostname=localhost \
+-Dsidecar.hostname=localhost \
+-Djdk.attach.allowAttachSelf=true \
+--add-exports=java.base/jdk.internal.misc=ALL-UNNAMED \
+--add-exports=java.base/jdk.internal.ref=ALL-UNNAMED \
+--add-exports=java.base/sun.nio.ch=ALL-UNNAMED \
+--add-exports=java.management.rmi/com.sun.jmx.remote.internal.rmi=ALL-UNNAMED \
+--add-exports=java.rmi/sun.rmi.registry=ALL-UNNAMED \
+--add-exports=java.rmi/sun.rmi.server=ALL-UNNAMED \
+--add-exports=java.sql/java.sql=ALL-UNNAMED \
+--add-opens=java.base/java.lang.module=ALL-UNNAMED \
+--add-opens=java.base/jdk.internal.loader=ALL-UNNAMED \
+--add-opens=java.base/jdk.internal.ref=ALL-UNNAMED \
+--add-opens=java.base/jdk.internal.reflect=ALL-UNNAMED \
+--add-opens=java.base/jdk.internal.math=ALL-UNNAMED \
+--add-opens=java.base/jdk.internal.module=ALL-UNNAMED \
+--add-opens=java.base/jdk.internal.util.jar=ALL-UNNAMED \
+--add-opens=jdk.management/com.sun.management.internal=ALL-UNNAMED"
+
         /opt/sidecar/bin/cassandra-sidecar \
-            -Djava.net.preferIPv4Stack=true \
-            -Dvertx.hostname=localhost \
-            -Dsidecar.hostname=localhost \
             --config-file /opt/sidecar/conf/sidecar.yaml >> /opt/sidecar/logs/sidecar.log 2>&1
     ) &
     local sidecar_pid=$!
