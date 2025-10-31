@@ -65,13 +65,16 @@ if [ ! -f "$CONFIG_FILE.original" ]; then
 fi
 
 # Aplicar configuraciones
+# Transform seeds list to append .cassandra-net to each seed
+SEEDS_WITH_NETWORK=$(echo "$CASSANDRA_SEEDS" | sed 's/\([a-z0-9-]*\)/\1.cassandra-net/g')
+
 sed -i "s/^cluster_name:.*/cluster_name: '$CASSANDRA_CLUSTER_NAME'/" "$CONFIG_FILE"
-sed -i "s/^.*seeds:.*/          - seeds: \"$CASSANDRA_SEEDS\"/" "$CONFIG_FILE"
-sed -i "s/^listen_address:.*/listen_address: $CASSANDRA_LISTEN_ADDRESS/" "$CONFIG_FILE"
-sed -i "s/^broadcast_address:.*/broadcast_address: $CASSANDRA_BROADCAST_ADDRESS/" "$CONFIG_FILE"
+sed -i "s/^.*seeds:.*/          - seeds: \"$SEEDS_WITH_NETWORK\"/" "$CONFIG_FILE"
+sed -i "s/^listen_address:.*/listen_address: $CASSANDRA_LISTEN_ADDRESS.cassandra-net/" "$CONFIG_FILE"
+sed -i "s/^broadcast_address:.*/broadcast_address: $CASSANDRA_LISTEN_ADDRESS.cassandra-net/" "$CONFIG_FILE"
 sed -i "s/^rpc_address:.*/rpc_address: $CASSANDRA_RPC_ADDRESS/" "$CONFIG_FILE"
-sed -i "s/^# broadcast_rpc_address:.*/broadcast_rpc_address: $CASSANDRA_BROADCAST_RPC_ADDRESS/" "$CONFIG_FILE"
-sed -i "s/^broadcast_rpc_address:.*/broadcast_rpc_address: $CASSANDRA_BROADCAST_RPC_ADDRESS/" "$CONFIG_FILE"
+sed -i "s/^# broadcast_rpc_address:.*/broadcast_rpc_address: $CASSANDRA_BROADCAST_RPC_ADDRESS.cassandra-net/" "$CONFIG_FILE"
+sed -i "s/^broadcast_rpc_address:.*/broadcast_rpc_address: $CASSANDRA_BROADCAST_RPC_ADDRESS.cassandra-net/" "$CONFIG_FILE"
 sed -i "s/^endpoint_snitch:.*/endpoint_snitch: $CASSANDRA_ENDPOINT_SNITCH/" "$CONFIG_FILE"
 
 # Configure authentication to use password authentication
@@ -251,59 +254,11 @@ generate_sidecar_config() {
     mkdir -p /opt/sidecar/logs
     mkdir -p /tmp/sidecar-staging
 
-    # Get current container IP
-    local container_ip=$(hostname -i | awk '{print $1}')
-
-    # For sidecar connection, use localhost instead of container IP for internal connectivity
-    local sidecar_host="localhost"
-
-    # Build contact points list for multi-node cluster dynamically
-    # Use localhost for sidecar internal connections
-    local contact_points_yaml=""
-
-    # Parse seeds and current node to build contact points
-    # First add all seed nodes
-    IFS=',' read -ra SEED_ARRAY <<< "$CASSANDRA_SEEDS"
-    for seed in "${SEED_ARRAY[@]}"; do
-        seed=$(echo "$seed" | xargs)  # trim whitespace
-        if [ -n "$seed" ]; then
-            # Try to resolve the seed hostname to IP
-            local seed_ip=""
-            if seed_ip=$(getent hosts "$seed" 2>/dev/null | awk '{print $1}' | head -1); then
-                contact_points_yaml="${contact_points_yaml}    - \"$seed_ip\"\n"
-                echo "ℹ️  Added seed $seed -> $seed_ip to contact points"
-            else
-                echo "⚠️  Could not resolve seed $seed, skipping"
-            fi
-        fi
-    done
-
-    # Add current node if it's not already in seeds
-    local current_in_seeds=false
-    for seed in "${SEED_ARRAY[@]}"; do
-        seed=$(echo "$seed" | xargs)
-        if [ "$seed" = "$CASSANDRA_LISTEN_ADDRESS" ]; then
-            current_in_seeds=true
-            break
-        fi
-    done
-
-    if [ "$current_in_seeds" = false ]; then
-        contact_points_yaml="${contact_points_yaml}    - \"$container_ip\"\n"
-        echo "ℹ️  Added current node $CASSANDRA_LISTEN_ADDRESS -> $container_ip to contact points"
-    fi
-
-    # If no contact points were built, fall back to current container only
-    if [ -z "$contact_points_yaml" ]; then
-        contact_points_yaml="    - \"$container_ip\"\n"
-        echo "⚠️  No seeds resolved, using current container IP only"
-    fi
-
     # Generate sidecar.yaml
     cat > /opt/sidecar/conf/sidecar.yaml << EOF
 cassandra_instances:
   - id: 1
-    host: localhost
+    host: $CASSANDRA_LISTEN_ADDRESS.cassandra-net
     port: 9042
     data_center: $CASSANDRA_DC
     rack: $CASSANDRA_RACK
@@ -322,17 +277,6 @@ sidecar:
   port: $SIDECAR_PORT
   health_check_frequency: $SIDECAR_HEALTH_CHECK_FREQUENCY
 
-sidecar_instances:
-  - id: 1
-    host: localhost
-    port: $SIDECAR_PORT
-  - id: 2
-    host: $CASSANDRA_LISTEN_ADDRESS
-    port: $SIDECAR_PORT
-  - id: 3
-    host: $CASSANDRA_LISTEN_ADDRESS.cassandra-net
-    port: $SIDECAR_PORT
-
 logging:
   level: $SIDECAR_LOG_LEVEL
   loggers:
@@ -347,16 +291,7 @@ server:
 
 driver_parameters:
   contact_points:
-EOF
-
-    # Add contact points to the YAML file
-    printf "%b" "$contact_points_yaml" >> /opt/sidecar/conf/sidecar.yaml
-
-    # Add the rest of the driver configuration
-    # Sidecar always connects to Cassandra via HTTP (no SSL)
-    cat >> /opt/sidecar/conf/sidecar.yaml << EOF
-  contact_points:
-    - "localhost:9042"
+    - "$CASSANDRA_LISTEN_ADDRESS.cassandra-net:9042"
   num_connections: 6
   local_dc: $CASSANDRA_DC
   username: cassandra
@@ -410,7 +345,7 @@ EOF
         echo "✅ SSL configuration and mTLS access control added to Sidecar endpoints"
     fi
 
-    echo "✅ Sidecar configuration generated with contact points from: [$contact_points_yaml]"
+    echo "✅ Sidecar configuration generated with contact point: $CASSANDRA_LISTEN_ADDRESS.cassandra-net:9042"
 }
 
 # Function to initialize authentication
