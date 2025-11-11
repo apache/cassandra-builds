@@ -151,35 +151,38 @@ then
     exit 1
 fi
 
-gradle_properties_version="$(grep ^version= gradle.properties)"
-if [ "${release}" != "${gradle_properties_version#version=}" ] ; then
-    echo "The release requested ${release} does not match gradle.properties's version ${gradle_properties_version}"
-    exit 1
-fi
+if [ $fake_mode -ne 1 ]
+then
+  gradle_properties_version="$(grep ^version= gradle.properties)"
+  if [ "${release}" != "${gradle_properties_version#version=}" ] ; then
+      echo "The release requested ${release} does not match gradle.properties's version ${gradle_properties_version}"
+      exit 1
+  fi
 
-if curl --output /dev/null --silent --head --fail "https://dist.apache.org/repos/dist/dev/cassandra/cassandra-analytics/${release}" ; then
-    echo "The release candidate for ${release} is already staged at https://dist.apache.org/repos/dist/dev/cassandra/cassandra-analytics/${release}"
-    exit 1
-fi
+  if curl --output /dev/null --silent --head --fail "https://dist.apache.org/repos/dist/dev/cassandra/cassandra-analytics/${release}" ; then
+      echo "The release candidate for ${release} is already staged at https://dist.apache.org/repos/dist/dev/cassandra/cassandra-analytics/${release}"
+      exit 1
+  fi
 
-if curl --output /dev/null --silent --head --fail "https://archive.apache.org/dist/cassandra/cassandra-analytics/${release}" ; then
-    echo "A published release for ${release} is already public at https://archive.apache.org/dist/cassandra/cassandra-analytics/${release}"
-    exit 1
-fi
+  if curl --output /dev/null --silent --head --fail "https://archive.apache.org/dist/cassandra/cassandra-analytics/${release}" ; then
+      echo "A published release for ${release} is already public at https://archive.apache.org/dist/cassandra/cassandra-analytics/${release}"
+      exit 1
+  fi
 
-if curl --output /dev/null --silent --head --fail "https://github.com/apache/cassandra-analytics/tree/${release}-tentative" ; then
-    echo "The release candidate tag for ${release}-tentative is already at https://github.com/apache/cassandra-analytics/tree/${release}-tentative"
-    exit 1
-fi
+  if curl --output /dev/null --silent --head --fail "https://github.com/apache/cassandra-analytics/tree/${release}-tentative" ; then
+      echo "The release candidate tag for ${release}-tentative is already at https://github.com/apache/cassandra-analytics/tree/${release}-tentative"
+      exit 1
+  fi
 
-if curl --output /dev/null --silent --head --fail "https://github.com/apache/cassandra-analytics/tree/cassandra-analytics-${release}" ; then
-    echo "The published release tag for ${release} is already at https://github.com/apache/cassandra-analytics/tree/cassandra-analytics-${release}"
-    exit 1
-fi
+  if curl --output /dev/null --silent --head --fail "https://github.com/apache/cassandra-analytics/tree/cassandra-analytics-${release}" ; then
+      echo "The published release tag for ${release} is already at https://github.com/apache/cassandra-analytics/tree/cassandra-analytics-${release}"
+      exit 1
+  fi
 
-if git tag -l | grep -q "${release}-tentative"; then
-    echo "Local git tag for ${release}-tentative already exists"
-    exit 1
+  if git tag -l | grep -q "${release}-tentative"; then
+      echo "Local git tag for ${release}-tentative already exists"
+      exit 1
+  fi
 fi
 
 head_commit=`git log --pretty=oneline -1 | cut -d " " -f 1`
@@ -237,31 +240,36 @@ execute "cd $tmp_dir"
 ## We clone from the original repository to make extra sure we're not screwing, even if that's definitively slower
 execute "git clone $asf_git_repo/cassandra-analytics.git"
 
-echo "Building and uploading artifacts ..." 1>&3 2>&4
-execute "cd $tmp_dir/cassandra-analytics"
-execute "git checkout -b $release-tentative"
-# Build java 11 artifacts and publish
-execute "./scripts/build-dependencies.sh"
-execute "./gradlew --no-daemon -Dorg.gradle.java.home=${java_11_home} clean"
-execute "./gradlew --no-daemon -Pscala=2.12 -P-Dorg.gradle.java.home=${java_11_home} -PartifactType=common -PforceSigning -Prelease=true -Pversion=${release} assemble publish --stacktrace"
-execute "./gradlew --no-daemon -Pscala=2.13 -Dorg.gradle.java.home=${java_11_home} -PartifactType=common -PforceSigning -Prelease=true -Pversion=${release} assemble publish --stacktrace"
-execute "./gradlew --no-daemon -Pscala=2.12 -P-Dorg.gradle.java.home=${java_11_home} -PartifactType=spark -PforceSigning -Prelease=true -Pversion=${release} assemble publish --stacktrace"
-execute "./gradlew --no-daemon -Pscala=2.13 -Dorg.gradle.java.home=${java_11_home} -PartifactType=spark -PforceSigning -Prelease=true -Pversion=${release} assemble publish --stacktrace"
+if [ $fake_mode -ne 1 ]
+then
 
-echo "Artifacts uploaded, find the staging repository on repository.apache.org, \"Close\" it, and indicate its staging number:" 1>&3 2>&4
-read -p "staging number Scala 2.12, Java 11, Spark 3? " staging_number_212_11_3 1>&3 2>&4
-read -p "staging number Scala 2.13, Java 11, Spark 3? " staging_number_213_11_3 1>&3 2>&4
+  echo "Building and uploading artifacts ..." 1>&3 2>&4
+  execute "cd $tmp_dir/cassandra-analytics"
+  execute "git checkout -b $release-tentative"
+  # Build java 11 artifacts and publish
+  execute "./scripts/build-dependencies.sh"
+  execute "./gradlew --no-daemon -Dorg.gradle.java.home=${java_11_home} clean"
+  execute "./gradlew --no-daemon -Pscala=2.12 -P-Dorg.gradle.java.home=${java_11_home} -PartifactType=common -PforceSigning -Prelease=true -Pversion=${release} assemble publish --stacktrace"
+  execute "./gradlew --no-daemon -Pscala=2.13 -Dorg.gradle.java.home=${java_11_home} -PartifactType=common -PforceSigning -Prelease=true -Pversion=${release} assemble publish --stacktrace"
+  execute "./gradlew --no-daemon -Pscala=2.12 -P-Dorg.gradle.java.home=${java_11_home} -PartifactType=spark -PforceSigning -Prelease=true -Pversion=${release} assemble publish --stacktrace"
+  execute "./gradlew --no-daemon -Pscala=2.13 -Dorg.gradle.java.home=${java_11_home} -PartifactType=spark -PforceSigning -Prelease=true -Pversion=${release} assemble publish --stacktrace"
 
-execute "cd $tmp_dir"
-execute "svn co https://dist.apache.org/repos/dist/dev/cassandra/cassandra-analytics cassandra-analytics-dist-dev"
-execute "mkdir cassandra-analytics-dist-dev/${release}"
-execute "cp ${distributions_dir}/apache-cassandra-analytics-${release}-src.tar.gz* cassandra-analytics-dist-dev/${release}/"
-execute "cp ${distributions_dir}/apache-cassandra-analytics-${release}.tar.gz* cassandra-analytics-dist-dev/${release}/"
-execute "svn add cassandra-analytics-dist-dev/${release}"
-echo "staging Cassandra Analytics $release" > "_tmp_msg_"
-execute "svn ci -F _tmp_msg_ cassandra-analytics-dist-dev/${release}"
-execute "rm _tmp_msg_"
-execute "cd $current_dir"
+  echo "Artifacts uploaded, find the staging repository on repository.apache.org, \"Close\" it, and indicate its staging number:" 1>&3 2>&4
+  read -p "staging number Scala 2.12, Java 11, Spark 3? " staging_number_212_11_3 1>&3 2>&4
+  read -p "staging number Scala 2.13, Java 11, Spark 3? " staging_number_213_11_3 1>&3 2>&4
+
+  execute "cd $tmp_dir"
+  execute "svn co https://dist.apache.org/repos/dist/dev/cassandra/cassandra-analytics cassandra-analytics-dist-dev"
+  execute "mkdir cassandra-analytics-dist-dev/${release}"
+  execute "cp ${distributions_dir}/apache-cassandra-analytics-${release}-src.tar.gz* cassandra-analytics-dist-dev/${release}/"
+  execute "cp ${distributions_dir}/apache-cassandra-analytics-${release}.tar.gz* cassandra-analytics-dist-dev/${release}/"
+  execute "svn add cassandra-analytics-dist-dev/${release}"
+  echo "staging Cassandra Analytics $release" > "_tmp_msg_"
+  execute "svn ci -F _tmp_msg_ cassandra-analytics-dist-dev/${release}"
+  execute "rm _tmp_msg_"
+  execute "cd $current_dir"
+fi
+
 
 # Restore stdout/stderr (and close temporary descriptors) if not verbose
 [ $verbose -eq 1 ] || exec 1>&3 3>&- 2>&4 4>&-
