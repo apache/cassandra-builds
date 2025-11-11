@@ -283,39 +283,34 @@ echo "" >> $mail_test_announce_file
 echo "sha1: $head_commit" >> $mail_test_announce_file
 echo "Git: https://github.com/apache/cassandra-analytics/tree/$release-tentative" >> $mail_test_announce_file
 echo "Maven Artifacts:" >> $mail_test_announce_file
-echo "$staging_repo/orgapachecassandra-$staging_number_212_11_3/org/apache/cassandra/analytics-cassandra-analytics-cdc-codec_spark3_2.12/$release/" >> $mail_test_announce_file
-echo "$staging_repo/orgapachecassandra-$staging_number_212_11_3/org/apache/cassandra/analytics-cassandra-analytics-cdc-sidecar_spark3_2.12/$release/" >> $mail_test_announce_file
-echo "$staging_repo/orgapachecassandra-$staging_number_212_11_3/org/apache/cassandra/analytics-cassandra-analytics-cdc_spark3_2.12/$release/" >> $mail_test_announce_file
-echo "$staging_repo/orgapachecassandra-$staging_number_212_11_3/org/apache/cassandra/analytics-cassandra-analytics-common_spark3_2.12/$release/" >> $mail_test_announce_file
-echo "$staging_repo/orgapachecassandra-$staging_number_212_11_3/org/apache/cassandra/analytics-cassandra-analytics-core-example_spark3_2.12/$release/" >> $mail_test_announce_file
-echo "$staging_repo/orgapachecassandra-$staging_number_212_11_3/org/apache/cassandra/analytics-cassandra-analytics-core_spark3_2.12/$release/" >> $mail_test_announce_file
-echo "$staging_repo/orgapachecassandra-$staging_number_212_11_3/org/apache/cassandra/analytics-cassandra-analytics-spark-converter_spark3_2.12/$release/" >> $mail_test_announce_file
-echo "$staging_repo/orgapachecassandra-$staging_number_212_11_3/org/apache/cassandra/analytics-cassandra-bridge_spark3_2.12/$release/" >> $mail_test_announce_file
-echo "$staging_repo/orgapachecassandra-$staging_number_212_11_3/org/apache/cassandra/analytics-cassandra-analytics-cdc-codec_spark3_2.13/$release/" >> $mail_test_announce_file
-echo "$staging_repo/orgapachecassandra-$staging_number_212_11_3/org/apache/cassandra/analytics-cassandra-analytics-cdc-sidecar_spark3_2.13/$release/" >> $mail_test_announce_file
-echo "$staging_repo/orgapachecassandra-$staging_number_212_11_3/org/apache/cassandra/analytics-cassandra-analytics-cdc_spark3_2.13/$release/" >> $mail_test_announce_file
-echo "$staging_repo/orgapachecassandra-$staging_number_212_11_3/org/apache/cassandra/analytics-cassandra-analytics-common_spark3_2.13/$release/" >> $mail_test_announce_file
-echo "$staging_repo/orgapachecassandra-$staging_number_212_11_3/org/apache/cassandra/analytics-cassandra-analytics-core-example_spark3_2.13/$release/" >> $mail_test_announce_file
-echo "$staging_repo/orgapachecassandra-$staging_number_212_11_3/org/apache/cassandra/analytics-cassandra-analytics-core_spark3_2.13/$release/" >> $mail_test_announce_file
-echo "$staging_repo/orgapachecassandra-$staging_number_212_11_3/org/apache/cassandra/analytics-cassandra-analytics-spark-converter_spark3_2.13/$release/" >> $mail_test_announce_file
-echo "$staging_repo/orgapachecassandra-$staging_number_212_11_3/org/apache/cassandra/analytics-cassandra-bridge_spark3_2.13/$release/" >> $mail_test_announce_file
 
-echo "$staging_repo/orgapachecassandra-$staging_number_213_11_3/org/apache/cassandra/analytics-cassandra-analytics-cdc-codec_spark3_2.12/$release/" >> $mail_test_announce_file
-echo "$staging_repo/orgapachecassandra-$staging_number_213_11_3/org/apache/cassandra/analytics-cassandra-analytics-cdc-sidecar_spark3_2.12/$release/" >> $mail_test_announce_file
-echo "$staging_repo/orgapachecassandra-$staging_number_213_11_3/org/apache/cassandra/analytics-cassandra-analytics-cdc_spark3_2.12/$release/" >> $mail_test_announce_file
-echo "$staging_repo/orgapachecassandra-$staging_number_213_11_3/org/apache/cassandra/analytics-cassandra-analytics-common_spark3_2.12/$release/" >> $mail_test_announce_file
-echo "$staging_repo/orgapachecassandra-$staging_number_213_11_3/org/apache/cassandra/analytics-cassandra-analytics-core-example_spark3_2.12/$release/" >> $mail_test_announce_file
-echo "$staging_repo/orgapachecassandra-$staging_number_213_11_3/org/apache/cassandra/analytics-cassandra-analytics-core_spark3_2.12/$release/" >> $mail_test_announce_file
-echo "$staging_repo/orgapachecassandra-$staging_number_213_11_3/org/apache/cassandra/analytics-cassandra-analytics-spark-converter_spark3_2.12/$release/" >> $mail_test_announce_file
-echo "$staging_repo/orgapachecassandra-$staging_number_213_11_3/org/apache/cassandra/analytics-cassandra-bridge_spark3_2.12/$release/" >> $mail_test_announce_file
-echo "$staging_repo/orgapachecassandra-$staging_number_213_11_3/org/apache/cassandra/analytics-cassandra-analytics-cdc-codec_spark3_2.13/$release/" >> $mail_test_announce_file
-echo "$staging_repo/orgapachecassandra-$staging_number_213_11_3/org/apache/cassandra/analytics-cassandra-analytics-cdc-sidecar_spark3_2.13/$release/" >> $mail_test_announce_file
-echo "$staging_repo/orgapachecassandra-$staging_number_213_11_3/org/apache/cassandra/analytics-cassandra-analytics-cdc_spark3_2.13/$release/" >> $mail_test_announce_file
-echo "$staging_repo/orgapachecassandra-$staging_number_213_11_3/org/apache/cassandra/analytics-cassandra-analytics-common_spark3_2.13/$release/" >> $mail_test_announce_file
-echo "$staging_repo/orgapachecassandra-$staging_number_213_11_3/org/apache/cassandra/analytics-cassandra-analytics-core-example_spark3_2.13/$release/" >> $mail_test_announce_file
-echo "$staging_repo/orgapachecassandra-$staging_number_213_11_3/org/apache/cassandra/analytics-cassandra-analytics-core_spark3_2.13/$release/" >> $mail_test_announce_file
-echo "$staging_repo/orgapachecassandra-$staging_number_213_11_3/org/apache/cassandra/analytics-cassandra-analytics-spark-converter_spark3_2.13/$release/" >> $mail_test_announce_file
-echo "$staging_repo/orgapachecassandra-$staging_number_213_11_3/org/apache/cassandra/analytics-cassandra-bridge_spark3_2.13/$release/" >> $mail_test_announce_file
+echo "$staging_repo/orgapachecassandra-$staging_number_212_11_3/org/apache/cassandra/cassandra-analytics-common/$release/" >> $mail_test_announce_file
+echo "$staging_repo/orgapachecassandra-$staging_number_212_11_3/org/apache/cassandra/analytics-sidecar-client-common/$release/" >> $mail_test_announce_file
+echo "$staging_repo/orgapachecassandra-$staging_number_212_11_3/org/apache/cassandra/analytics-sidecar-client/$release/" >> $mail_test_announce_file
+echo "$staging_repo/orgapachecassandra-$staging_number_212_11_3/org/apache/cassandra/analytics-sidecar-vertx-client-all/$release/" >> $mail_test_announce_file
+echo "$staging_repo/orgapachecassandra-$staging_number_212_11_3/org/apache/cassandra/analytics-sidecar-vertx-client/$release/" >> $mail_test_announce_file
+echo "$staging_repo/orgapachecassandra-$staging_number_212_11_3/org/apache/cassandra/cassandra-analytics-sidecar-client/$release/" >> $mail_test_announce_file
+
+echo "$staging_repo/orgapachecassandra-$staging_number_212_11_3/org/apache/cassandra/cassandra-analytics-cdc-codec_spark3_2.12/$release/" >> $mail_test_announce_file
+echo "$staging_repo/orgapachecassandra-$staging_number_212_11_3/org/apache/cassandra/cassandra-analytics-cdc-sidecar_spark3_2.12/$release/" >> $mail_test_announce_file
+echo "$staging_repo/orgapachecassandra-$staging_number_212_11_3/org/apache/cassandra/cassandra-analytics-cdc_spark3_2.12/$release/" >> $mail_test_announce_file
+echo "$staging_repo/orgapachecassandra-$staging_number_212_11_3/org/apache/cassandra/cassandra-analytics-core_spark3_2.12/$release/" >> $mail_test_announce_file
+echo "$staging_repo/orgapachecassandra-$staging_number_212_11_3/org/apache/cassandra/cassandra-analytics-integration-framework_spark3_2.12/$release/" >> $mail_test_announce_file
+echo "$staging_repo/orgapachecassandra-$staging_number_212_11_3/org/apache/cassandra/cassandra-analytics-integration-tests_spark3_2.12/$release/" >> $mail_test_announce_file
+echo "$staging_repo/orgapachecassandra-$staging_number_212_11_3/org/apache/cassandra/cassandra-analytics-spark-converter_spark3_2.12/$release/" >> $mail_test_announce_file
+echo "$staging_repo/orgapachecassandra-$staging_number_212_11_3/org/apache/cassandra/cassandra-avro-converter_spark3_2.12/$release/" >> $mail_test_announce_file
+echo "$staging_repo/orgapachecassandra-$staging_number_212_11_3/org/apache/cassandra/cassandra-bridge_spark3_2.12/$release/" >> $mail_test_announce_file
+
+echo "$staging_repo/orgapachecassandra-$staging_number_213_11_3/org/apache/cassandra/cassandra-analytics-cdc-codec_spark3_2.13/$release/" >> $mail_test_announce_file
+echo "$staging_repo/orgapachecassandra-$staging_number_213_11_3/org/apache/cassandra/cassandra-analytics-cdc-sidecar_spark3_2.13/$release/" >> $mail_test_announce_file
+echo "$staging_repo/orgapachecassandra-$staging_number_213_11_3/org/apache/cassandra/cassandra-analytics-cdc_spark3_2.13/$release/" >> $mail_test_announce_file
+echo "$staging_repo/orgapachecassandra-$staging_number_213_11_3/org/apache/cassandra/cassandra-analytics-core_spark3_2.13/$release/" >> $mail_test_announce_file
+echo "$staging_repo/orgapachecassandra-$staging_number_213_11_3/org/apache/cassandra/cassandra-analytics-integration-framework_spark3_2.13/$release/" >> $mail_test_announce_file
+echo "$staging_repo/orgapachecassandra-$staging_number_213_11_3/org/apache/cassandra/cassandra-analytics-integration-tests_spark3_2.13/$release/" >> $mail_test_announce_file
+echo "$staging_repo/orgapachecassandra-$staging_number_213_11_3/org/apache/cassandra/cassandra-analytics-spark-converter_spark3_2.13/$release/" >> $mail_test_announce_file
+echo "$staging_repo/orgapachecassandra-$staging_number_213_11_3/org/apache/cassandra/cassandra-avro-converter_spark3_2.13/$release/" >> $mail_test_announce_file
+echo "$staging_repo/orgapachecassandra-$staging_number_213_11_3/org/apache/cassandra/cassandra-bridge_spark3_2.13/$release/" >> $mail_test_announce_file
+
 
 echo "The Source and Build Artifacts and repositories, are available here: https://dist.apache.org/repos/dist/dev/cassandra/cassandra-analytics/$release/" >> $mail_test_announce_file
 echo "" >> $mail_test_announce_file
@@ -333,39 +328,34 @@ echo "" >> $mail_vote_file
 echo "sha1: $head_commit" >> $mail_vote_file
 echo "Git: https://github.com/apache/cassandra-analytics/tree/$release-tentative" >> $mail_vote_file
 echo "Maven Artifacts:" >> $mail_vote_file
-echo "$staging_repo/orgapachecassandra-$staging_number_212_11_3/org/apache/cassandra/analytics-cassandra-analytics-cdc-codec_spark3_2.12/$release/" >> $mail_vote_file
-echo "$staging_repo/orgapachecassandra-$staging_number_212_11_3/org/apache/cassandra/analytics-cassandra-analytics-cdc-sidecar_spark3_2.12/$release/" >> $mail_vote_file
-echo "$staging_repo/orgapachecassandra-$staging_number_212_11_3/org/apache/cassandra/analytics-cassandra-analytics-cdc_spark3_2.12/$release/" >> $mail_vote_file
-echo "$staging_repo/orgapachecassandra-$staging_number_212_11_3/org/apache/cassandra/analytics-cassandra-analytics-common_spark3_2.12/$release/" >> $mail_vote_file
-echo "$staging_repo/orgapachecassandra-$staging_number_212_11_3/org/apache/cassandra/analytics-cassandra-analytics-core-example_spark3_2.12/$release/" >> $mail_vote_file
-echo "$staging_repo/orgapachecassandra-$staging_number_212_11_3/org/apache/cassandra/analytics-cassandra-analytics-core_spark3_2.12/$release/" >> $mail_vote_file
-echo "$staging_repo/orgapachecassandra-$staging_number_212_11_3/org/apache/cassandra/analytics-cassandra-analytics-spark-converter_spark3_2.12/$release/" >> $mail_vote_file
-echo "$staging_repo/orgapachecassandra-$staging_number_212_11_3/org/apache/cassandra/analytics-cassandra-bridge_spark3_2.12/$release/" >> $mail_vote_file
-echo "$staging_repo/orgapachecassandra-$staging_number_212_11_3/org/apache/cassandra/analytics-cassandra-analytics-cdc-codec_spark3_2.13/$release/" >> $mail_vote_file
-echo "$staging_repo/orgapachecassandra-$staging_number_212_11_3/org/apache/cassandra/analytics-cassandra-analytics-cdc-sidecar_spark3_2.13/$release/" >> $mail_vote_file
-echo "$staging_repo/orgapachecassandra-$staging_number_212_11_3/org/apache/cassandra/analytics-cassandra-analytics-cdc_spark3_2.13/$release/" >> $mail_vote_file
-echo "$staging_repo/orgapachecassandra-$staging_number_212_11_3/org/apache/cassandra/analytics-cassandra-analytics-common_spark3_2.13/$release/" >> $mail_vote_file
-echo "$staging_repo/orgapachecassandra-$staging_number_212_11_3/org/apache/cassandra/analytics-cassandra-analytics-core-example_spark3_2.13/$release/" >> $mail_vote_file
-echo "$staging_repo/orgapachecassandra-$staging_number_212_11_3/org/apache/cassandra/analytics-cassandra-analytics-core_spark3_2.13/$release/" >> $mail_vote_file
-echo "$staging_repo/orgapachecassandra-$staging_number_212_11_3/org/apache/cassandra/analytics-cassandra-analytics-spark-converter_spark3_2.13/$release/" >> $mail_vote_file
-echo "$staging_repo/orgapachecassandra-$staging_number_212_11_3/org/apache/cassandra/analytics-cassandra-bridge_spark3_2.13/$release/" >> $mail_vote_file
 
-echo "$staging_repo/orgapachecassandra-$staging_number_213_11_3/org/apache/cassandra/analytics-cassandra-analytics-cdc-codec_spark3_2.12/$release/" >> $mail_vote_file
-echo "$staging_repo/orgapachecassandra-$staging_number_213_11_3/org/apache/cassandra/analytics-cassandra-analytics-cdc-sidecar_spark3_2.12/$release/" >> $mail_vote_file
-echo "$staging_repo/orgapachecassandra-$staging_number_213_11_3/org/apache/cassandra/analytics-cassandra-analytics-cdc_spark3_2.12/$release/" >> $mail_vote_file
-echo "$staging_repo/orgapachecassandra-$staging_number_213_11_3/org/apache/cassandra/analytics-cassandra-analytics-common_spark3_2.12/$release/" >> $mail_vote_file
-echo "$staging_repo/orgapachecassandra-$staging_number_213_11_3/org/apache/cassandra/analytics-cassandra-analytics-core-example_spark3_2.12/$release/" >> $mail_vote_file
-echo "$staging_repo/orgapachecassandra-$staging_number_213_11_3/org/apache/cassandra/analytics-cassandra-analytics-core_spark3_2.12/$release/" >> $mail_vote_file
-echo "$staging_repo/orgapachecassandra-$staging_number_213_11_3/org/apache/cassandra/analytics-cassandra-analytics-spark-converter_spark3_2.12/$release/" >> $mail_vote_file
-echo "$staging_repo/orgapachecassandra-$staging_number_213_11_3/org/apache/cassandra/analytics-cassandra-bridge_spark3_2.12/$release/" >> $mail_vote_file
-echo "$staging_repo/orgapachecassandra-$staging_number_213_11_3/org/apache/cassandra/analytics-cassandra-analytics-cdc-codec_spark3_2.13/$release/" >> $mail_vote_file
-echo "$staging_repo/orgapachecassandra-$staging_number_213_11_3/org/apache/cassandra/analytics-cassandra-analytics-cdc-sidecar_spark3_2.13/$release/" >> $mail_vote_file
-echo "$staging_repo/orgapachecassandra-$staging_number_213_11_3/org/apache/cassandra/analytics-cassandra-analytics-cdc_spark3_2.13/$release/" >> $mail_vote_file
-echo "$staging_repo/orgapachecassandra-$staging_number_213_11_3/org/apache/cassandra/analytics-cassandra-analytics-common_spark3_2.13/$release/" >> $mail_vote_file
-echo "$staging_repo/orgapachecassandra-$staging_number_213_11_3/org/apache/cassandra/analytics-cassandra-analytics-core-example_spark3_2.13/$release/" >> $mail_vote_file
-echo "$staging_repo/orgapachecassandra-$staging_number_213_11_3/org/apache/cassandra/analytics-cassandra-analytics-core_spark3_2.13/$release/" >> $mail_vote_file
-echo "$staging_repo/orgapachecassandra-$staging_number_213_11_3/org/apache/cassandra/analytics-cassandra-analytics-spark-converter_spark3_2.13/$release/" >> $mail_vote_file
-echo "$staging_repo/orgapachecassandra-$staging_number_213_11_3/org/apache/cassandra/analytics-cassandra-bridge_spark3_2.13/$release/" >> $mail_vote_file
+echo "$staging_repo/orgapachecassandra-$staging_number_212_11_3/org/apache/cassandra/cassandra-analytics-common/$release/" >> $mail_vote_file
+echo "$staging_repo/orgapachecassandra-$staging_number_212_11_3/org/apache/cassandra/analytics-sidecar-client-common/$release/" >> $mail_vote_file
+echo "$staging_repo/orgapachecassandra-$staging_number_212_11_3/org/apache/cassandra/analytics-sidecar-client/$release/" >> $mail_vote_file
+echo "$staging_repo/orgapachecassandra-$staging_number_212_11_3/org/apache/cassandra/analytics-sidecar-vertx-client-all/$release/" >> $mail_vote_file
+echo "$staging_repo/orgapachecassandra-$staging_number_212_11_3/org/apache/cassandra/analytics-sidecar-vertx-client/$release/" >> $mail_vote_file
+echo "$staging_repo/orgapachecassandra-$staging_number_212_11_3/org/apache/cassandra/cassandra-analytics-sidecar-client/$release/" >> $mail_vote_file
+
+echo "$staging_repo/orgapachecassandra-$staging_number_212_11_3/org/apache/cassandra/cassandra-analytics-cdc-codec_spark3_2.12/$release/" >> $mail_vote_file
+echo "$staging_repo/orgapachecassandra-$staging_number_212_11_3/org/apache/cassandra/cassandra-analytics-cdc-sidecar_spark3_2.12/$release/" >> $mail_vote_file
+echo "$staging_repo/orgapachecassandra-$staging_number_212_11_3/org/apache/cassandra/cassandra-analytics-cdc_spark3_2.12/$release/" >> $mail_vote_file
+echo "$staging_repo/orgapachecassandra-$staging_number_212_11_3/org/apache/cassandra/cassandra-analytics-core_spark3_2.12/$release/" >> $mail_vote_file
+echo "$staging_repo/orgapachecassandra-$staging_number_212_11_3/org/apache/cassandra/cassandra-analytics-integration-framework_spark3_2.12/$release/" >> $mail_vote_file
+echo "$staging_repo/orgapachecassandra-$staging_number_212_11_3/org/apache/cassandra/cassandra-analytics-integration-tests_spark3_2.12/$release/" >> $mail_vote_file
+echo "$staging_repo/orgapachecassandra-$staging_number_212_11_3/org/apache/cassandra/cassandra-analytics-spark-converter_spark3_2.12/$release/" >> $mail_vote_file
+echo "$staging_repo/orgapachecassandra-$staging_number_212_11_3/org/apache/cassandra/cassandra-avro-converter_spark3_2.12/$release/" >> $mail_vote_file
+echo "$staging_repo/orgapachecassandra-$staging_number_212_11_3/org/apache/cassandra/cassandra-bridge_spark3_2.12/$release/" >> $mail_vote_file
+
+echo "$staging_repo/orgapachecassandra-$staging_number_213_11_3/org/apache/cassandra/cassandra-analytics-cdc-codec_spark3_2.13/$release/" >> $mail_vote_file
+echo "$staging_repo/orgapachecassandra-$staging_number_213_11_3/org/apache/cassandra/cassandra-analytics-cdc-sidecar_spark3_2.13/$release/" >> $mail_vote_file
+echo "$staging_repo/orgapachecassandra-$staging_number_213_11_3/org/apache/cassandra/cassandra-analytics-cdc_spark3_2.13/$release/" >> $mail_vote_file
+echo "$staging_repo/orgapachecassandra-$staging_number_213_11_3/org/apache/cassandra/cassandra-analytics-core_spark3_2.13/$release/" >> $mail_vote_file
+echo "$staging_repo/orgapachecassandra-$staging_number_213_11_3/org/apache/cassandra/cassandra-analytics-integration-framework_spark3_2.13/$release/" >> $mail_vote_file
+echo "$staging_repo/orgapachecassandra-$staging_number_213_11_3/org/apache/cassandra/cassandra-analytics-integration-tests_spark3_2.13/$release/" >> $mail_vote_file
+echo "$staging_repo/orgapachecassandra-$staging_number_213_11_3/org/apache/cassandra/cassandra-analytics-spark-converter_spark3_2.13/$release/" >> $mail_vote_file
+echo "$staging_repo/orgapachecassandra-$staging_number_213_11_3/org/apache/cassandra/cassandra-avro-converter_spark3_2.13/$release/" >> $mail_vote_file
+echo "$staging_repo/orgapachecassandra-$staging_number_213_11_3/org/apache/cassandra/cassandra-bridge_spark3_2.13/$release/" >> $mail_vote_file
+
 echo "" >> $mail_vote_file
 echo "The Source and Build Artifacts and repositories, are available here: https://dist.apache.org/repos/dist/dev/cassandra/cassandra-analytics/$release/" >> $mail_vote_file
 echo "" >> $mail_vote_file
