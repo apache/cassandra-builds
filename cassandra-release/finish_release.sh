@@ -36,6 +36,7 @@ OPTIND=1
 # Initialize our own variables:
 verbose=0
 fake_mode=0
+skip_changelog=0
 
 show_help()
 {
@@ -45,6 +46,7 @@ show_help()
     echo "where [options] are:"
     echo "  -h: print this help"
     echo "  -v: verbose mode (show everything that is going on)"
+    echo "  -s: skip changelog update (for retrying failed releases)"
     echo "  -f: fake mode, print any output but don't do anything (for debugging)"
     echo ""
     echo "Example: $name 2.0.3"

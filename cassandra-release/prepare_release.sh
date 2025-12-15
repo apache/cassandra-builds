@@ -63,7 +63,7 @@ show_help()
     echo "Example: $name 2.0.3"
 }
 
-while getopts ":hvfdr" opt; do
+while getopts ":hvfdrs" opt; do
     case "$opt" in
     h)
         show_help
@@ -77,6 +77,8 @@ while getopts ":hvfdr" opt; do
         ;;
     r)  only_rpm=1
         ;;
+    s)  skip_changelog=1
+        ;;
     \?)
         echo "Invalid option: -$OPTARG" >&2
         show_help
@@ -88,6 +90,18 @@ done
 if [ $only_deb -eq 1 ] && [ $only_rpm -eq 1 ]
 then
     echo "Options '-d' and '-r' are mutually exclusive"
+    exit 1
+fi
+
+# The -s flag only makes sense during the full release flow
+if [ $skip_changelog -eq 1 ] && [ $only_deb -eq 1 ]
+then
+    echo "Option '-s' cannot be used with '-d'"
+    exit 1
+fi
+if [ $skip_changelog -eq 1 ] && [ $only_rpm -eq 1 ]
+then
+    echo "Option '-s' cannot be used with '-r'"
     exit 1
 fi
 
@@ -228,13 +242,18 @@ release_minor=$(echo ${release_short} | cut -d '.' -f 2)
 
 if [ $only_deb -eq 0 ] && [ $only_rpm -eq 0 ]
 then
-    echo "Update debian changelog, please correct changelog, name, and email."
-    read -n 1 -s -r -p "press any key to continue…" 1>&3 2>&4
-    echo ""
-    execute "dch -r -D unstable"
-    echo "Prepare debian changelog for $release" > "_tmp_msg_"
-    execute "git commit -F _tmp_msg_ debian/changelog"
-    execute "rm _tmp_msg_"
+    if [ $skip_changelog -eq 0 ]
+    then
+        echo "Update debian changelog, please correct changelog, name, and email."
+        read -n 1 -s -r -p "press any key to continue…" 1>&3 2>&4
+        echo ""
+        execute "dch -r -D unstable"
+        echo "Prepare debian changelog for $release" > "_tmp_msg_"
+        execute "git commit -F _tmp_msg_ debian/changelog"
+        execute "rm _tmp_msg_"
+    else
+        echo "Skipping changelog update (already committed)"
+    fi
     head_commit=`git log --pretty=oneline -1 | cut -d " " -f 1`
     # this commit needs to be forward merged and atomic pushed (see reminders at bottom)
 
