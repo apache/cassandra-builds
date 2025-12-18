@@ -451,7 +451,7 @@ def process_committers():
 ### Regexps to parse the logs. ##
 log_header_re = re.compile('^commit ([0-9a-z]+)$')
 patch_by_re = re.compile('(?:.*\n)*.*patch by ([^;]+)(;|,)', flags=re.IGNORECASE | re.MULTILINE)
-reviewed_by_re = re.compile('(?:.*\n)*.*[;, ](?:review|test)(?:ed)? by ((?:.|\n)+?)(?=(?: |\n)+for(?: |\n)+(?:cassandra-|#[0-9]+))', flags=re.IGNORECASE | re.MULTILINE)
+reviewed_by_re = re.compile('(?:.*\n)*.*[;, ](?:review|test)(?:ed)? by ((?:.|\n)+?)(?=(?: |\n)+for(?: |\n)+(?:cass.*-|#[0-9]+))', flags=re.IGNORECASE | re.MULTILINE)
 coauthored_by_re = re.compile(' *co-authored-by: ([^<]+)', re.IGNORECASE)
 author_re = re.compile('^Author: ([^<]+)')
 
