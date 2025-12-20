@@ -13,7 +13,7 @@ mkdir -p /tmp/contribulyze-repos
 mkdir -p /tmp/contribulyze-html
 cd /tmp/contribulyze-repos
 
-repos=("https://github.com/apache/cassandra.git" "https://github.com/apache/cassandra-dtest.git" "https://github.com/apache/cassandra-builds.git" "https://github.com/apache/cassandra-in-jvm-dtest-api.git" "https://github.com/apache/cassandra-harry.git" "https://github.com/apache/cassandra-website.git" "https://github.com/apache/cassandra-java-driver.git" "https://github.com/apache/cassandra-gocql-driver.git" "https://github.com/apache/cassandra-sidecar.git" "https://github.com/apache/cassandra-analytics.git" "https://github.com/apache/cassandra-accord.git" "https://github.com/apache/cassandra-ccm" "https://github.com/apache/cassandra-spark-connector")
+repos=("https://github.com/apache/cassandra.git" "https://github.com/apache/cassandra-dtest.git" "https://github.com/apache/cassandra-builds.git" "https://github.com/apache/cassandra-in-jvm-dtest-api.git" "https://github.com/apache/cassandra-harry.git" "https://github.com/apache/cassandra-website.git" "https://github.com/apache/cassandra-java-driver.git" "https://github.com/apache/cassandra-gocql-driver.git" "https://github.com/apache/cassandra-sidecar.git" "https://github.com/apache/cassandra-analytics.git" "https://github.com/apache/cassandra-accord.git" "https://github.com/apache/cassandra-ccm" "https://github.com/apache/cassandra-spark-connector" "https://github.com/apache/cassandra-cpp-driver.git" "https://github.com/apache/cassandra-python-driver.git")
 
 # the different groups we want separate contribulyze reports on. note '..' refers to everything.
 groups=('..' 'website_and_docs' 'build_and_tools' 'packaging_and_release' 'test_and_ci' 'cassandra_src' 'drivers' 'cassandra-sidecar' 'cassandra-analytics' 'cassandra-accord')
@@ -56,7 +56,7 @@ for group in ${groups[*]} ; do
      ;;
 
      "drivers")
-      groupings=("cassandra-java-driver" "cassandra-gocql-driver")
+      groupings=("cassandra-java-driver" "cassandra-gocql-driver" "cassandra-cpp-driver" "cassandra-python-driver")
      ;;
 
      "cassandra-sidecar")
