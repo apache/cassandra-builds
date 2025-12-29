@@ -1,39 +1,52 @@
-#!/bin/bash
+#!/bin/bash -e -o pipefail
 #
 # This script sets up an Ubuntu 22.04 server to be a ASF Jenkins agent.
 #  After this setup is complete, an INFRA jira ticket must be opened for ASF Infra to complete the process.
 #
 # Script Requirements:
-#  * Ubuntu 22.04
+#  * Ubuntu 24.04
 #  * run as root
 #  * internet access
 #
 # To run the script…
-#  1. ssh into server and allow sudo without password. For example: `%sudo   ALL=(ALL:ALL) NOPASSWD:ALL` in /etc/sudoers
-#  2. scp agent-install.sh <server>:~/
-#  3. ssh <server>
-#  4. sudo bash agent-install.sh
+#  1. scp agent-install.sh root@<server>:~/
+#  2. ssh root@<server>
+#  3. bash -e agent-install.sh
 #
 
-command -v lsb_release >/dev/null 2>&1 || { echo >&2 "Expecting an Ubuntu server with lsb_release installed"; exit 1; }
-if ! lsb_release -d | grep -q "Ubuntu 22.04" ; then
-    echo "Ubuntu 22.04 expected. Found $(lsb_release -d | cut -d' ' -f2)"
+export DEBIAN_FRONTEND=noninteractive
+
+if ! command -v lsb_release >/dev/null 2>&1 ; then
+    echo >&2 "Installing lsb_release"
+    apt-get update
+    apt-get install -y lsb-release
+fi
+if ! lsb_release -d | grep -q "Ubuntu 24.04" ; then
+    echo "Ubuntu 24.04 expected. Found $(lsb_release -d | cut -d' ' -f2)"
     exit 1
 fi
 if [ "$EUID" -ne 0 ] ; then
     echo "Please run as root"
     exit 1
 fi
-if ! ping -c 1 -q apt.puppetlabs.com >&/dev/null ; then
+if ! command -v ping >/dev/null 2>&1 ; then
+    echo >&2 "Installing iputils-ping"
+    apt-get install -y iputils-ping
+fi
+if ! command -v curl >/dev/null 2>&1 ; then
+    echo >&2 "Installing curl"
+    apt-get install -y curl
+fi
+if ! (ping -c 1 -q apt.puppetlabs.com || curl -s --connect-timeout 5 --head https://apt.puppetlabs.com)>&/dev/null ; then
     echo "Cannot access apt.puppetlabs.com"
     exit 1
 fi
 
 # Remove the default installation of bind9
 apt-get -y autoremove --purge bind9
-rm -r /var/cache/bind
+rm -fr /var/cache/bind
 
-apt-get -y install net-tools software-properties-common
+apt-get -y install apt-utils dnsutils net-tools software-properties-common
 
 # Ensure `hostname` is configured to the server's public ip
 hostname `dig +short myip.opendns.com @resolver1.opendns.com`
@@ -56,6 +69,7 @@ chmod 600 /home/jenkins/.ssh/authorized_keys
 
 # Add asf999 user
 useradd -m -s /bin/bash asf999
+echo "asf999 ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers
 mkdir /home/asf999/.ssh
 usermod -a -G sudo asf999
 
@@ -75,12 +89,13 @@ chmod 700 /home/asf999/.ssh
 chmod 600 /home/asf999/.ssh/authorized_keys
 
 # Install Puppet 6 (not Puppet 5 that Jammy would normally install) and configured the puppet.conf file ready for use
-wget https://apt.puppetlabs.com/puppet-release-jammy.deb
+curl -sL -O https://apt.puppetlabs.com/puppet-release-jammy.deb
 dpkg -i puppet-release-jammy.deb
 rm puppet-release-jammy.deb
 apt-get update
 apt-get install -y puppet-agent
 
+mkdir -p /etc/puppetlabs/puppet
 sh -c 'cat >> /etc/puppetlabs/puppet/puppet.conf << EOF
 [main]
 use_srv_records = true

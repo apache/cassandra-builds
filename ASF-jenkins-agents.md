@@ -12,7 +12,7 @@ If you have questions about compute resource donations, ask on the dev mailing l
 ## Server Requirements
 
 Server Requirements:
- - Installed OS software is the stock online.net Ubuntu 22.04 LTS amd64 image.
+ - Installed OS software is the stock online.net Ubuntu 24.04 LTS amd64 image.
  - Static IP address.
  - Root volume is all available space (500GB+), preferably in a RAID-0 configuration.
 
@@ -113,7 +113,7 @@ ask for more in console https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/elas
 
 Contacts for system donators, when console hands may be needed by INFRA:
 
-  *Datastax*: Mick Semb Wever <mck@apache.org>
+  *IBM*: Mick Semb Wever <mck@apache.org>
 
   *NetApp*: Stefan Miklosovic <smiklosovic@apache.org>
                alternative group list: admin@instaclustr.com
@@ -122,7 +122,7 @@ Contacts for system donators, when console hands may be needed by INFRA:
 
   *iland*: Julien Anguenot <julien@anguenot.org>
 
-  *Huawei*:  Liu Sheng  <liusheng2048@gmail.com>
+  *Huawei*:  Weijun Lu <wjunlu217@gmail.com>
 
 ----
 
