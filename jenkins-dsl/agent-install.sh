@@ -47,6 +47,8 @@ apt-get -y autoremove --purge bind9
 rm -fr /var/cache/bind
 
 apt-get -y install apt-utils dnsutils net-tools software-properties-common
+# LDAP breaks with ec2-instance-connect
+apt-get remove ec2-instance-connect
 
 # Ensure `hostname` is configured to the server's public ip
 hostname `dig +short myip.opendns.com @resolver1.opendns.com`
@@ -94,6 +96,7 @@ dpkg -i puppet-release-jammy.deb
 rm puppet-release-jammy.deb
 apt-get update
 apt-get install -y puppet-agent
+apt-mark hold puppet-agent
 
 mkdir -p /etc/puppetlabs/puppet
 sh -c 'cat >> /etc/puppetlabs/puppet/puppet.conf << EOF
