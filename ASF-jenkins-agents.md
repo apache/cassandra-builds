@@ -56,15 +56,15 @@ ask for more in console https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/elas
 
 | Agent Name     | Donated By  | Ubuntu version | Specs                         | IP Address     |
 | -------------- | -----------:|:---------------:| ----------------------------:|:--------------:|
-| [cassandra01](https://ci-cassandra.apache.org/computer/cassandra01)       | IBM         |  24.04 | amd64, 32G RAM,  4 core    | 169.54.102.51   |
-| [cassandra02](https://ci-cassandra.apache.org/computer/cassandra02)       | IBM         |  24.04 | amd64, 32G RAM,  4 core    | 169.54.102.50   |
-| [cassandra03](https://ci-cassandra.apache.org/computer/cassandra03)       | IBM         |  24.04 | amd64, 32G RAM,  4 core    | 169.54.102.54   |
-| [cassandra04](https://ci-cassandra.apache.org/computer/cassandra04)       | IBM         |  24.04 | amd64, 32G RAM,  4 core    | 169.54.102.62   |
-| [cassandra05](https://ci-cassandra.apache.org/computer/cassandra05)       | IBM         |  24.04 | amd64, 32G RAM,  4 core    | 169.54.102.53   |
-| [cassandra06](https://ci-cassandra.apache.org/computer/cassandra06)       | IBM         |  24.04 | amd64, 32G RAM,  4 core    | 169.54.102.55   |
-| [cassandra07](https://ci-cassandra.apache.org/computer/cassandra07)       | IBM         |  24.04 | amd64, 32G RAM,  4 core    | 169.54.102.60   |
-| [cassandra08](https://ci-cassandra.apache.org/computer/cassandra08)       | IBM         |  24.04 | amd64, 32G RAM,  4 core    | 169.54.91.168   |
-| [cassandra09](https://ci-cassandra.apache.org/computer/cassandra09)       | IBM         |  24.04 | amd64, 32G RAM,  4 core    | 169.54.102.61   |
+| [cassandra1](https://ci-cassandra.apache.org/computer/cassandra1)       | IBM         |  24.04 | amd64, 32G RAM,  4 core    | 169.54.102.51   |
+| [cassandra2](https://ci-cassandra.apache.org/computer/cassandra2)       | IBM         |  24.04 | amd64, 32G RAM,  4 core    | 169.54.102.50   |
+| [cassandra3](https://ci-cassandra.apache.org/computer/cassandra3)       | IBM         |  24.04 | amd64, 32G RAM,  4 core    | 169.54.102.54   |
+| [cassandra4](https://ci-cassandra.apache.org/computer/cassandra4)       | IBM         |  24.04 | amd64, 32G RAM,  4 core    | 169.54.102.62   |
+| [cassandra5](https://ci-cassandra.apache.org/computer/cassandra5)       | IBM         |  24.04 | amd64, 32G RAM,  4 core    | 169.54.102.53   |
+| [cassandra6](https://ci-cassandra.apache.org/computer/cassandra6)       | IBM         |  24.04 | amd64, 32G RAM,  4 core    | 169.54.102.55   |
+| [cassandra7](https://ci-cassandra.apache.org/computer/cassandra7)       | IBM         |  24.04 | amd64, 32G RAM,  4 core    | 169.54.102.60   |
+| [cassandra8](https://ci-cassandra.apache.org/computer/cassandra8)       | IBM         |  24.04 | amd64, 32G RAM,  4 core    | 169.54.91.168   |
+| [cassandra9](https://ci-cassandra.apache.org/computer/cassandra9)       | IBM         |  24.04 | amd64, 32G RAM,  4 core    | 169.54.102.61   |
 | [cassandra10](https://ci-cassandra.apache.org/computer/cassandra10)       | IBM         |  24.04 | amd64, 32G RAM,  4 core    | 169.54.102.52   |
 | [cassandra11](https://ci-cassandra.apache.org/computer/cassandra11)       | IBM         |  24.04 | amd64, 32G RAM,  4 core    | 169.54.102.57   |
 | [cassandra12](https://ci-cassandra.apache.org/computer/cassandra12)       | IBM         |  24.04 | amd64, 32G RAM,  4 core    | 169.54.102.56   |
