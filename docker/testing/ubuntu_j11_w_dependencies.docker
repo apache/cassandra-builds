@@ -11,7 +11,7 @@
 # limitations under the License.
 
 # base things off the testing image without dependencies warmed up
-FROM apache/cassandra-testing-ubuntu2004-java11
+FROM apache/cassandra-testing-ubuntu-java11
 LABEL org.opencontainers.image.authors="Apache Cassandra <dev@cassandra.apache.org>"
 
 USER cassandra

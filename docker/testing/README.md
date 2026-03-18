@@ -20,11 +20,11 @@ Build images from the parent directory using the following commands. Change tag 
 
 Base image:
 
-    docker buildx build --platform linux/amd64,linux/arm64 -t apache/cassandra-testing-ubuntu2004-java11:$(date +"%Y%m%d") -t apache/cassandra-testing-ubuntu2004-java11:latest -f ubuntu2004_j11.docker --provenance=true --sbom=true --push .
+    docker buildx build --platform linux/amd64,linux/arm64 -t apache/cassandra-testing-ubuntu-java11:$(date +"%Y%m%d") -t apache/cassandra-testing-ubuntu-java11:latest -f ubuntu_j11.docker --provenance=true --sbom=true --push .
 
 Caching image:
 
-    docker buildx build --platform linux/amd64,linux/arm64 --no-cache -t apache/cassandra-testing-ubuntu2004-java11-w-dependencies:$(date +"%Y%m%d") -t apache/cassandra-testing-ubuntu2004-java11-w-dependencies:latest -f ubuntu2004_j11_w_dependencies.docker --provenance=true --sbom=true --push .
+    docker buildx build --platform linux/amd64,linux/arm64 --no-cache -t apache/cassandra-testing-ubuntu-java11-w-dependencies:$(date +"%Y%m%d") -t apache/cassandra-testing-ubuntu-java11-w-dependencies:latest -f ubuntu_j11_w_dependencies.docker --provenance=true --sbom=true --push .
 
 Please make sure to always tag also by date, so we can go back to that version in case anything breaks after the next update!
 

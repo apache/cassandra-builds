@@ -4,7 +4,7 @@
 #
 # Example run in docker (from the cassandra-builds/contribulyze directory)
 #
-# docker run -t -v`pwd`/build/html:/tmp/contribulyze-html -v`pwd`:/contribulyze apache/cassandra-testing-ubuntu2004-java11-w-dependencies bash -lc 'pip3 install --quiet python-dateutil ; cd /contribulyze ; bash contribulyze.sh '
+# docker run -t -v`pwd`/build/html:/tmp/contribulyze-html -v`pwd`:/contribulyze apache/cassandra-testing-ubuntu-java11-w-dependencies bash -lc 'pip3 install --quiet python-dateutil ; cd /contribulyze ; bash contribulyze.sh '
 #
 
 set -e

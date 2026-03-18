@@ -40,11 +40,11 @@ def cassandraBranches = ['cassandra-5.0', 'trunk']
 def legacyCassandraBranches = ['cassandra-2.2', 'cassandra-3.0', 'cassandra-3.11', 'cassandra-4.0', 'cassandra-4.1']
 // Ant test targets
 def testTargets = ['test', 'test-burn', 'test-cdc', 'test-compression', 'stress-test', 'fqltool-test', 'long-test', 'jvm-dtest', 'jvm-dtest-upgrade', 'microbench']
-def testDockerImage = 'apache/cassandra-testing-ubuntu2004-java11-w-dependencies'
+def testDockerImage = 'apache/cassandra-testing-ubuntu-java11-w-dependencies'
 
 // Dtest test targets
 def dtestTargets = ['dtest', 'dtest-novnode', 'dtest-offheap', 'dtest-large', 'dtest-large-novnode', 'dtest-upgrade']
-def dtestDockerImage = 'apache/cassandra-testing-ubuntu2004-java11'
+def dtestDockerImage = 'apache/cassandra-testing-ubuntu-java11'
 
 // expected longest job runtime
 def maxJobHours = 12
@@ -1454,7 +1454,7 @@ job('contribulyze') {
         buildDescription('', buildDescStr)
         shell("""
                 mkdir -p build/html ; chmod -R 777 build/html
-                docker run -t -v`pwd`/build/html:/tmp/contribulyze-html -v`pwd`/contribulyze:/contribulyze apache/cassandra-testing-ubuntu2004-java11-w-dependencies bash -lc 'pip3 install --quiet python-dateutil ; cd /contribulyze ; bash contribulyze.sh '
+                docker run -t -v`pwd`/build/html:/tmp/contribulyze-html -v`pwd`/contribulyze:/contribulyze apache/cassandra-testing-ubuntu-java11-w-dependencies bash -lc 'pip3 install --quiet python-dateutil ; cd /contribulyze ; bash contribulyze.sh '
               """)
     }
     publishers {
