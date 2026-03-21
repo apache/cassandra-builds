@@ -111,11 +111,9 @@ for JDK in ${JDKS[@]} ; do
     echo
     rm -f procfifo
     mkfifo procfifo
-    docker run -i -v `pwd`/apache-cassandra-$2-src:/apache-cassandra-$2-src openjdk:${JDK}-jdk-slim-buster timeout ${TIMEOUT} /bin/bash -c "
-        ( echo 'deb http://archive.debian.org/debian buster main' > /etc/apt/sources.list;
-          echo 'deb http://archive.debian.org/debian-security buster/updates main' >> /etc/apt/sources.list;
-          apt -qq update;
-          apt -qq install -y wget ant build-essential git python python3 procps;
+    docker run -i -v `pwd`/apache-cassandra-$2-src:/apache-cassandra-$2-src eclipse-temurin:${JDK}-jdk timeout ${TIMEOUT} /bin/bash -c "
+        ( apt -qq update;
+          apt -qq install -y wget ant build-essential git python3 procps;
           wget https://go.dev/dl/go1.24.5.linux-amd64.tar.gz;
           tar -C /usr/local -xzf go1.24.5.linux-amd64.tar.gz; ) 2>&1 >/dev/null;
         export PATH=/usr/local/openjdk-11/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/go/bin:/usr/local/go/bin;
@@ -142,11 +140,9 @@ for JDK in ${JDKS[@]} ; do
     echo
     rm -f procfifo
     mkfifo procfifo
-    docker run -i -v `pwd`/apache-cassandra-$2:/apache-cassandra-$2 openjdk:${JDK}-jdk-slim-buster timeout ${TIMEOUT} /bin/bash -c "
-        ( echo 'deb http://archive.debian.org/debian buster main' > /etc/apt/sources.list;
-          echo 'deb http://archive.debian.org/debian-security buster/updates main' >> /etc/apt/sources.list;
-          apt -qq update;
-          apt -qq install -y python python3 procps ) 2>&1 >/dev/null;
+    docker run -i -v `pwd`/apache-cassandra-$2:/apache-cassandra-$2 eclipse-temurin:${JDK}-jdk timeout ${TIMEOUT} /bin/bash -c "
+        ( apt -qq update;
+          apt -qq install -y python3 procps ) 2>&1 >/dev/null;
         HEAP_NEWSIZE=500m MAX_HEAP_SIZE=1g MAX_DIRECT_MEMORY_SIZE=1g apache-cassandra-$2/bin/cassandra -R -f" 2>&1 >procfifo &
 
     PID=$!
@@ -166,7 +162,7 @@ for JDK in ${JDKS[@]} ; do
 
     # test deb package startup
     if [ "$JDK" == "8" ] ; then
-        DEBIAN_IMAGE="openjdk:8-jdk-slim-buster"
+        DEBIAN_IMAGE="eclipse-temurin:8-jdk"
     else
         DEBIAN_IMAGE="debian:bullseye-slim"
     fi
@@ -176,9 +172,7 @@ for JDK in ${JDKS[@]} ; do
       rm -f procfifo
       mkfifo procfifo
       docker run -i -v `pwd`/debian:/debian ${DEBIAN_IMAGE} timeout ${TIMEOUT} /bin/bash -c "
-          ( echo 'deb http://archive.debian.org/debian buster main' > /etc/apt/sources.list;
-            echo 'deb http://archive.debian.org/debian-security buster/updates main' >> /etc/apt/sources.list;
-            apt -qq update ;
+          ( apt -qq update ;
             apt -qq install -y python ; # will silently fail on debian latest
             apt -qq install -y python3 procps ;
             apt -qq install -y openjdk-${JDK}-jre-headless ; # will silently fail on *jdk-slim-buster
@@ -219,9 +213,7 @@ for JDK in ${JDKS[@]} ; do
       rm -f procfifo
       mkfifo procfifo
       docker run -i ${DEBIAN_IMAGE} timeout ${TIMEOUT} /bin/bash -c "
-          ( echo 'deb http://archive.debian.org/debian-security buster/updates main' >> /etc/apt/sources.list;
-            echo 'deb http://archive.debian.org/debian buster main' > /etc/apt/sources.list;
-            apt -qq update ;
+          ( apt -qq update ;
             apt -qq install -y curl gnupg2 ;
             apt-key adv --keyserver keyserver.ubuntu.com  --recv-key E91335D77E3E87CB ;
             curl https://downloads.apache.org/cassandra/KEYS | apt-key add - ;
@@ -287,7 +279,7 @@ for JDK in ${JDKS[@]} ; do
         echo
         rm -f procfifo
         mkfifo procfifo
-        docker run -i -v `pwd`/redhat${NOBOOLEAN_REPO}:/redhat almalinux timeout ${TIMEOUT} /bin/bash -c "
+        docker run -i -v `pwd`/redhat${NOBOOLEAN_REPO}:/redhat almalinux:9 timeout ${TIMEOUT} /bin/bash -c "
             ( yum install -y  procps-ng python3-pip;
             yum install -y ${JDK_RH} ;
             rpm -i --nodeps redhat/*.rpm ) 2>&1 >/dev/null ;
@@ -314,7 +306,7 @@ for JDK in ${JDKS[@]} ; do
         rm -f procfifo
         mkfifo procfifo
         # yum repo installation failing due to a legacy (SHA1) third-party sig in our KEYS file, hence use of update-crypto-policies. Impacts all rhel9+ users.
-        docker run -i  almalinux timeout ${TIMEOUT} /bin/bash -c "(
+        docker run -i  almalinux:9 timeout ${TIMEOUT} /bin/bash -c "(
             echo '[cassandra]' >> /etc/yum.repos.d/cassandra.repo ;
             echo 'name=Apache Cassandra' >> /etc/yum.repos.d/cassandra.repo ;
             echo 'baseurl=${redhat_url}${REPO_VERSION}${NOBOOLEAN_REPO}' >> /etc/yum.repos.d/cassandra.repo ;
