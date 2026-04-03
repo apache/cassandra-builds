@@ -3,7 +3,7 @@
 # Parameters
 # $1 staged|released
 # $2 release
-# $3 maven artefacts staging repo id (as specified in the repo url found in the vote email) (ignored for 'released')
+# $3 maven artefacts staging repo id (as specified in the repo url found in the vote email) (ignored for 'released', or if 0)
 #
 # Example use: `./cassandra-check-release.sh staged 4.0-beta3 1224
 #
@@ -39,7 +39,9 @@ else
     redhat_url="https://dist.apache.org/repos/dist/dev/cassandra/${2}/redhat/"
 fi
 (curl --output /dev/null --silent --head --fail "${dist_url}") || { echo >&2 "Not Found: ${dist_url}"; exit 1; }
-(curl --output /dev/null --silent --head --fail "${maven_repo_url}") || { echo >&2 "Not found: ${maven_repo_url}"; exit 1; }
+if [ "released" == $1 ] || [ "0" != $3 ] ; then
+    (curl --output /dev/null --silent --head --fail "${maven_repo_url}") || { echo >&2 "Not found: ${maven_repo_url}"; exit 1; }
+fi
 
 ###################
 
@@ -55,8 +57,10 @@ mkdir -p /tmp/$2
 cd /tmp/$2
 echo "Downloading KEYS"
 wget -q https://downloads.apache.org/cassandra/KEYS
-echo "Downloading ${maven_repo_url}"
-wget -Nqnd -e robots=off --recursive --no-parent ${maven_repo_url}
+if [ "released" == $1 ] || [ "0" != $3 ] ; then
+    echo "Downloading ${maven_repo_url}"
+    wget -Nqnd -e robots=off --recursive --no-parent ${maven_repo_url}
+fi
 echo "Downloading ${dist_url}"
 wget -Nqe robots=off --recursive --no-parent ${dist_url}
 if [ -z "$3" ] ; then
@@ -72,19 +76,20 @@ echo "====== CHECK RESULTS ======"
 echo
 
 gpg --import KEYS
-
-(compgen -G "*.asc" >/dev/null) || { echo >&2 "No *.asc files found in $(pwd)"; exit 1; }
-for f in *.asc ; do gpg --verify $f ; done
-(compgen -G "*.pom" >/dev/null) || { echo >&2 "No *.pom files found in $(pwd)"; exit 1; }
-(compgen -G "*.jar" >/dev/null) || { echo >&2 "No *.jar files found in $(pwd)"; exit 1; }
-for f in *.pom *.jar *.asc ; do echo -n "sha1: " ; echo "$(cat $f.sha1) $f" | sha1sum -c ; echo -n "md5: " ; echo "$(cat $f.md5) $f" | md5sum -c ; done
+if [ "released" == $1 ] || [ "0" != $3 ] ; then
+    [ -n "$(find . -name "*.asc" -print -quit)" ] || { echo >&2 "No *.asc files found in $(pwd)"; exit 1; }
+    for f in *.asc ; do gpg --verify $f ; done
+    [ -n "$(find . -name "*.pom" -print -quit)" ] || { echo >&2 "No *.pom files found in $(pwd)"; exit 1; }
+    [ -n "$(find . -name "*.jar" -print -quit)" ] || { echo >&2 "No *.jar files found in $(pwd)"; exit 1; }
+    for f in *.pom *.jar *.asc ; do echo -n "sha1: " ; echo "$(cat $f.sha1) $f" | sha1sum -c ; echo -n "md5: " ; echo "$(cat $f.md5) $f" | md5sum -c ; done
+fi
 
 cd dist.apache.org/repos/dist/*/cassandra/$2
-(compgen -G "*.asc" >/dev/null) || { echo >&2 "No *.asc files found in $(pwd)"; exit 1; }
+[ -n "$(find . -name "*.asc" -print -quit)" ] || { echo >&2 "No *.asc files found in $(pwd)"; exit 1; }
 for f in *.asc ; do gpg --verify $f ; done
-(compgen -G "*.gz" >/dev/null) || { echo >&2 "No *.gz files found in $(pwd)"; exit 1; }
-(compgen -G "*.sha256" >/dev/null) || { echo >&2 "No *.sha256 files found in $(pwd)"; exit 1; }
-(compgen -G "*.sha512" >/dev/null) || { echo >&2 "No *.sha512 files found in $(pwd)"; exit 1; }
+[ -n "$(find . -name "*.gz" -print -quit)" ] || { echo >&2 "No *.gz files found in $(pwd)"; exit 1; }
+[ -n "$(find . -name "*.sha256" -print -quit)" ] || { echo >&2 "No *.sha256 files found in $(pwd)"; exit 1; }
+[ -n "$(find . -name "*.sha512" -print -quit)" ] || { echo >&2 "No *.sha512 files found in $(pwd)"; exit 1; }
 for f in *.gz ; do echo -n "sha256: " ; echo "$(cat $f.sha256) $f" | sha256sum -c ; echo -n "sha512:" ; echo "$(cat $f.sha512) $f" | sha512sum -c ; done
 
 echo
@@ -96,7 +101,7 @@ tar -xzf apache-cassandra-$2-bin.tar.gz
 JDKS="8"
 if [[ $2 =~ [4]\. ]] ; then
     JDKS=("8" "11")
-elif [[ $2 =~ [5]\. ]] ; then
+elif [[ $2 =~ [56]\. ]] ; then
     JDKS=("11" "17")
 fi
 TIMEOUT=2160
@@ -260,7 +265,7 @@ for JDK in ${JDKS[@]} ; do
     fi
 
     RH_DISTS="almalinux"
-    if ! [[ $2 =~ [23]\. ]] ; then
+    if [[ $2 =~ [45]\. ]] ; then
         RH_DISTS=("almalinux" "noboolean")
     fi
     for RH_DIST in ${RH_DISTS[@]} ; do
