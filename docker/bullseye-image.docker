@@ -28,9 +28,9 @@ RUN update-java-alternatives --set java-1.11.0-openjdk-$(dpkg --print-architectu
 
 # install ant v1.10
 RUN mkdir /usr/share/antV110 && \
-    wget --tries 9 https://downloads.apache.org/ant/binaries/apache-ant-1.10.15-bin.tar.gz && \
-    tar --strip-components 1 -xf apache-ant-1.10.15-bin.tar.gz -C /usr/share/antV110 && \
-    rm -f apache-ant-1.10.15-bin.tar.gz
+    wget --tries 9 https://downloads.apache.org/ant/binaries/apache-ant-1.10.16-bin.tar.gz && \
+    tar --strip-components 1 -xf apache-ant-1.10.16-bin.tar.gz -C /usr/share/antV110 && \
+    rm -f apache-ant-1.10.16-bin.tar.gz
 ENV ANT_HOME=/usr/share/antV110
 ENV PATH="${ANT_HOME}/bin:${PATH}"
 
