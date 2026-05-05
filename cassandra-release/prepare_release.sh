@@ -47,6 +47,7 @@ verbose=0
 fake_mode=0
 only_deb=0
 only_rpm=0
+skip_changelog=0
 
 show_help()
 {
@@ -59,11 +60,12 @@ show_help()
     echo "  -f: fake mode, print any output but don't do anything (for debugging)"
     echo "  -d: only build the debian package"
     echo "  -r: only build the rpm package"
+    echo "  -s: skip updating debian changelog"
     echo ""
     echo "Example: $name 2.0.3"
 }
 
-while getopts ":hvfdr" opt; do
+while getopts ":hvfdrs" opt; do
     case "$opt" in
     h)
         show_help
@@ -76,6 +78,8 @@ while getopts ":hvfdr" opt; do
     d)  only_deb=1
         ;;
     r)  only_rpm=1
+        ;;
+    s)  skip_changelog=1
         ;;
     \?)
         echo "Invalid option: -$OPTARG" >&2
@@ -228,13 +232,18 @@ release_minor=$(echo ${release_short} | cut -d '.' -f 2)
 
 if [ $only_deb -eq 0 ] && [ $only_rpm -eq 0 ]
 then
-    echo "Update debian changelog, please correct changelog, name, and email."
-    read -n 1 -s -r -p "press any key to continue…" 1>&3 2>&4
-    echo ""
-    execute "dch -r -D unstable"
-    echo "Prepare debian changelog for $release" > "_tmp_msg_"
-    execute "git commit -F _tmp_msg_ debian/changelog"
-    execute "rm _tmp_msg_"
+    if [ $skip_changelog -eq 0 ]; then
+        echo "Update debian changelog, please correct changelog, name, and email."
+        read -n 1 -s -r -p "press any key to continue…" 1>&3 2>&4
+        echo ""
+        execute "dch -r -D unstable"
+        echo "Prepare debian changelog for $release" > "_tmp_msg_"
+        execute "git commit -F _tmp_msg_ debian/changelog"
+        execute "rm _tmp_msg_"
+    else
+        echo "Skipping debian changelog update." 1>&3 2>&4
+    fi
+
     head_commit=`git log --pretty=oneline -1 | cut -d " " -f 1`
     # this commit needs to be forward merged and atomic pushed (see reminders at bottom)
 
