@@ -101,8 +101,10 @@ tar -xzf apache-cassandra-$2-bin.tar.gz
 JDKS="8"
 if [[ $2 =~ [4]\. ]] ; then
     JDKS=("8" "11")
-elif [[ $2 =~ [56]\. ]] ; then
+elif [[ $2 =~ [5]\. ]] ; then
     JDKS=("11" "17")
+elif [[ $2 =~ [6]\. ]] ; then
+    JDKS=("11" "17" "21")
 fi
 TIMEOUT=2160
 
@@ -127,11 +129,11 @@ for JDK in ${JDKS[@]} ; do
 
     PID=$!
     success=false
-    while read LINE && ! $success ; do
-        if [[ $LINE =~ 'BUILD SUCCESSFUL' ]] ; then
+    while read LINE ; do
+        if ! $success && [[ $LINE =~ 'BUILD SUCCESSFUL' ]] ; then
             echo "Source build (JDK ${JDK}) OK"
-            kill "$PID"
             success=true
+            kill "$PID" 2>/dev/null
         fi
     done < procfifo
     rm -f procfifo
@@ -152,11 +154,11 @@ for JDK in ${JDKS[@]} ; do
 
     PID=$!
     success=false
-    while read LINE && ! $success ; do
-        if [[ $LINE =~ "Starting listening for CQL clients on" ]] ; then
+    while read LINE ; do
+        if ! $success && [[ $LINE =~ "Starting listening for CQL clients on" ]] ; then
             echo "Binary artefact (JDK ${JDK}) OK"
-            kill "$PID"
             success=true
+            kill "$PID" 2>/dev/null
         fi
     done < procfifo
     rm -f procfifo
@@ -172,37 +174,25 @@ for JDK in ${JDKS[@]} ; do
         DEBIAN_IMAGE="debian:bullseye-slim"
     fi
 
-    if [ "$JDK" == "8" ] ; then
-      echo
-      rm -f procfifo
-      mkfifo procfifo
-      docker run -i -v `pwd`/debian:/debian ${DEBIAN_IMAGE} timeout ${TIMEOUT} /bin/bash -c "
-          ( apt -qq update ;
-            apt -qq install -y python ; # will silently fail on debian latest
-            apt -qq install -y python3 procps ;
-            apt -qq install -y openjdk-${JDK}-jre-headless ; # will silently fail on *jdk-slim-buster
-            dpkg --ignore-depends=java7-runtime --ignore-depends=java8-runtime -i debian/*.deb ) 2>&1 >/dev/null ;
-          HEAP_NEWSIZE=500m MAX_HEAP_SIZE=1g MAX_DIRECT_MEMORY_SIZE=1g cassandra -R -f" 2>&1 >procfifo &
-    else
-      echo
-      rm -f procfifo
-      mkfifo procfifo
-      docker run -i -v `pwd`/debian:/debian ${DEBIAN_IMAGE} timeout ${TIMEOUT} /bin/bash -c "
-          ( apt -qq update ;
-            apt -qq install -y python ; # will silently fail on debian latest
-            apt -qq install -y python3 procps ;
-            apt -qq install -y openjdk-${JDK}-jre-headless ; # will silently fail on *jdk-slim-buster
-            dpkg --ignore-depends=java7-runtime --ignore-depends=java8-runtime -i debian/*.deb ) 2>&1 >/dev/null ;
-          HEAP_NEWSIZE=500m MAX_HEAP_SIZE=1g MAX_DIRECT_MEMORY_SIZE=1g cassandra -R -f" 2>&1 >procfifo &
-    fi
+    # Use the temurin image so the exact JDK is present (bullseye has no openjdk-21).
+    # --force-depends installs the .deb regardless of its javaNN-runtime virtual dependency;
+    # java is guaranteed on PATH from the image.
+    echo
+    rm -f procfifo
+    mkfifo procfifo
+    docker run -i -v `pwd`/debian:/debian eclipse-temurin:${JDK}-jdk timeout ${TIMEOUT} /bin/bash -c "
+        ( apt -qq update ;
+          apt -qq install -y python3 procps ;
+          dpkg --force-depends -i debian/*.deb ) 2>&1 >/dev/null ;
+        HEAP_NEWSIZE=500m MAX_HEAP_SIZE=1g MAX_DIRECT_MEMORY_SIZE=1g cassandra -R -f" 2>&1 >procfifo &
 
     PID=$!
     success=false
-    while read LINE && ! $success ; do
-        if [[ $LINE =~ "Starting listening for CQL clients on" ]] ; then
+    while read LINE ; do
+        if ! $success && [[ $LINE =~ "Starting listening for CQL clients on" ]] ; then
             echo "Debian package (JDK ${JDK}) OK"
-            kill "$PID"
             success=true
+            kill "$PID" 2>/dev/null
         fi
     done < procfifo
     rm -f procfifo
@@ -245,11 +235,11 @@ for JDK in ${JDKS[@]} ; do
 
     PID=$!
     success=false
-    while read LINE && ! $success ; do
-        if [[ $LINE =~ "Starting listening for CQL clients on" ]] ; then
+    while read LINE ; do
+        if ! $success && [[ $LINE =~ "Starting listening for CQL clients on" ]] ; then
             echo "Debian repository (JDK ${JDK}) OK"
-            kill "$PID"
             success=true
+            kill "$PID" 2>/dev/null
         fi
     done < procfifo
     rm -f procfifo
@@ -292,11 +282,11 @@ for JDK in ${JDKS[@]} ; do
 
         PID=$!
         success=false
-        while read LINE && ! $success ; do
-            if [[ $LINE =~ "Starting listening for CQL clients on" ]] ; then
+        while read LINE ; do
+            if ! $success && [[ $LINE =~ "Starting listening for CQL clients on" ]] ; then
                 echo "Redhat package (${RH_DIST} JDK ${JDK}) OK"
-                kill "$PID"
                 success=true
+                kill "$PID" 2>/dev/null
             fi
         done < procfifo
         rm -f procfifo
@@ -328,11 +318,11 @@ for JDK in ${JDKS[@]} ; do
 
         PID=$!
         success=false
-        while read LINE && ! $success ; do
-            if [[ $LINE =~ "Starting listening for CQL clients on" ]] ; then
+        while read LINE ; do
+            if ! $success && [[ $LINE =~ "Starting listening for CQL clients on" ]] ; then
                 echo "Redhat repository (${RH_DIST} JDK ${JDK}) OK"
-                kill "$PID"
                 success=true
+                kill "$PID" 2>/dev/null
             fi
         done < procfifo
         rm -f procfifo
