@@ -22,6 +22,17 @@ RUN echo 'APT::Acquire::Retries "99";' > /etc/apt/apt.conf.d/80-retries
 RUN echo 'Acquire::http::Timeout "60";' > /etc/apt/apt.conf.d/80proxy.conf
 RUN echo 'Acquire::ftp::Timeout "60";' >> /etc/apt/apt.conf.d/80proxy.conf
 
+# bullseye reached end-of-life on 2026-08-31, take main and bullseye-updates from the archive.
+# bullseye-security is not on archive.debian.org, and the indexes still served by
+# security.debian.org name pool files that have been deleted, so take it from a snapshot dated
+# just after end-of-life. The base image already has those security versions installed, so
+# without this source apt cannot resolve libc6-dev, perl or gnupg2 against the older archive.
+# Both the archive and the snapshot serve Release files past their Valid-Until.
+RUN echo 'deb http://archive.debian.org/debian bullseye main' > /etc/apt/sources.list \
+    && echo 'deb http://archive.debian.org/debian bullseye-updates main' >> /etc/apt/sources.list \
+    && echo 'deb http://snapshot.debian.org/archive/debian-security/20260901T000000Z bullseye-security main' >> /etc/apt/sources.list \
+    && echo 'Acquire::Check-Valid-Until "false";' > /etc/apt/apt.conf.d/80no-check-valid-until
+
 # install deps
 RUN until apt-get update \
         && apt-get -y install ant build-essential curl devscripts ed git python2 sudo apt-transport-https gpg ; \
