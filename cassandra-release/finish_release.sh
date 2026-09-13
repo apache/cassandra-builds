@@ -274,7 +274,7 @@ echo "[3]: https://issues.apache.org/jira/browse/CASSANDRA" >> $mail_file
 echo 'Done deploying artifacts. Please make sure to:'
 echo ' 1) "Release" the staging repository from repository.apache.org'
 echo ' 2) wait for the artifacts to sync at https://downloads.apache.org/cassandra/'
-echo ' 3) update the website (TODO provide link)'  # TODO - this is old info and needs updating..
+echo ' 3) update cassandra-website/site-content/source/modules/ROOT/pages/download.adoc'
 echo ' 4) update CQL doc if appropriate'
 echo ' 5) update wikipedia page if appropriate ( https://en.wikipedia.org/wiki/Apache_Cassandra )'
 echo " 6) send announcement email: draft in $mail_file"
@@ -282,6 +282,6 @@ echo ' 7) update #cassandra topic on slack'
 echo ' 8) tweet from @cassandra'
 echo ' 9) release version in JIRA'
 echo ' 10) remove old version (eg: `svn rm https://dist.apache.org/repos/dist/release/cassandra/<previous_version>`)'
-echo ' 11) increment build.xml (base.version), CHANGES.txt, and  ubuntu2004_test.docker (ccm installed) for the next release'
+echo ' 11) increment build.xml (base.version), CHANGES.txt (and move unreleased entries  up to new version), and  ubuntu2004_test.docker (ccm installed) for the next release'
 echo ' 12) Add release in https://reporter.apache.org/addrelease.html?cassandra (same as instructions in email you will receive from the \"Apache Reporter Service\")'
 echo ' 13) update current_ version in cassandra-dtest/upgrade_tests/upgrade_manifest.py'
