@@ -1,0 +1,20 @@
+# Exclude Cassandra data directories from Docker builds
+# These contain persisted cluster metadata that can cause conflicts
+cassandra/data/
+cassandra/commitlog/
+cassandra/saved_caches/
+cassandra/hints/
+cassandra/cdc_raw/
+
+# Exclude Sidecar data directories
+cassandra-sidecar/dtest-jars/build/
+
+# Exclude build artifacts that shouldn't be in the image
+cassandra/.gradle/
+cassandra/build/test/
+cassandra-sidecar/.gradle/
+cassandra-sidecar/build/test/
+
+# Exclude git directories
+cassandra/.git/
+cassandra-sidecar/.git/

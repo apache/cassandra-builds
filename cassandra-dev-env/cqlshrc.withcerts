@@ -1,0 +1,5 @@
+[ssl]
+certfile = /opt/ssl-certs/ca-cert.pem
+validate = true
+userkey = /opt/ssl-certs/client-key.pem
+usercert = /opt/ssl-certs/client-cert.pem

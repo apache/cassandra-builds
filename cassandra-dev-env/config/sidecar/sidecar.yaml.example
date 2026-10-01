@@ -1,0 +1,60 @@
+# Example Sidecar configuration override
+# Place your custom sidecar.yaml here to override the default sidecar configuration
+# This file will be mounted into the container at /opt/sidecar/conf/sidecar.yaml
+
+# Example configuration:
+# cassandra_instances:
+#   - id: 1
+#     host: cassandra-1
+#     port: 9042
+#     data_center: datacenter1
+#     rack: rack1
+#     jmx_host: cassandra-1
+#     jmx_port: 7199
+#     jmx_ssl_enabled: false
+#     jmx_authentication_enabled: false
+#     jmx_authorization_enabled: false
+# 
+# sidecar:
+#   host: 0.0.0.0
+#   port: 9043
+#   health_check_frequency: 30s
+#   request_idle_timeout_millis: 300000
+#   request_timeout_millis: 300000
+#   
+# logging:
+#   level: INFO
+#   loggers:
+#     org.apache.cassandra.sidecar: INFO
+#     io.vertx: WARN
+#     org.apache.cassandra: INFO
+#     com.datastax.driver: WARN
+#     
+# server:
+#   request_idle_timeout_millis: 300000
+#   request_timeout_millis: 300000
+#   
+# # SSL/TLS Configuration (optional)
+# ssl:
+#   enabled: false
+#   keystore_path: /path/to/keystore.jks
+#   keystore_password: changeit
+#   truststore_path: /path/to/truststore.jks
+#   truststore_password: changeit
+#   
+# # Authentication Configuration (optional)
+# authentication:
+#   enabled: false
+#   username: admin
+#   password: admin
+#   
+# # File system configuration
+# file_system:
+#   upload_root: /tmp/sidecar/uploads
+#   snapshot_root: /var/lib/cassandra/data
+#   
+# # Features configuration
+# features:
+#   upload_sstable_enabled: true
+#   backup_restore_enabled: true
+#   ring_management_enabled: true

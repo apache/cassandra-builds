@@ -1,0 +1,98 @@
+<!--
+ Licensed to the Apache Software Foundation (ASF) under one
+ or more contributor license agreements.  See the NOTICE file
+ distributed with this work for additional information
+ regarding copyright ownership.  The ASF licenses this file
+ to you under the Apache License, Version 2.0 (the
+ "License"); you may not use this file except in compliance
+ with the License.  You may obtain a copy of the License at
+
+   http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing,
+ software distributed under the License is distributed on an
+ "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ KIND, either express or implied.  See the License for the
+ specific language governing permissions and limitations
+ under the License.
+-->
+
+<!--
+DEBUG MODE CONFIGURATION - Verbose logging enabled
+-->
+
+<configuration scan="true" scanPeriod="60 seconds">
+  <!-- No shutdown hook; we run it ourselves in StorageService after shutdown -->
+
+  <!-- SYSTEMLOG rolling file appender to system.log (INFO level) -->
+
+  <appender name="SYSTEMLOG" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+      <level>DEBUG</level>
+    </filter>
+    <file>${cassandra.logdir}/system.log</file>
+    <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+      <!-- rollover daily -->
+      <fileNamePattern>${cassandra.logdir}/system.log.%d{yyyy-MM-dd}.%i.zip</fileNamePattern>
+      <!-- each file should be at most 50MB, keep 7 days worth of history, but at most 500MB -->
+      <maxFileSize>50MB</maxFileSize>
+      <maxHistory>7</maxHistory>
+      <totalSizeCap>500MB</totalSizeCap>
+    </rollingPolicy>
+    <encoder>
+      <pattern>%date{ISO8601} [%thread] %-5level %logger{36} - %msg%n</pattern>
+    </encoder>
+  </appender>
+
+  <!-- DEBUGLOG rolling file appender to debug.log (all levels) -->
+
+  <appender name="DEBUGLOG" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <file>${cassandra.logdir}/debug.log</file>
+    <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+      <!-- rollover daily -->
+      <fileNamePattern>${cassandra.logdir}/debug.log.%d{yyyy-MM-dd}.%i.zip</fileNamePattern>
+      <!-- each file should be at most 50MB, keep 2 days worth of history, but at most 1GB -->
+      <maxFileSize>50MB</maxFileSize>
+      <maxHistory>2</maxHistory>
+      <totalSizeCap>1GB</totalSizeCap>
+    </rollingPolicy>
+    <encoder>
+      <pattern>%date{ISO8601} [%thread] %-5level %logger{36} - %msg%n</pattern>
+    </encoder>
+  </appender>
+
+  <!-- ASYNCDEBUGLOG appender for asynchronous debug logging -->
+  <appender name="ASYNCDEBUGLOG" class="ch.qos.logback.classic.AsyncAppender">
+    <queueSize>1024</queueSize>
+    <discardingThreshold>0</discardingThreshold>
+    <includeCallerData>true</includeCallerData>
+    <appender-ref ref="DEBUGLOG" />
+  </appender>
+
+  <!-- STDOUT appender for console output -->
+
+  <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+    <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+      <level>DEBUG</level>
+    </filter>
+    <encoder>
+      <pattern>%-5level [%thread] %date{ISO8601} %F:%L - %msg%n</pattern>
+    </encoder>
+  </appender>
+
+  <!-- Specialized loggers -->
+
+  <logger name="org.apache.cassandra.service.StorageService" level="DEBUG"/>
+  <logger name="org.apache.cassandra.gms.Gossiper" level="DEBUG"/>
+  <logger name="org.apache.cassandra.service.CassandraDaemon" level="DEBUG"/>
+  <logger name="org.apache.cassandra.db.SystemKeyspace" level="DEBUG"/>
+  <logger name="org.apache.cassandra.locator.TokenMetadata" level="DEBUG"/>
+  <logger name="org.apache.cassandra.service.StorageProxy" level="DEBUG"/>
+  <logger name="org.apache.cassandra.config.DatabaseDescriptor" level="DEBUG"/>
+
+  <root level="DEBUG">
+    <appender-ref ref="SYSTEMLOG" />
+    <appender-ref ref="STDOUT" />
+    <appender-ref ref="ASYNCDEBUGLOG" />
+  </root>
+</configuration>
