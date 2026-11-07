@@ -72,6 +72,8 @@ BRANCH=$2
 DTEST_REPO=$3
 DTEST_BRANCH=$4
 JAVA_VERSION=${java_version}
+# the background periodic update can deadlock virtualenv running on python2.7
+VIRTUALENV_NO_PERIODIC_UPDATE=1
 EOF
 
     # pre-conditions
