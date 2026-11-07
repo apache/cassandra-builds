@@ -76,6 +76,8 @@ REPO=$1
 BRANCH=$2
 JAVA_VERSION=${java_version}
 cython=${cython}
+# the background periodic update can deadlock virtualenv running on python2.7
+VIRTUALENV_NO_PERIODIC_UPDATE=1
 EOF
 
     # Jenkins agents run multiple executors per machine. `jenkins_executors=1` is used for anything non-jenkins.
